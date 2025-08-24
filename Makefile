@@ -30,6 +30,8 @@ help:
 	@echo "  serve-docs   Serve documentation locally"
 	@echo ""
 	@echo "Development:"
+	@echo "  check        Quick development checks"
+	@echo "  run-all      Complete validation with cleanup"
 	@echo "  pre-commit   Run pre-commit hooks"
 	@echo "  all-checks   Run all quality checks"
 
@@ -106,6 +108,15 @@ serve-docs:
 # Development workflow
 pre-commit:
 	pre-commit run --all-files
+
+# Quick and complete validation
+check:
+	@echo "⚡ Running quick development checks..."
+	@python scripts/check.py
+
+run-all:
+	@echo "🚀 Running complete validation with cleanup..."
+	@python scripts/run-all.py
 
 all-checks: format lint type-check security test
 	@echo "All checks passed! ✅"
