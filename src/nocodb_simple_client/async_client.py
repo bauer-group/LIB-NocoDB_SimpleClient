@@ -1,0 +1,532 @@
+"""Async NocoDB REST API client implementation."""
+
+import asyncio
+import logging
+import mimetypes
+from typing import Dict, List, Optional, Any, Union, AsyncContextManager
+from pathlib import Path
+
+try:
+    import aiohttp
+    import aiofiles
+    ASYNC_AVAILABLE = True
+except ImportError:
+    ASYNC_AVAILABLE = False
+    aiohttp = None
+    aiofiles = None
+
+if ASYNC_AVAILABLE:
+    from .exceptions import (
+        NocoDBException,
+        RecordNotFoundException,
+        AuthenticationException,
+        AuthorizationException,
+        ConnectionTimeoutException,
+        RateLimitException,
+        ServerErrorException,
+        NetworkException,
+        TableNotFoundException,
+        FileUploadException,
+        InvalidResponseException,
+    )
+    from .validation import (
+        validate_table_id,
+        validate_record_id,
+        validate_field_names,
+        validate_record_data,
+        validate_where_clause,
+        validate_sort_clause,
+        validate_limit,
+        validate_file_path,
+        validate_url,
+        validate_api_token,
+    )
+    from .config import NocoDBConfig
+
+    class AsyncNocoDBClient:
+        """Async client for interacting with the NocoDB REST API.
+        
+        This client provides async methods to perform CRUD operations, file operations,
+        and other interactions with NocoDB tables through the REST API.
+        
+        Args:
+            config: NocoDBConfig instance with connection settings
+            
+        Example:
+            >>> config = NocoDBConfig(
+            ...     base_url="https://app.nocodb.com",
+            ...     api_token="your-api-token"
+            ... )
+            >>> async with AsyncNocoDBClient(config) as client:
+            ...     records = await client.get_records("table_id", limit=10)
+        """
+        
+        def __init__(self, config: NocoDBConfig):
+            self.config = config
+            self.logger = logging.getLogger(__name__)
+            self._session: Optional[aiohttp.ClientSession] = None
+            
+            # Validate configuration
+            self.config.validate()
+            
+            # Setup logging
+            self.config.setup_logging()
+        
+        async def __aenter__(self):
+            """Async context manager entry."""
+            await self._create_session()
+            return self
+        
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            """Async context manager exit."""
+            await self.close()
+        
+        async def _create_session(self) -> None:
+            """Create aiohttp session with proper configuration."""
+            headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'xc-token': self.config.api_token,
+                'User-Agent': self.config.user_agent,
+            }
+            
+            if self.config.access_protection_auth:
+                headers[self.config.access_protection_header] = self.config.access_protection_auth
+            
+            headers.update(self.config.extra_headers)
+            
+            # Configure timeout
+            timeout = aiohttp.ClientTimeout(
+                total=self.config.timeout,
+                connect=self.config.timeout / 3,
+                sock_read=self.config.timeout / 2
+            )
+            
+            # Configure connector
+            connector = aiohttp.TCPConnector(
+                limit=self.config.pool_maxsize,
+                limit_per_host=self.config.pool_connections,
+                ttl_dns_cache=300,
+                use_dns_cache=True,
+                verify_ssl=self.config.verify_ssl
+            )
+            
+            self._session = aiohttp.ClientSession(
+                headers=headers,
+                timeout=timeout,
+                connector=connector,
+                raise_for_status=False
+            )
+        
+        async def close(self) -> None:
+            """Close the session."""
+            if self._session:
+                await self._session.close()
+                self._session = None
+        
+        async def _request(
+            self, 
+            method: str, 
+            endpoint: str, 
+            params: Optional[Dict[str, Any]] = None,
+            data: Optional[Dict[str, Any]] = None,
+            json_data: Optional[Dict[str, Any]] = None
+        ) -> Dict[str, Any]:
+            """Make an async HTTP request."""
+            if not self._session:
+                await self._create_session()
+            
+            url = f"{self.config.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+            
+            self.logger.debug(f"{method} {url}")
+            
+            try:
+                async with self._session.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    data=data,
+                    json=json_data
+                ) as response:
+                    await self._check_for_error(response)
+                    
+                    if response.content_type == 'application/json':
+                        return await response.json()
+                    else:
+                        text = await response.text()
+                        try:
+                            import json
+                            return json.loads(text)
+                        except json.JSONDecodeError:
+                            return {"data": text}
+            
+            except aiohttp.ClientError as e:
+                self.logger.error(f"Network error: {e}")
+                raise NetworkException(f"Network error: {e}", original_error=e)
+            except asyncio.TimeoutError as e:
+                self.logger.error(f"Request timeout: {e}")
+                raise ConnectionTimeoutException(
+                    f"Request timeout after {self.config.timeout}s",
+                    timeout_seconds=self.config.timeout
+                )
+        
+        async def _check_for_error(self, response: aiohttp.ClientResponse) -> None:
+            """Check HTTP response for errors and raise appropriate exceptions."""
+            if response.status < 400:
+                return
+            
+            try:
+                error_info = await response.json()
+            except Exception:
+                error_info = {"error": f"HTTP_{response.status}", "message": await response.text()}
+            
+            error_code = error_info.get('error', f"HTTP_{response.status}")
+            message = error_info.get('message', f"HTTP {response.status}")
+            
+            # Map specific error types
+            if response.status == 401:
+                raise AuthenticationException(message)
+            elif response.status == 403:
+                raise AuthorizationException(message)
+            elif response.status == 404:
+                if 'record' in message.lower():
+                    raise RecordNotFoundException(message)
+                elif 'table' in message.lower():
+                    raise TableNotFoundException(message)
+                else:
+                    raise NocoDBException(error_code, message, response.status, error_info)
+            elif response.status == 408:
+                raise ConnectionTimeoutException(message)
+            elif response.status == 429:
+                retry_after = response.headers.get('Retry-After')
+                raise RateLimitException(message, retry_after=int(retry_after) if retry_after else None)
+            elif response.status >= 500:
+                raise ServerErrorException(message, response.status)
+            else:
+                raise NocoDBException(error_code, message, response.status, error_info)
+        
+        async def get_records(
+            self,
+            table_id: str,
+            sort: Optional[str] = None,
+            where: Optional[str] = None,
+            fields: Optional[List[str]] = None,
+            limit: int = 25,
+        ) -> List[Dict[str, Any]]:
+            """Get multiple records from a table asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                sort: Sort criteria (e.g., "Id", "-CreatedAt")
+                where: Filter condition (e.g., "(Name,eq,John)")
+                fields: List of fields to retrieve
+                limit: Maximum number of records to retrieve
+                
+            Returns:
+                List of record dictionaries
+            """
+            table_id = validate_table_id(table_id)
+            if where:
+                where = validate_where_clause(where)
+            if sort:
+                sort = validate_sort_clause(sort)
+            if fields:
+                fields = validate_field_names(fields)
+            limit = validate_limit(limit)
+            
+            records = []
+            offset = 0
+            remaining_limit = limit
+            
+            while remaining_limit > 0:
+                batch_limit = min(remaining_limit, 100)  # NocoDB max limit per request
+                params = {
+                    'sort': sort,
+                    'where': where,
+                    'limit': batch_limit,
+                    'offset': offset
+                }
+                if fields:
+                    params['fields'] = ','.join(fields)
+                
+                # Remove None values from params
+                params = {k: v for k, v in params.items() if v is not None}
+                
+                response = await self._request('GET', f"api/v2/tables/{table_id}/records", params=params)
+                
+                batch_records = response.get('list', [])
+                records.extend(batch_records)
+                
+                page_info = response.get('pageInfo', {})
+                offset += len(batch_records)
+                remaining_limit -= len(batch_records)
+                
+                if page_info.get('isLastPage', True) or not batch_records:
+                    break
+            
+            return records[:limit]
+        
+        async def get_record(
+            self,
+            table_id: str,
+            record_id: Union[int, str],
+            fields: Optional[List[str]] = None,
+        ) -> Dict[str, Any]:
+            """Get a single record by ID asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                record_id: The ID of the record
+                fields: List of fields to retrieve
+                
+            Returns:
+                Record dictionary
+            """
+            table_id = validate_table_id(table_id)
+            record_id = validate_record_id(record_id)
+            if fields:
+                fields = validate_field_names(fields)
+            
+            params = {}
+            if fields:
+                params['fields'] = ','.join(fields)
+            
+            return await self._request('GET', f"api/v2/tables/{table_id}/records/{record_id}", params=params)
+        
+        async def insert_record(self, table_id: str, record: Dict[str, Any]) -> Union[int, str]:
+            """Insert a new record into a table asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                record: Dictionary containing the record data
+                
+            Returns:
+                The ID of the inserted record
+            """
+            table_id = validate_table_id(table_id)
+            record = validate_record_data(record)
+            
+            response = await self._request('POST', f"api/v2/tables/{table_id}/records", json_data=record)
+            return response.get('Id')
+        
+        async def update_record(
+            self,
+            table_id: str,
+            record: Dict[str, Any],
+            record_id: Optional[Union[int, str]] = None,
+        ) -> Union[int, str]:
+            """Update an existing record asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                record: Dictionary containing the updated record data
+                record_id: The ID of the record to update (optional if included in record)
+                
+            Returns:
+                The ID of the updated record
+            """
+            table_id = validate_table_id(table_id)
+            record = validate_record_data(record)
+            
+            if record_id is not None:
+                record_id = validate_record_id(record_id)
+                record['Id'] = record_id
+            
+            response = await self._request('PATCH', f"api/v2/tables/{table_id}/records", json_data=record)
+            return response.get('Id')
+        
+        async def delete_record(self, table_id: str, record_id: Union[int, str]) -> Union[int, str]:
+            """Delete a record from a table asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                record_id: The ID of the record to delete
+                
+            Returns:
+                The ID of the deleted record
+            """
+            table_id = validate_table_id(table_id)
+            record_id = validate_record_id(record_id)
+            
+            response = await self._request('DELETE', f"api/v2/tables/{table_id}/records", json_data={'Id': record_id})
+            return response.get('Id')
+        
+        async def count_records(self, table_id: str, where: Optional[str] = None) -> int:
+            """Count records in a table asynchronously.
+            
+            Args:
+                table_id: The ID of the table
+                where: Filter condition (e.g., "(Name,eq,John)")
+                
+            Returns:
+                Number of records matching the criteria
+            """
+            table_id = validate_table_id(table_id)
+            if where:
+                where = validate_where_clause(where)
+            
+            params = {}
+            if where:
+                params['where'] = where
+            
+            response = await self._request('GET', f"api/v2/tables/{table_id}/records/count", params=params)
+            return response.get('count', 0)
+        
+        async def bulk_insert_records(
+            self, 
+            table_id: str, 
+            records: List[Dict[str, Any]]
+        ) -> List[Union[int, str]]:
+            """Insert multiple records in parallel.
+            
+            Args:
+                table_id: The ID of the table
+                records: List of record dictionaries
+                
+            Returns:
+                List of inserted record IDs
+            """
+            table_id = validate_table_id(table_id)
+            
+            # Validate all records first
+            validated_records = [validate_record_data(record) for record in records]
+            
+            # Create tasks for parallel execution
+            tasks = [
+                self.insert_record(table_id, record) 
+                for record in validated_records
+            ]
+            
+            # Execute in parallel with concurrency limit
+            semaphore = asyncio.Semaphore(10)  # Limit concurrent requests
+            
+            async def limited_insert(task):
+                async with semaphore:
+                    return await task
+            
+            results = await asyncio.gather(*[limited_insert(task) for task in tasks])
+            return results
+        
+        async def bulk_update_records(
+            self, 
+            table_id: str, 
+            records: List[Dict[str, Any]]
+        ) -> List[Union[int, str]]:
+            """Update multiple records in parallel.
+            
+            Args:
+                table_id: The ID of the table
+                records: List of record dictionaries (must include 'Id')
+                
+            Returns:
+                List of updated record IDs
+            """
+            table_id = validate_table_id(table_id)
+            
+            # Validate all records and ensure they have IDs
+            validated_records = []
+            for record in records:
+                validated_record = validate_record_data(record)
+                if 'Id' not in validated_record:
+                    raise ValidationException("Record must include 'Id' for bulk update", field_name="Id")
+                validated_records.append(validated_record)
+            
+            # Create tasks for parallel execution
+            tasks = [
+                self.update_record(table_id, record) 
+                for record in validated_records
+            ]
+            
+            # Execute in parallel with concurrency limit
+            semaphore = asyncio.Semaphore(10)
+            
+            async def limited_update(task):
+                async with semaphore:
+                    return await task
+            
+            results = await asyncio.gather(*[limited_update(task) for task in tasks])
+            return results
+
+    class AsyncNocoDBTable:
+        """Async wrapper class for performing operations on a specific NocoDB table.
+        
+        This class provides a convenient interface for working with a single table
+        by wrapping the AsyncNocoDBClient methods and automatically passing the table ID.
+        
+        Args:
+            client: An instance of AsyncNocoDBClient
+            table_id: The ID of the table to operate on
+            
+        Example:
+            >>> async with AsyncNocoDBClient(config) as client:
+            ...     table = AsyncNocoDBTable(client, "table_id")
+            ...     records = await table.get_records(limit=10)
+        """
+        
+        def __init__(self, client: AsyncNocoDBClient, table_id: str):
+            self.client = client
+            self.table_id = validate_table_id(table_id)
+        
+        async def get_records(
+            self,
+            sort: Optional[str] = None,
+            where: Optional[str] = None,
+            fields: Optional[List[str]] = None,
+            limit: int = 25,
+        ) -> List[Dict[str, Any]]:
+            """Get multiple records from the table."""
+            return await self.client.get_records(self.table_id, sort, where, fields, limit)
+        
+        async def get_record(
+            self,
+            record_id: Union[int, str],
+            fields: Optional[List[str]] = None,
+        ) -> Dict[str, Any]:
+            """Get a single record by ID."""
+            return await self.client.get_record(self.table_id, record_id, fields)
+        
+        async def insert_record(self, record: Dict[str, Any]) -> Union[int, str]:
+            """Insert a new record into the table."""
+            return await self.client.insert_record(self.table_id, record)
+        
+        async def update_record(
+            self,
+            record: Dict[str, Any],
+            record_id: Optional[Union[int, str]] = None,
+        ) -> Union[int, str]:
+            """Update an existing record."""
+            return await self.client.update_record(self.table_id, record, record_id)
+        
+        async def delete_record(self, record_id: Union[int, str]) -> Union[int, str]:
+            """Delete a record from the table."""
+            return await self.client.delete_record(self.table_id, record_id)
+        
+        async def count_records(self, where: Optional[str] = None) -> int:
+            """Count records in the table."""
+            return await self.client.count_records(self.table_id, where)
+        
+        async def bulk_insert_records(self, records: List[Dict[str, Any]]) -> List[Union[int, str]]:
+            """Insert multiple records in parallel."""
+            return await self.client.bulk_insert_records(self.table_id, records)
+        
+        async def bulk_update_records(self, records: List[Dict[str, Any]]) -> List[Union[int, str]]:
+            """Update multiple records in parallel."""
+            return await self.client.bulk_update_records(self.table_id, records)
+
+else:
+    # Fallback classes when async dependencies are not available
+    class AsyncNocoDBClient:
+        """Fallback class when async dependencies are not available."""
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "Async support requires additional dependencies. "
+                "Install with: pip install 'nocodb-simple-client[async]'"
+            )
+    
+    class AsyncNocoDBTable:
+        """Fallback class when async dependencies are not available."""
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "Async support requires additional dependencies. "
+                "Install with: pip install 'nocodb-simple-client[async]'"
+            )

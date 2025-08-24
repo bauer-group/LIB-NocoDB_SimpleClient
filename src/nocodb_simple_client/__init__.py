@@ -2,7 +2,20 @@
 
 from .client import NocoDBClient
 from .table import NocoDBTable
-from .exceptions import NocoDBException, RecordNotFoundException
+from .exceptions import (
+    NocoDBException,
+    RecordNotFoundException,
+    ValidationException,
+    AuthenticationException,
+    AuthorizationException,
+    ConnectionTimeoutException,
+    RateLimitException,
+    ServerErrorException,
+    NetworkException,
+    TableNotFoundException,
+    FileUploadException,
+    InvalidResponseException,
+)
 
 __version__ = "0.4.0"
 __author__ = "BAUER GROUP (Karl Bauer)"
@@ -13,4 +26,14 @@ __all__ = [
     "NocoDBTable", 
     "NocoDBException",
     "RecordNotFoundException",
+    "ValidationException",
+    "AuthenticationException",
+    "AuthorizationException",
+    "ConnectionTimeoutException",
+    "RateLimitException",
+    "ServerErrorException",
+    "NetworkException",
+    "TableNotFoundException",
+    "FileUploadException",
+    "InvalidResponseException",
 ]

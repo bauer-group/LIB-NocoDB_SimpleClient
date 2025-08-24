@@ -324,7 +324,28 @@ Check out the [`examples/`](examples/) directory for comprehensive examples:
 
 ## 🔧 Development
 
-### Setting up Development Environment
+### Quick Setup
+
+Use the automated setup script for your platform:
+
+```bash
+# Windows
+scripts\setup.cmd
+
+# macOS/Linux
+./scripts/setup.sh
+
+# Or run Python directly (cross-platform)
+python scripts/setup.py
+```
+
+This will:
+- Create a virtual environment
+- Install all dependencies  
+- Setup pre-commit hooks
+- Verify the installation
+
+### Manual Setup
 
 1. Clone the repository:
 ```bash
@@ -335,49 +356,133 @@ cd nocodb-simple-client
 2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux  
+source venv/bin/activate
 ```
 
 3. Install development dependencies:
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,docs]"
+pre-commit install
 ```
 
-### Running Tests
+### Local Validation
 
+Use these commands to validate your code locally:
+
+#### Quick Validation
 ```bash
-# Run all tests
+# Windows
+scripts\quick-test.cmd
+
+# macOS/Linux
+./scripts/quick-test.sh
+
+# Or cross-platform
+python scripts/quick-test.py
+```
+
+#### Complete Validation
+```bash
+# Windows
+scripts\validate.cmd
+
+# macOS/Linux  
+./scripts/validate.sh
+
+# Or cross-platform
+python scripts/validate.py
+```
+
+#### Individual Commands
+```bash
+# Code formatting
+black src/ tests/
+ruff --fix src/ tests/
+
+# Linting
+ruff check src/ tests/
+
+# Type checking  
+mypy src/nocodb_simple_client/
+
+# Security scan
+bandit -r src/
+
+# Run tests
 pytest
 
-# Run with coverage
-pytest --cov=src/nocodb_simple_client
+# Test with coverage
+pytest --cov=src/nocodb_simple_client --cov-report=html
 
-# Run specific test file
-pytest tests/test_client.py
+# Fast tests only (skip slow/integration tests)
+pytest -m "not slow and not integration"
+
+# Build package
+python -m build
 ```
 
-### Code Quality
-
-This project uses several tools to maintain code quality:
-
+#### Using Makefile (macOS/Linux)
 ```bash
-# Format code
-black .
+# See all available commands
+make help
 
-# Lint code
-ruff check .
+# Install dev dependencies
+make install-dev
 
-# Type checking
-mypy src/nocodb_simple_client
+# Run all checks
+make all-checks
+
+# Quick test
+make test-fast
+
+# Format code  
+make format
+
+# Generate coverage report
+make test-cov
 ```
 
 ### Pre-commit Hooks
 
-Install pre-commit hooks to automatically check your code before committing:
+Pre-commit hooks automatically run quality checks before each commit:
 
 ```bash
+# Install hooks (done automatically by setup script)
 pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
 ```
+
+### Build and Test Package
+
+```bash
+# Build package
+python -m build
+
+# Test installation
+pip install dist/nocodb_simple_client-*.whl
+
+# Clean build artifacts (Windows)
+rmdir /s build dist *.egg-info
+
+# Clean build artifacts (macOS/Linux)
+rm -rf build/ dist/ *.egg-info/
+```
+
+### Development Workflow
+
+1. **Setup**: Run setup script for your platform
+2. **Code**: Make your changes
+3. **Quick Test**: Run `python scripts/quick-test.py`
+4. **Full Validation**: Run `python scripts/validate.py` 
+5. **Commit**: Pre-commit hooks will run automatically
+6. **Push**: CI will run full test suite
 
 ## 🤝 Contributing
 

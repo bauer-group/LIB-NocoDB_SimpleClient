@@ -52,6 +52,7 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=2.20.0",
     "tox>=4.0.0",
+    "tomli>=2.0.0; python_version<'3.11'",
 ]
 docs = [
     "mkdocs>=1.4.0",
@@ -186,3 +187,12 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+
+# Security configuration for Bandit
+[tool.bandit]
+exclude_dirs = ["tests", "scripts"]
+skips = ["B101"]  # Skip assert_used test
+
+# Additional security linting configuration
+[tool.bandit.assert_used]
+skips = ["*_test.py", "*test*.py"]

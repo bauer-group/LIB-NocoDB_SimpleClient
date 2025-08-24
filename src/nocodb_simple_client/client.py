@@ -1,14 +1,46 @@
 """NocoDB REST API client implementation."""
 
 import os
+import logging
 import mimetypes
+import time
 from typing import Dict, List, Optional, Any, Union
 from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
+from requests.adapters import HTTPAdapter
+from requests.exceptions import ConnectionError, Timeout, RequestException
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from urllib3.util.retry import Retry
 
-from .exceptions import NocoDBException, RecordNotFoundException
+from .exceptions import (
+    NocoDBException, 
+    RecordNotFoundException,
+    AuthenticationException,
+    AuthorizationException,
+    ConnectionTimeoutException,
+    RateLimitException,
+    ServerErrorException,
+    NetworkException,
+    TableNotFoundException,
+    FileUploadException,
+    InvalidResponseException,
+    ValidationException,
+)
+from .validation import (
+    validate_table_id,
+    validate_record_id,
+    validate_field_names,
+    validate_record_data,
+    validate_where_clause,
+    validate_sort_clause,
+    validate_limit,
+    validate_file_path,
+    validate_url,
+    validate_api_token,
+)
+from .config import NocoDBConfig
 
 
 class NocoDBClient:
