@@ -1,4 +1,5 @@
-"""
+"""Custom exceptions for NocoDB Simple Client.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,9 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Custom exceptions for NocoDB Simple Client."""
-
-from typing import Any, Optional
+from typing import Any
 
 
 class NocoDBException(Exception):
@@ -41,8 +40,8 @@ class NocoDBException(Exception):
         self,
         error: str,
         message: str,
-        status_code: Optional[int] = None,
-        response_data: Optional[dict[str, Any]] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.error = error
@@ -58,7 +57,7 @@ class NocoDBException(Exception):
 class RecordNotFoundException(NocoDBException):
     """Exception raised when a record is not found."""
 
-    def __init__(self, message: str = "Record not found", record_id: Optional[str] = None):
+    def __init__(self, message: str = "Record not found", record_id: str | None = None):
         super().__init__("RECORD_NOT_FOUND", message, status_code=404)
         self.record_id = record_id
 
@@ -66,7 +65,7 @@ class RecordNotFoundException(NocoDBException):
 class ValidationException(NocoDBException):
     """Exception raised when input validation fails."""
 
-    def __init__(self, message: str, field_name: Optional[str] = None):
+    def __init__(self, message: str, field_name: str | None = None):
         super().__init__("VALIDATION_ERROR", message, status_code=400)
         self.field_name = field_name
 
@@ -88,9 +87,7 @@ class AuthorizationException(NocoDBException):
 class ConnectionTimeoutException(NocoDBException):
     """Exception raised when connection timeout occurs."""
 
-    def __init__(
-        self, message: str = "Connection timeout", timeout_seconds: Optional[float] = None
-    ):
+    def __init__(self, message: str = "Connection timeout", timeout_seconds: float | None = None):
         super().__init__("CONNECTION_TIMEOUT", message, status_code=408)
         self.timeout_seconds = timeout_seconds
 
@@ -98,7 +95,7 @@ class ConnectionTimeoutException(NocoDBException):
 class RateLimitException(NocoDBException):
     """Exception raised when API rate limit is exceeded."""
 
-    def __init__(self, message: str = "Rate limit exceeded", retry_after: Optional[int] = None):
+    def __init__(self, message: str = "Rate limit exceeded", retry_after: int | None = None):
         super().__init__("RATE_LIMIT_EXCEEDED", message, status_code=429)
         self.retry_after = retry_after
 
@@ -113,7 +110,7 @@ class ServerErrorException(NocoDBException):
 class NetworkException(NocoDBException):
     """Exception raised when network-related errors occur."""
 
-    def __init__(self, message: str, original_error: Optional[Exception] = None):
+    def __init__(self, message: str, original_error: Exception | None = None):
         super().__init__("NETWORK_ERROR", message)
         self.original_error = original_error
 
@@ -121,7 +118,7 @@ class NetworkException(NocoDBException):
 class TableNotFoundException(NocoDBException):
     """Exception raised when a table is not found."""
 
-    def __init__(self, message: str = "Table not found", table_id: Optional[str] = None):
+    def __init__(self, message: str = "Table not found", table_id: str | None = None):
         super().__init__("TABLE_NOT_FOUND", message, status_code=404)
         self.table_id = table_id
 
@@ -129,7 +126,7 @@ class TableNotFoundException(NocoDBException):
 class FileUploadException(NocoDBException):
     """Exception raised when file upload fails."""
 
-    def __init__(self, message: str, filename: Optional[str] = None):
+    def __init__(self, message: str, filename: str | None = None):
         super().__init__("FILE_UPLOAD_ERROR", message)
         self.filename = filename
 
@@ -140,6 +137,6 @@ class InvalidResponseException(NocoDBException):
     def __init__(
         self,
         message: str = "Invalid response format",
-        response_data: Optional[dict[str, Any]] = None,
+        response_data: dict[str, Any] | None = None,
     ):
         super().__init__("INVALID_RESPONSE", message, response_data=response_data)

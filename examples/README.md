@@ -5,9 +5,11 @@ This directory contains comprehensive examples demonstrating how to use the Noco
 ## Examples Overview
 
 ### 1. Basic Usage (`basic_usage.py`)
+
 **Purpose**: Introduction to core CRUD operations
 
 **What you'll learn**:
+
 - Client initialization and configuration
 - Creating, reading, updating, and deleting records
 - Basic filtering and sorting
@@ -17,9 +19,11 @@ This directory contains comprehensive examples demonstrating how to use the Noco
 **Best for**: Beginners getting started with the library
 
 ### 2. File Operations (`file_operations.py`)
+
 **Purpose**: Working with file attachments in NocoDB
 
 **What you'll learn**:
+
 - Uploading files to records
 - Downloading files from records
 - Managing multiple file attachments
@@ -29,9 +33,11 @@ This directory contains comprehensive examples demonstrating how to use the Noco
 **Best for**: Applications that need document/media management
 
 ### 3. Advanced Querying (`advanced_querying.py`)
+
 **Purpose**: Sophisticated data retrieval techniques
 
 **What you'll learn**:
+
 - Complex filtering with multiple conditions
 - Advanced sorting strategies
 - Field selection optimization
@@ -42,9 +48,11 @@ This directory contains comprehensive examples demonstrating how to use the Noco
 **Best for**: Applications with complex data analysis needs
 
 ### 4. Context Manager Usage (`context_manager_usage.py`)
+
 **Purpose**: Proper resource management and error handling
 
 **What you'll learn**:
+
 - Using context managers for automatic cleanup
 - Proper exception handling
 - Working with multiple tables
@@ -64,17 +72,21 @@ Before running the examples, you'll need to configure:
 ### Getting Your Configuration Values
 
 #### 1. NocoDB Base URL
+
 Your NocoDB instance URL, for example:
+
 - Self-hosted: `https://your-nocodb-domain.com`
 - NocoDB Cloud: `https://app.nocodb.com`
 
 #### 2. API Token
+
 1. Log into your NocoDB instance
 2. Go to your profile settings
 3. Generate an API token
 4. Copy the token value
 
 #### 3. Table ID
+
 1. Open your table in NocoDB
 2. Look at the URL in your browser
 3. The table ID is the string after `/table/`
@@ -85,13 +97,16 @@ Table ID: `m12345abcdef`
 ## Running the Examples
 
 ### Method 1: Direct Execution
+
 ```bash
 # Update configuration in the example file first
 python examples/basic_usage.py
 ```
 
 ### Method 2: Environment Variables
+
 Create a `.env` file in the project root:
+
 ```env
 NOCODB_BASE_URL=https://your-nocodb-instance.com
 NOCODB_API_TOKEN=your-api-token-here
@@ -99,6 +114,7 @@ NOCODB_TABLE_ID=your-table-id-here
 ```
 
 Then modify the examples to use environment variables:
+
 ```python
 import os
 from dotenv import load_dotenv
@@ -111,7 +127,9 @@ TABLE_ID = os.getenv('NOCODB_TABLE_ID')
 ```
 
 ### Method 3: Interactive Configuration
+
 Run the interactive setup script:
+
 ```bash
 python examples/setup_config.py
 ```
@@ -119,6 +137,7 @@ python examples/setup_config.py
 ## Example Data Structure
 
 Most examples assume your NocoDB table has these common fields:
+
 - `Id` (Auto-generated)
 - `Name` (Single Line Text)
 - `Email` (Email)
@@ -128,11 +147,13 @@ Most examples assume your NocoDB table has these common fields:
 - `Description` (Long Text)
 
 For file examples, you'll also need:
+
 - `Document` (Attachment field)
 
 ## Common Patterns
 
 ### Error Handling Pattern
+
 ```python
 try:
     # Your NocoDB operations
@@ -146,6 +167,7 @@ except Exception as e:
 ```
 
 ### Context Manager Pattern
+
 ```python
 with NocoDBClient(base_url=URL, db_auth_token=TOKEN) as client:
     table = NocoDBTable(client, table_id=TABLE_ID)
@@ -154,6 +176,7 @@ with NocoDBClient(base_url=URL, db_auth_token=TOKEN) as client:
 ```
 
 ### Pagination Pattern
+
 ```python
 # The client handles pagination automatically
 all_records = table.get_records(limit=500)  # Gets all records up to 500
@@ -172,18 +195,22 @@ all_records = table.get_records(limit=500)  # Gets all records up to 500
 ### Common Issues
 
 **"Table not found" error**:
+
 - Verify your table ID is correct
 - Check that your API token has access to the table
 
 **"Authentication failed" error**:
+
 - Verify your API token is valid and not expired
 - Check your base URL is correct
 
 **"Field not found" error**:
+
 - Ensure the field names match your table schema
 - Field names are case-sensitive
 
 **Connection timeout**:
+
 - Increase the timeout parameter in client initialization
 - Check your network connection to NocoDB
 

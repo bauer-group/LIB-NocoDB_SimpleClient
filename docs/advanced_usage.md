@@ -30,10 +30,12 @@ config = load_config(env_prefix="MY_APP_")
 ```
 
 Required environment variables:
+
 - `NOCODB_BASE_URL`: Your NocoDB instance URL
 - `NOCODB_API_TOKEN`: Your API authentication token
 
 Optional environment variables:
+
 - `NOCODB_PROTECTION_AUTH`: Access protection token
 - `NOCODB_PROTECTION_HEADER`: Custom protection header name
 - `NOCODB_TIMEOUT`: Request timeout (default: 30.0)
@@ -103,14 +105,14 @@ async def main():
         base_url="https://nocodb.example.com",
         api_token="your-token"
     )
-    
+
     async with AsyncNocoDBClient(config) as client:
         table = AsyncNocoDBTable(client, "your-table-id")
-        
+
         # Async operations
         records = await table.get_records(limit=100)
         new_record = await table.insert_record({"name": "async record"})
-        
+
         # Bulk operations (parallel execution)
         records_to_insert = [
             {"name": f"record_{i}"} for i in range(100)
@@ -129,11 +131,11 @@ import asyncio
 
 async def process_records_with_limit(table, records, max_concurrent=10):
     semaphore = asyncio.Semaphore(max_concurrent)
-    
+
     async def process_single(record):
         async with semaphore:
             return await table.insert_record(record)
-    
+
     tasks = [process_single(record) for record in records]
     results = await asyncio.gather(*tasks)
     return results
@@ -156,21 +158,21 @@ cache_manager = create_cache_manager(
 # Manual caching
 def get_cached_records(table: NocoDBTable, cache: CacheManager):
     cache_key = cache.get_records_cache_key(
-        table.table_id, 
+        table.table_id,
         limit=100
     )
-    
+
     # Try cache first
     cached_result = cache.get(cache_key)
     if cached_result:
         return cached_result
-    
+
     # Fetch from API
     records = table.get_records(limit=100)
-    
+
     # Cache result
     cache.set(cache_key, records, ttl=300)  # 5 minutes
-    
+
     return records
 ```
 
@@ -264,22 +266,22 @@ Implement efficient pagination:
 def get_all_records_paginated(table, page_size=100):
     all_records = []
     offset = 0
-    
+
     while True:
         # Note: This example shows the concept
         # The actual client handles pagination automatically
         records = table.get_records(limit=page_size)
-        
+
         if not records:
             break
-            
+
         all_records.extend(records)
-        
+
         if len(records) < page_size:
             break
-            
+
         offset += page_size
-    
+
     return all_records
 ```
 
@@ -325,7 +327,7 @@ from nocodb_simple_client.validation import (
 def safe_get_records(table, user_input):
     # Sanitize user input
     safe_where = sanitize_string(user_input, max_length=500)
-    
+
     # Validate and get records
     return table.get_records(where=safe_where)
 ```
@@ -402,14 +404,14 @@ def retry_operation(operation, max_retries=3, backoff_factor=1.0):
         except RateLimitException as e:
             if attempt == max_retries - 1:
                 raise
-            
+
             # Wait for retry-after header or default backoff
             wait_time = e.retry_after or (backoff_factor * (2 ** attempt))
             time.sleep(wait_time)
         except NetworkException:
             if attempt == max_retries - 1:
                 raise
-            
+
             # Exponential backoff for network errors
             time.sleep(backoff_factor * (2 ** attempt))
 ```
@@ -473,14 +475,14 @@ class MetricsCollector:
         self.operation_counts = Counter()
         self.operation_times = defaultdict(list)
         self.errors = Counter()
-    
+
     def record_operation(self, operation, duration, success=True):
         self.operation_counts[operation] += 1
         self.operation_times[operation].append(duration)
-        
+
         if not success:
             self.errors[operation] += 1
-    
+
     def get_stats(self):
         stats = {}
         for op in self.operation_counts:
@@ -500,7 +502,7 @@ metrics = MetricsCollector()
 def monitored_operation(table):
     start_time = time.time()
     success = True
-    
+
     try:
         return table.get_records()
     except Exception:

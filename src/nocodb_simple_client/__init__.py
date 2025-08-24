@@ -1,4 +1,5 @@
-"""
+"""A simple and powerful NocoDB REST API client for Python.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -21,8 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
-"""A simple and powerful NocoDB REST API client for Python."""
 
 from .client import NocoDBClient
 from .exceptions import (

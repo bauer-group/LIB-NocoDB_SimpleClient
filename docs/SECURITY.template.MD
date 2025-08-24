@@ -36,7 +36,7 @@ We are committed to responding promptly to security reports:
 
 - **Initial Response**: Within 48 hours of receipt
 - **Status Update**: Weekly updates during investigation
-- **Resolution Timeline**: 
+- **Resolution Timeline**:
   - **Critical**: 1-7 days
   - **High**: 1-14 days
   - **Medium**: 1-30 days
@@ -83,7 +83,7 @@ Our Python package follows security best practices:
 
 1. **Code Review**: All changes require review by maintainers
 2. **Secrets**: Never commit API keys, passwords, or sensitive data
-3. **Dependencies**: 
+3. **Dependencies**:
    - Use specific versions rather than ranges when possible
    - Review new dependencies for security issues using `pip-audit` and `safety`
    - Keep dependencies updated and minimal
@@ -94,11 +94,11 @@ Our Python package follows security best practices:
 ### For Library Users
 
 1. **Keep Updated**: Use the latest supported version from PyPI
-2. **API Key Security**: 
+2. **API Key Security**:
    - Store NocoDB API keys securely (environment variables, key vaults)
    - Never hardcode API keys in your source code
    - Use read-only API keys when possible
-3. **Network Security**: 
+3. **Network Security**:
    - Always use HTTPS connections to NocoDB
    - Validate SSL certificates in production
 4. **Input Sanitization**: Sanitize data before sending to NocoDB
@@ -171,9 +171,9 @@ We appreciate the security research community and all individuals who responsibl
 
 ---
 
-**Current Version**: {{CURRENT_VERSION}}  
-**Last Updated**: {{LAST_UPDATED}}  
-**Next Review**: {{NEXT_REVIEW}}  
+**Current Version**: {{CURRENT_VERSION}}
+**Last Updated**: {{LAST_UPDATED}}
+**Next Review**: {{NEXT_REVIEW}}
 **Policy Version**: {{POLICY_VERSION}}
 
 ---

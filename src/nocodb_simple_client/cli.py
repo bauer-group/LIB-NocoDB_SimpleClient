@@ -1,4 +1,5 @@
-"""
+"""Command-line interface for NocoDB Simple Client.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Command-line interface for NocoDB Simple Client."""
-
 import json
 import os
 import sys
@@ -39,7 +38,7 @@ try:
     CLI_AVAILABLE = True
 except ImportError:
     CLI_AVAILABLE = False
-    click = None
+    click = None  # type: ignore[assignment]
 
 if CLI_AVAILABLE:
     from .client import NocoDBClient
@@ -55,7 +54,13 @@ if CLI_AVAILABLE:
     @click.option("--api-token", "-t", help="API token")
     @click.option("--debug", is_flag=True, help="Enable debug output")
     @click.pass_context
-    def cli(ctx, config, base_url, api_token, debug):
+    def cli(
+        ctx: click.Context,
+        config: str | None,
+        base_url: str | None,
+        api_token: str | None,
+        debug: bool,
+    ) -> None:
         """NocoDB Simple Client CLI tool."""
         ctx.ensure_object(dict)
 
@@ -76,7 +81,8 @@ if CLI_AVAILABLE:
             except Exception as e:
                 console.print(f"[red]Error loading config from environment: {e}[/red]")
                 console.print(
-                    "Please provide --config, or --base-url and --api-token, or set environment variables"
+                    "Please provide --config, or --base-url and --api-token, "
+                    "or set environment variables"
                 )
                 sys.exit(1)
 
@@ -88,7 +94,7 @@ if CLI_AVAILABLE:
 
     @cli.command()
     @click.pass_context
-    def info(ctx):
+    def info(ctx: click.Context) -> None:
         """Display client and connection information."""
         config = ctx.obj["config"]
 
@@ -109,7 +115,7 @@ if CLI_AVAILABLE:
 
     @cli.group()
     @click.pass_context
-    def table(ctx):
+    def table(ctx: click.Context) -> None:
         """Table operations."""
         pass
 
@@ -127,7 +133,15 @@ if CLI_AVAILABLE:
         help="Output format",
     )
     @click.pass_context
-    def list_records(ctx, table_id, limit, where, sort, fields, output):
+    def list_records(
+        ctx: click.Context,
+        table_id: str,
+        limit: int,
+        where: str | None,
+        sort: str | None,
+        fields: str | None,
+        output: str,
+    ) -> None:
         """List records from a table."""
         config = ctx.obj["config"]
 
@@ -196,7 +210,9 @@ if CLI_AVAILABLE:
         "--output", "-o", type=click.Choice(["table", "json"]), default="json", help="Output format"
     )
     @click.pass_context
-    def get_record(ctx, table_id, record_id, fields, output):
+    def get_record(
+        ctx: click.Context, table_id: str, record_id: str, fields: str | None, output: str
+    ) -> None:
         """Get a specific record."""
         config = ctx.obj["config"]
 
@@ -233,7 +249,9 @@ if CLI_AVAILABLE:
     @click.option("--data", "-d", help="JSON data for the record")
     @click.option("--file", "-f", type=click.Path(exists=True), help="JSON file with record data")
     @click.pass_context
-    def create_record(ctx, table_id, data, file):
+    def create_record(
+        ctx: click.Context, table_id: str, data: str | None, file: str | None
+    ) -> None:
         """Create a new record."""
         config = ctx.obj["config"]
 
@@ -246,6 +264,9 @@ if CLI_AVAILABLE:
                 with open(file) as f:
                     record_data = json.load(f)
             else:
+                if data is None:
+                    console.print("[red]Data cannot be None[/red]")
+                    sys.exit(1)
                 record_data = json.loads(data)
 
             with NocoDBClient(
@@ -276,7 +297,9 @@ if CLI_AVAILABLE:
     @click.option("--data", "-d", help="JSON data for the record")
     @click.option("--file", "-f", type=click.Path(exists=True), help="JSON file with record data")
     @click.pass_context
-    def update_record(ctx, table_id, record_id, data, file):
+    def update_record(
+        ctx: click.Context, table_id: str, record_id: str, data: str | None, file: str | None
+    ) -> None:
         """Update an existing record."""
         config = ctx.obj["config"]
 
@@ -289,6 +312,9 @@ if CLI_AVAILABLE:
                 with open(file) as f:
                     record_data = json.load(f)
             else:
+                if data is None:
+                    console.print("[red]Data cannot be None[/red]")
+                    sys.exit(1)
                 record_data = json.loads(data)
 
             with NocoDBClient(
@@ -318,7 +344,7 @@ if CLI_AVAILABLE:
     @click.argument("record_id")
     @click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
     @click.pass_context
-    def delete_record(ctx, table_id, record_id, confirm):
+    def delete_record(ctx: click.Context, table_id: str, record_id: str, confirm: bool) -> None:
         """Delete a record."""
         config = ctx.obj["config"]
 
@@ -351,7 +377,7 @@ if CLI_AVAILABLE:
     @click.argument("table_id")
     @click.option("--where", "-w", help="Filter conditions")
     @click.pass_context
-    def count_records(ctx, table_id, where):
+    def count_records(ctx: click.Context, table_id: str, where: str | None) -> None:
         """Count records in a table."""
         config = ctx.obj["config"]
 
@@ -377,7 +403,7 @@ if CLI_AVAILABLE:
             sys.exit(1)
 
     @cli.group()
-    def files():
+    def files() -> None:
         """File operations."""
         pass
 
@@ -387,7 +413,9 @@ if CLI_AVAILABLE:
     @click.argument("field_name")
     @click.argument("file_path", type=click.Path(exists=True))
     @click.pass_context
-    def upload_file(ctx, table_id, record_id, field_name, file_path):
+    def upload_file(
+        ctx: click.Context, table_id: str, record_id: str, field_name: str, file_path: str
+    ) -> None:
         """Upload a file to a record."""
         config = ctx.obj["config"]
 
@@ -417,7 +445,9 @@ if CLI_AVAILABLE:
     @click.argument("field_name")
     @click.argument("output_path", type=click.Path())
     @click.pass_context
-    def download_file(ctx, table_id, record_id, field_name, output_path):
+    def download_file(
+        ctx: click.Context, table_id: str, record_id: str, field_name: str, output_path: str
+    ) -> None:
         """Download a file from a record."""
         config = ctx.obj["config"]
 
@@ -441,7 +471,7 @@ if CLI_AVAILABLE:
             console.print(f"[red]Error: {e}[/red]")
             sys.exit(1)
 
-    def main():
+    def main() -> None:
         """Main CLI entry point."""
         try:
             cli()
@@ -461,7 +491,7 @@ if CLI_AVAILABLE:
 
 else:
 
-    def main():
+    def main() -> None:
         """Main CLI entry point when dependencies are not available."""
         print("CLI dependencies are not installed.")
         print("Please install with: pip install 'nocodb-simple-client[cli]'")

@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       pr-number:
-        description: 'PR number to label (leave empty for all open PRs)'
+        description: "PR number to label (leave empty for all open PRs)"
         type: string
         required: false
       force-update:
-        description: 'Force update labels even if already labeled'
+        description: "Force update labels even if already labeled"
         type: boolean
         default: false
 
@@ -28,21 +28,21 @@ jobs:
     uses: bauer-group/automation-templates/.github/workflows/pr-labeler.yml@main
     with:
       # Configuration for Python library project
-      config-path: '.github/config/pr-labeler/path-labels.yml'
+      config-path: ".github/config/pr-labeler/path-labels.yml"
       sync-labels: true
-      
+
       # Size labeling based on lines changed
       size-labels: true
-      
+
       # Priority labeling based on keywords and file types
       priority-labels: true
-      
+
       # Type labeling based on branch name and PR title
       type-labels: true
-      
+
       # Auto-assignment based on CODEOWNERS (if file exists)
       auto-assign: false
-      
+
       # Custom triage rules for Python projects
-      custom-rules: '.github/config/pr-labeler/triage-rules.yml'
+      custom-rules: ".github/config/pr-labeler/triage-rules.yml"
     secrets: inherit

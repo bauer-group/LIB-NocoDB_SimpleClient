@@ -1,4 +1,5 @@
-"""
+"""Configuration management for NocoDB Simple Client.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,13 +23,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Configuration management for NocoDB Simple Client."""
-
 import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -53,7 +52,7 @@ class NocoDBConfig:
 
     base_url: str
     api_token: str
-    access_protection_auth: Optional[str] = None
+    access_protection_auth: str | None = None
     access_protection_header: str = "X-BAUERGROUP-Auth"
     timeout: float = 30.0
     max_retries: int = 3
@@ -137,16 +136,16 @@ class NocoDBConfig:
 
                 with open(config_path) as f:
                     data = yaml.safe_load(f)
-            except ImportError:
-                raise ValueError("PyYAML is required to load YAML configuration files")
+            except ImportError as e:
+                raise ValueError("PyYAML is required to load YAML configuration files") from e
         elif suffix == ".toml":
             try:
                 import tomli
 
                 with open(config_path, "rb") as f:
                     data = tomli.load(f)
-            except ImportError:
-                raise ValueError("tomli is required to load TOML configuration files")
+            except ImportError as e:
+                raise ValueError("tomli is required to load TOML configuration files") from e
         else:
             raise ValueError(f"Unsupported configuration file format: {suffix}")
 
@@ -215,7 +214,7 @@ class NocoDBConfig:
 
 
 def load_config(
-    config_path: Optional[Path] = None, env_prefix: str = "NOCODB_", use_env: bool = True
+    config_path: Path | None = None, env_prefix: str = "NOCODB_", use_env: bool = True
 ) -> NocoDBConfig:
     """Load configuration from file or environment variables.
 

@@ -5,153 +5,173 @@
 priority-rules:
   critical:
     conditions:
-      - title-contains: ['security', 'vulnerability', 'exploit', 'breaking']
-      - files-match: ['SECURITY.md', 'src/nocodb_simple_client/exceptions.py']
-      - branch-prefix: ['hotfix/', 'security/']
-    
+      - title-contains: ["security", "vulnerability", "exploit", "breaking"]
+      - files-match: ["SECURITY.md", "src/nocodb_simple_client/exceptions.py"]
+      - branch-prefix: ["hotfix/", "security/"]
+
   high:
     conditions:
-      - title-contains: ['api', 'connection', 'authentication', 'data loss']
-      - files-match: ['src/nocodb_simple_client/client.py', 'src/nocodb_simple_client/table.py']
-      - size: ['xl', 'xxl']
-      - branch-prefix: ['fix/critical']
-    
+      - title-contains: ["api", "connection", "authentication", "data loss"]
+      - files-match:
+          [
+            "src/nocodb_simple_client/client.py",
+            "src/nocodb_simple_client/table.py",
+          ]
+      - size: ["xl", "xxl"]
+      - branch-prefix: ["fix/critical"]
+
   medium:
     conditions:
-      - title-contains: ['enhancement', 'improvement', 'optimization']
-      - files-match: ['tests/', 'examples/']
-      - size: ['large', 'medium']
-      - branch-prefix: ['feature/', 'enhancement/']
-    
+      - title-contains: ["enhancement", "improvement", "optimization"]
+      - files-match: ["tests/", "examples/"]
+      - size: ["large", "medium"]
+      - branch-prefix: ["feature/", "enhancement/"]
+
   low:
     conditions:
-      - title-contains: ['documentation', 'typo', 'comment', 'readme']
-      - files-match: ['README.md', 'docs/', 'CHANGELOG.md']
-      - size: ['xs', 'small']
-      - branch-prefix: ['docs/', 'chore/']
+      - title-contains: ["documentation", "typo", "comment", "readme"]
+      - files-match: ["README.md", "docs/", "CHANGELOG.md"]
+      - size: ["xs", "small"]
+      - branch-prefix: ["docs/", "chore/"]
 
 # Type classification rules
 type-rules:
   breaking-change:
     conditions:
-      - title-contains: ['breaking', 'major', 'incompatible']
-      - files-match: ['src/nocodb_simple_client/__init__.py', 'src/nocodb_simple_client/client.py']
-      - description-contains: ['breaking change', 'api change']
-    
+      - title-contains: ["breaking", "major", "incompatible"]
+      - files-match:
+          [
+            "src/nocodb_simple_client/__init__.py",
+            "src/nocodb_simple_client/client.py",
+          ]
+      - description-contains: ["breaking change", "api change"]
+
   feature:
     conditions:
-      - title-contains: ['add', 'implement', 'feature', 'new']
-      - files-match: ['src/nocodb_simple_client/']
-      - branch-prefix: ['feature/', 'feat/']
-      - excludes-files: ['tests/', 'docs/']
-    
+      - title-contains: ["add", "implement", "feature", "new"]
+      - files-match: ["src/nocodb_simple_client/"]
+      - branch-prefix: ["feature/", "feat/"]
+      - excludes-files: ["tests/", "docs/"]
+
   bugfix:
     conditions:
-      - title-contains: ['fix', 'bug', 'issue', 'resolve']
-      - files-match: ['src/nocodb_simple_client/']
-      - branch-prefix: ['fix/', 'bugfix/', 'hotfix/']
-    
+      - title-contains: ["fix", "bug", "issue", "resolve"]
+      - files-match: ["src/nocodb_simple_client/"]
+      - branch-prefix: ["fix/", "bugfix/", "hotfix/"]
+
   performance:
     conditions:
-      - title-contains: ['performance', 'optimize', 'speed', 'memory']
-      - files-match: ['src/nocodb_simple_client/client.py', 'src/nocodb_simple_client/table.py']
-    
+      - title-contains: ["performance", "optimize", "speed", "memory"]
+      - files-match:
+          [
+            "src/nocodb_simple_client/client.py",
+            "src/nocodb_simple_client/table.py",
+          ]
+
   security:
     conditions:
-      - title-contains: ['security', 'vulnerability', 'cve', 'auth']
-      - files-match: ['SECURITY.md', 'src/nocodb_simple_client/client.py']
-      - branch-prefix: ['security/', 'fix/security']
-    
+      - title-contains: ["security", "vulnerability", "cve", "auth"]
+      - files-match: ["SECURITY.md", "src/nocodb_simple_client/client.py"]
+      - branch-prefix: ["security/", "fix/security"]
+
   testing:
     conditions:
-      - files-match: ['tests/', 'conftest.py']
-      - title-contains: ['test', 'testing', 'coverage']
-      - branch-prefix: ['test/', 'tests/']
-    
+      - files-match: ["tests/", "conftest.py"]
+      - title-contains: ["test", "testing", "coverage"]
+      - branch-prefix: ["test/", "tests/"]
+
   documentation:
     conditions:
-      - files-match: ['README.md', 'docs/', 'CHANGELOG.md', 'examples/']
-      - title-contains: ['doc', 'readme', 'example', 'guide']
-      - branch-prefix: ['docs/', 'documentation/']
-    
+      - files-match: ["README.md", "docs/", "CHANGELOG.md", "examples/"]
+      - title-contains: ["doc", "readme", "example", "guide"]
+      - branch-prefix: ["docs/", "documentation/"]
+
   ci:
     conditions:
-      - files-match: ['.github/workflows/', 'pyproject.toml', '.pre-commit-config.yaml']
-      - title-contains: ['workflow', 'ci', 'build', 'release']
-      - branch-prefix: ['ci/', 'build/']
+      - files-match:
+          [".github/workflows/", "pyproject.toml", ".pre-commit-config.yaml"]
+      - title-contains: ["workflow", "ci", "build", "release"]
+      - branch-prefix: ["ci/", "build/"]
 
 # Component-specific rules
 component-rules:
   client:
     conditions:
-      - files-match: ['src/nocodb_simple_client/client.py', 'tests/test_client.py']
-    labels: ['component: client', 'area: core']
-    
+      - files-match:
+          ["src/nocodb_simple_client/client.py", "tests/test_client.py"]
+    labels: ["component: client", "area: core"]
+
   table:
     conditions:
-      - files-match: ['src/nocodb_simple_client/table.py', 'tests/test_table.py']
-    labels: ['component: table', 'area: core']
-    
+      - files-match:
+          ["src/nocodb_simple_client/table.py", "tests/test_table.py"]
+    labels: ["component: table", "area: core"]
+
   exceptions:
     conditions:
-      - files-match: ['src/nocodb_simple_client/exceptions.py', 'tests/test_exceptions.py']
-    labels: ['component: exceptions', 'area: core']
-    
+      - files-match:
+          ["src/nocodb_simple_client/exceptions.py", "tests/test_exceptions.py"]
+    labels: ["component: exceptions", "area: core"]
+
   file-operations:
     conditions:
-      - title-contains: ['file', 'upload', 'download', 'attachment']
-      - description-contains: ['file', 'attachment', 'upload', 'download']
-    labels: ['component: files', 'area: core']
-    
+      - title-contains: ["file", "upload", "download", "attachment"]
+      - description-contains: ["file", "attachment", "upload", "download"]
+    labels: ["component: files", "area: core"]
+
   api:
     conditions:
-      - title-contains: ['api', 'endpoint', 'request', 'response']
-      - files-match: ['src/nocodb_simple_client/client.py']
-    labels: ['component: api', 'area: core']
+      - title-contains: ["api", "endpoint", "request", "response"]
+      - files-match: ["src/nocodb_simple_client/client.py"]
+    labels: ["component: api", "area: core"]
 
 # Auto-assignment rules
 assignment-rules:
   security:
     conditions:
-      - labels: ['type: security', 'priority: critical']
-    assignees: ['karl.bauer@bauer-group.com']
-    
+      - labels: ["type: security", "priority: critical"]
+    assignees: ["karl.bauer@bauer-group.com"]
+
   breaking-change:
     conditions:
-      - labels: ['type: breaking-change']
-    assignees: ['karl.bauer@bauer-group.com']
-    
+      - labels: ["type: breaking-change"]
+    assignees: ["karl.bauer@bauer-group.com"]
+
   core-changes:
     conditions:
-      - files-match: ['src/nocodb_simple_client/client.py', 'src/nocodb_simple_client/table.py']
-      - size: ['large', 'xl', 'xxl']
-    reviewers: ['karl.bauer@bauer-group.com']
+      - files-match:
+          [
+            "src/nocodb_simple_client/client.py",
+            "src/nocodb_simple_client/table.py",
+          ]
+      - size: ["large", "xl", "xxl"]
+    reviewers: ["karl.bauer@bauer-group.com"]
 
 # Special handling rules
 special-rules:
   needs-testing:
     conditions:
-      - files-match: ['src/nocodb_simple_client/']
-      - excludes-files: ['tests/']
-      - type: ['feature', 'bugfix']
-    labels: ['needs: testing']
-    
+      - files-match: ["src/nocodb_simple_client/"]
+      - excludes-files: ["tests/"]
+      - type: ["feature", "bugfix"]
+    labels: ["needs: testing"]
+
   needs-docs:
     conditions:
-      - files-match: ['src/nocodb_simple_client/']
-      - excludes-files: ['docs/', 'README.md', 'examples/']
-      - type: ['feature']
-      - size: ['medium', 'large', 'xl', 'xxl']
-    labels: ['needs: documentation']
-    
+      - files-match: ["src/nocodb_simple_client/"]
+      - excludes-files: ["docs/", "README.md", "examples/"]
+      - type: ["feature"]
+      - size: ["medium", "large", "xl", "xxl"]
+    labels: ["needs: documentation"]
+
   dependencies:
     conditions:
-      - files-match: ['pyproject.toml']
-      - title-contains: ['dependency', 'dependencies', 'update', 'bump']
-    labels: ['type: dependencies', 'area: build']
+      - files-match: ["pyproject.toml"]
+      - title-contains: ["dependency", "dependencies", "update", "bump"]
+    labels: ["type: dependencies", "area: build"]
 
 # Exemption rules (skip labeling)
 exemptions:
-  - branch-prefix: ['dependabot/']
-  - author: ['dependabot[bot]', 'github-actions[bot]']
-  - title-contains: ['merge', 'revert']
+  - branch-prefix: ["dependabot/"]
+  - author: ["dependabot[bot]", "github-actions[bot]"]
+  - title-contains: ["merge", "revert"]

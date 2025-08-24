@@ -47,7 +47,7 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None
+    redis = None  # type: ignore[assignment]
 
 
 class CacheBackend(ABC):
@@ -157,7 +157,8 @@ class DiskCache(CacheBackend):
         """
         if not DISKCACHE_AVAILABLE:
             raise ImportError(
-                "DiskCache requires diskcache. Install with: pip install 'nocodb-simple-client[caching]'"
+                "DiskCache requires diskcache. "
+                "Install with: pip install 'nocodb-simple-client[caching]'"
             )
 
         self.cache = dc.Cache(directory, size_limit=size_limit)
@@ -211,7 +212,8 @@ class RedisCache(CacheBackend):
         """
         if not REDIS_AVAILABLE:
             raise ImportError(
-                "RedisCache requires redis. Install with: pip install 'nocodb-simple-client[caching]'"
+                "RedisCache requires redis. "
+                "Install with: pip install 'nocodb-simple-client[caching]'"
             )
 
         self.client = redis.Redis(
@@ -236,8 +238,8 @@ class RedisCache(CacheBackend):
                     # Try JSON first for security
                     return json.loads(data.decode("utf-8"))
                 except (json.JSONDecodeError, UnicodeDecodeError):
-                    # Fall back to pickle for complex objects  # nosec B301
-                    return pickle.loads(data)
+                    # Fall back to pickle for complex objects
+                    return pickle.loads(data)  # nosec B301
         except (redis.RedisError, pickle.PickleError):
             pass
         return None
@@ -368,11 +370,13 @@ class CacheManager:
 
 
 def cached_method(
-    cache_manager: CacheManager, ttl: int | None = None, cache_key_func: Callable | None = None
-):
+    cache_manager: CacheManager,
+    ttl: int | None = None,
+    cache_key_func: Callable[..., str] | None = None,
+) -> Callable[..., Any]:
     """Decorator for caching method results."""
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
             # Generate cache key

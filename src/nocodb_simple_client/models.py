@@ -1,4 +1,5 @@
-"""
+"""Pydantic models for type safety and validation.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,12 +23,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Pydantic models for type safety and validation."""
-
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel, Field, root_validator, validator
 
 try:
     from pydantic import BaseModel, Field, root_validator, validator
@@ -37,14 +39,14 @@ except ImportError:
     # Fallback for when Pydantic is not installed
     PYDANTIC_AVAILABLE = False
 
-    class BaseModel:
+    class BaseModel:  # type: ignore[no-redef]
         """Fallback BaseModel when Pydantic is not available."""
 
-        def __init__(self, **kwargs):
+        def __init__(self, **kwargs: Any) -> None:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-        def dict(self):
+        def dict(self) -> dict[str, Any]:
             return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
 
@@ -68,9 +70,9 @@ if PYDANTIC_AVAILABLE:
     class NocoDBRecord(BaseModel):
         """Pydantic model for NocoDB record."""
 
-        Id: Union[int, str] = Field(..., description="Record ID")
-        CreatedAt: Optional[datetime] = Field(None, description="Creation timestamp")
-        UpdatedAt: Optional[datetime] = Field(None, description="Last update timestamp")
+        Id: int | str = Field(..., description="Record ID")
+        CreatedAt: datetime | None = Field(None, description="Creation timestamp")
+        UpdatedAt: datetime | None = Field(None, description="Last update timestamp")
         data: dict[str, Any] = Field(default_factory=dict, description="Record data")
 
         class Config:
@@ -78,8 +80,8 @@ if PYDANTIC_AVAILABLE:
             validate_assignment = True
             use_enum_values = True
 
-        @validator("Id")
-        def validate_id(cls, v):
+        @validator("Id")  # type: ignore[misc]
+        def validate_id(cls, v: Any) -> Any:
             """Validate record ID."""
             if isinstance(v, str) and not v.strip():
                 raise ValueError("Record ID cannot be empty string")
@@ -87,8 +89,8 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Record ID must be positive integer")
             return v
 
-        @root_validator
-        def validate_record(cls, values):
+        @root_validator  # type: ignore[misc]
+        def validate_record(cls, values: dict[str, Any]) -> dict[str, Any]:
             """Validate entire record."""
             data = values.get("data", {})
             if not isinstance(data, dict):
@@ -112,14 +114,14 @@ if PYDANTIC_AVAILABLE:
     class QueryParams(BaseModel):
         """Pydantic model for query parameters."""
 
-        sort: Optional[str] = Field(None, description="Sort criteria")
-        where: Optional[str] = Field(None, description="Filter conditions")
-        fields: Optional[list[str]] = Field(None, description="Fields to retrieve")
+        sort: str | None = Field(None, description="Sort criteria")
+        where: str | None = Field(None, description="Filter conditions")
+        fields: list[str] | None = Field(None, description="Fields to retrieve")
         limit: int = Field(25, gt=0, le=10000, description="Record limit")
         offset: int = Field(0, ge=0, description="Record offset")
 
-        @validator("sort")
-        def validate_sort(cls, v):
+        @validator("sort")  # type: ignore[misc]
+        def validate_sort(cls, v: str | None) -> str | None:
             """Validate sort parameter."""
             if v is None:
                 return v
@@ -132,8 +134,8 @@ if PYDANTIC_AVAILABLE:
                     raise ValueError(f"Invalid sort field: {field}")
             return v
 
-        @validator("where")
-        def validate_where(cls, v):
+        @validator("where")  # type: ignore[misc]
+        def validate_where(cls, v: str | None) -> str | None:
             """Validate where parameter."""
             if v is None:
                 return v
@@ -142,8 +144,8 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Where clause cannot be empty")
             return v.strip()
 
-        @validator("fields")
-        def validate_fields(cls, v):
+        @validator("fields")  # type: ignore[misc]
+        def validate_fields(cls, v: list[str] | None) -> list[str] | None:
             """Validate fields parameter."""
             if v is None:
                 return v
@@ -158,13 +160,13 @@ if PYDANTIC_AVAILABLE:
         """Pydantic model for file upload information."""
 
         filename: str = Field(..., description="Original filename")
-        file_path: Union[str, Path] = Field(..., description="Local file path")
-        mime_type: Optional[str] = Field(None, description="MIME type")
-        file_size: Optional[int] = Field(None, ge=0, description="File size in bytes")
+        file_path: str | Path = Field(..., description="Local file path")
+        mime_type: str | None = Field(None, description="MIME type")
+        file_size: int | None = Field(None, ge=0, description="File size in bytes")
         field_name: str = Field(..., description="Target field name")
 
-        @validator("filename")
-        def validate_filename(cls, v):
+        @validator("filename")  # type: ignore[misc]
+        def validate_filename(cls, v: str) -> str:
             """Validate filename."""
             if not v.strip():
                 raise ValueError("Filename cannot be empty")
@@ -174,8 +176,8 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Filename contains dangerous characters")
             return v.strip()
 
-        @validator("file_path")
-        def validate_file_path(cls, v):
+        @validator("file_path")  # type: ignore[misc]
+        def validate_file_path(cls, v: str | Path) -> Path:
             """Validate file path."""
             path = Path(v) if isinstance(v, str) else v
             if not path.exists():
@@ -184,8 +186,8 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError(f"Path is not a file: {path}")
             return path
 
-        @validator("file_size")
-        def validate_file_size(cls, v, values):
+        @validator("file_size")  # type: ignore[misc]
+        def validate_file_size(cls, v: int | None, values: dict[str, Any]) -> int | None:
             """Validate file size."""
             if v is None:
                 file_path = values.get("file_path")
@@ -198,13 +200,13 @@ if PYDANTIC_AVAILABLE:
         """Pydantic model for API response."""
 
         success: bool = Field(True, description="Request success status")
-        data: Optional[Any] = Field(None, description="Response data")
-        error: Optional[str] = Field(None, description="Error message")
-        status_code: Optional[int] = Field(None, description="HTTP status code")
-        message: Optional[str] = Field(None, description="Response message")
+        data: Any | None = Field(None, description="Response data")
+        error: str | None = Field(None, description="Error message")
+        status_code: int | None = Field(None, description="HTTP status code")
+        message: str | None = Field(None, description="Response message")
 
-        @validator("status_code")
-        def validate_status_code(cls, v):
+        @validator("status_code")  # type: ignore[misc]
+        def validate_status_code(cls, v: int | None) -> int | None:
             """Validate HTTP status code."""
             if v is not None and not (100 <= v <= 599):
                 raise ValueError("Invalid HTTP status code")
@@ -219,8 +221,8 @@ if PYDANTIC_AVAILABLE:
         type: str = Field("table", description="Table type")
         enabled: bool = Field(True, description="Table enabled status")
 
-        @validator("id")
-        def validate_id(cls, v):
+        @validator("id")  # type: ignore[misc]
+        def validate_id(cls, v: str) -> str:
             """Validate table ID."""
             if not v.strip():
                 raise ValueError("Table ID cannot be empty")
@@ -231,7 +233,7 @@ if PYDANTIC_AVAILABLE:
 
         base_url: str = Field(..., description="NocoDB base URL")
         api_token: str = Field(..., description="API authentication token")
-        access_protection_auth: Optional[str] = Field(None, description="Access protection token")
+        access_protection_auth: str | None = Field(None, description="Access protection token")
         access_protection_header: str = Field(
             "X-BAUERGROUP-Auth", description="Protection header name"
         )
@@ -239,8 +241,8 @@ if PYDANTIC_AVAILABLE:
         max_retries: int = Field(3, ge=0, description="Maximum retries")
         verify_ssl: bool = Field(True, description="Verify SSL certificates")
 
-        @validator("base_url")
-        def validate_base_url(cls, v):
+        @validator("base_url")  # type: ignore[misc]
+        def validate_base_url(cls, v: str) -> str:
             """Validate base URL."""
             if not v.strip():
                 raise ValueError("Base URL cannot be empty")
@@ -249,8 +251,8 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Base URL must start with http:// or https://")
             return url
 
-        @validator("api_token")
-        def validate_api_token(cls, v):
+        @validator("api_token")  # type: ignore[misc]
+        def validate_api_token(cls, v: str) -> str:
             """Validate API token."""
             if not v.strip():
                 raise ValueError("API token cannot be empty")
@@ -260,59 +262,76 @@ if PYDANTIC_AVAILABLE:
 
 else:
     # Fallback models when Pydantic is not available
-    class NocoDBRecord(BaseModel):
+    class NocoDBRecord(BaseModel):  # type: ignore[no-redef]
         """Fallback model for NocoDB record."""
 
-        def __init__(self, Id, data=None, **kwargs):
+        def __init__(
+            self, Id: int | str, data: dict[str, Any] | None = None, **kwargs: Any
+        ) -> None:
             self.Id = Id
             self.data = data or {}
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    class QueryParams(BaseModel):
+    class QueryParams(BaseModel):  # type: ignore[no-redef]
         """Fallback model for query parameters."""
 
-        def __init__(self, sort=None, where=None, fields=None, limit=25, offset=0):
+        def __init__(
+            self,
+            sort: str | None = None,
+            where: str | None = None,
+            fields: list[str] | None = None,
+            limit: int = 25,
+            offset: int = 0,
+        ) -> None:
             self.sort = sort
             self.where = where
             self.fields = fields
             self.limit = limit
             self.offset = offset
 
-    class FileUploadInfo(BaseModel):
+    class FileUploadInfo(BaseModel):  # type: ignore[no-redef]
         """Fallback model for file upload information."""
 
-        def __init__(self, filename, file_path, field_name, **kwargs):
+        def __init__(
+            self, filename: str, file_path: str | Path, field_name: str, **kwargs: Any
+        ) -> None:
             self.filename = filename
             self.file_path = Path(file_path)
             self.field_name = field_name
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    class ApiResponse(BaseModel):
+    class ApiResponse(BaseModel):  # type: ignore[no-redef]
         """Fallback model for API response."""
 
-        def __init__(self, success=True, data=None, error=None, **kwargs):
+        def __init__(
+            self,
+            success: bool = True,
+            data: Any | None = None,
+            error: str | None = None,
+            **kwargs: Any,
+        ) -> None:
             self.success = success
             self.data = data
             self.error = error
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    class TableInfo(BaseModel):
+    class TableInfo(BaseModel):  # type: ignore[no-redef]
         """Fallback model for table information."""
 
-        def __init__(self, id, title, table_name, **kwargs):
+        def __init__(self, id: str, title: str, table_name: str, **kwargs: Any) -> None:
             self.id = id
             self.title = title
             self.table_name = table_name
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    class ConnectionConfig(BaseModel):
+    class ConnectionConfig(BaseModel):  # type: ignore[no-redef]
         """Fallback model for connection configuration."""
 
-        def __init__(self, base_url, api_token, **kwargs):
+        def __init__(self, base_url: str, api_token: str, **kwargs: Any) -> None:
             self.base_url = base_url.rstrip("/")
             self.api_token = api_token
             for key, value in kwargs.items():

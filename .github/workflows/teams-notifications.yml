@@ -2,9 +2,9 @@ name: 📢 Teams Notifications
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
     types: [opened, closed, reopened]
   release:
     types: [published, prereleased]
@@ -16,21 +16,21 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: 'Custom message to send'
+        description: "Custom message to send"
         required: true
         type: string
       channel:
-        description: 'Teams channel (webhook name)'
+        description: "Teams channel (webhook name)"
         required: false
         type: string
-        default: 'general'
+        default: "general"
   workflow_call:
-    inputs:  
+    inputs:
       notification-level:
-        description: 'Notification level (all or errors-only)'
+        description: "Notification level (all or errors-only)"
         required: false
         type: string
-        default: 'errors-only'
+        default: "errors-only"
 
 jobs:
   notify-teams:

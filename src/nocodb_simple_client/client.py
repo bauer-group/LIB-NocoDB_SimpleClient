@@ -1,4 +1,5 @@
-"""
+"""NocoDB REST API client implementation.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -21,11 +22,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-"""NocoDB REST API client implementation."""
 
 import mimetypes
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
+
+if TYPE_CHECKING:
+    from .config import NocoDBConfig
 
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
@@ -69,18 +72,58 @@ class NocoDBClient:
 
     def __init__(
         self,
-        base_url: str,
-        db_auth_token: str,
-        access_protection_auth: Optional[str] = None,
+        base_url: Union[str, "NocoDBConfig", None] = None,
+        db_auth_token: str | None = None,
+        access_protection_auth: str | None = None,
         access_protection_header: str = "X-BAUERGROUP-Auth",
-        max_redirects: Optional[int] = None,
-        timeout: Optional[int] = None,
+        max_redirects: int | None = None,
+        timeout: int | None = None,
+        config: Optional["NocoDBConfig"] = None,
     ) -> None:
-        self._base_url = base_url.rstrip("/")
+        from .config import NocoDBConfig  # Import here to avoid circular import
+
+        # Support both individual parameters and config object
+        # Check if first parameter is a config object
+        if isinstance(base_url, NocoDBConfig):
+            config = base_url
+            base_url = None
+
+        if config is not None:
+            # Config object provided - use its values
+            self.config = config
+            self._base_url = config.base_url.rstrip("/")
+            auth_token = config.api_token
+            access_protection_auth = getattr(
+                config, "access_protection_auth", access_protection_auth
+            )
+            access_protection_header = getattr(
+                config, "access_protection_header", access_protection_header
+            )
+            max_redirects = getattr(config, "max_redirects", max_redirects)
+            timeout = getattr(config, "timeout", timeout)
+        else:
+            # Individual parameters provided
+            if base_url is None or db_auth_token is None:
+                raise TypeError(
+                    "NocoDBClient.__init__() missing required arguments: 'base_url' and "
+                    "'db_auth_token' (or provide config object)"
+                )
+
+            # Create a config object for compatibility
+            self.config = NocoDBConfig(
+                base_url=base_url,
+                api_token=db_auth_token,
+                timeout=timeout or 30,
+                max_retries=max_redirects or 3,
+            )
+
+            self._base_url = base_url.rstrip("/")
+            auth_token = db_auth_token
+
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "xc-token": db_auth_token,
+            "xc-token": auth_token,
         }
 
         if access_protection_auth:
@@ -92,14 +135,14 @@ class NocoDBClient:
         if max_redirects is not None:
             self._session.max_redirects = max_redirects
 
-    def _get(self, endpoint: str, params: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+    def _get(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Make a GET request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.get(
             url, headers=self.headers, params=params, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _post(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
         """Make a POST request to the API."""
@@ -108,7 +151,7 @@ class NocoDBClient:
             url, headers=self.headers, json=data, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _patch(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
         """Make a PATCH request to the API."""
@@ -117,7 +160,7 @@ class NocoDBClient:
             url, headers=self.headers, json=data, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _put(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
         """Make a PUT request to the API."""
@@ -126,7 +169,7 @@ class NocoDBClient:
             url, headers=self.headers, json=data, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _delete(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
         """Make a DELETE request to the API."""
@@ -135,28 +178,61 @@ class NocoDBClient:
             url, headers=self.headers, json=data, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _check_for_error(self, response: requests.Response) -> None:
         """Check HTTP response for errors and raise appropriate exceptions."""
         if response.status_code >= 400:
             try:
+                from .exceptions import (
+                    AuthenticationException,
+                    AuthorizationException,
+                    ServerErrorException,
+                    ValidationException,
+                )
+
                 error_info = response.json()
-                if "error" in error_info and "message" in error_info:
-                    if error_info["error"] == "RECORD_NOT_FOUND":
-                        raise RecordNotFoundException(error_info["error"], error_info["message"])
+                message = error_info.get("message", f"HTTP {response.status_code} error")
+                error_code = error_info.get("error", "UNKNOWN_ERROR")
+
+                # Map HTTP status codes to appropriate exceptions
+                if response.status_code == 401:
+                    raise AuthenticationException(message)
+                elif response.status_code == 403:
+                    raise AuthorizationException(message)
+                elif response.status_code == 404:
+                    if error_code == "RECORD_NOT_FOUND":
+                        raise RecordNotFoundException(message)
                     else:
-                        raise NocoDBException(error_info["error"], error_info["message"])
-            except ValueError:
-                pass
-            response.raise_for_status()
+                        raise NocoDBException(error_code, message, response.status_code, error_info)
+                elif response.status_code == 400:
+                    raise ValidationException(message)
+                elif response.status_code >= 500:
+                    raise ServerErrorException(message, response.status_code)
+                else:
+                    raise NocoDBException(error_code, message, response.status_code, error_info)
+
+            except ValueError as e:
+                # If response is not JSON, create generic error
+                if response.status_code == 401:
+                    raise AuthenticationException(
+                        f"Authentication failed (HTTP {response.status_code})"
+                    ) from e
+                elif response.status_code == 403:
+                    raise AuthorizationException(
+                        f"Access denied (HTTP {response.status_code})"
+                    ) from e
+                else:
+                    raise NocoDBException(
+                        "HTTP_ERROR", f"HTTP {response.status_code} error", response.status_code
+                    ) from e
 
     def get_records(
         self,
         table_id: str,
-        sort: Optional[str] = None,
-        where: Optional[str] = None,
-        fields: Optional[list[str]] = None,
+        sort: str | None = None,
+        where: str | None = None,
+        fields: list[str] | None = None,
         limit: int = 25,
     ) -> list[dict[str, Any]]:
         """Get multiple records from a table.
@@ -205,8 +281,8 @@ class NocoDBClient:
     def get_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
-        fields: Optional[list[str]] = None,
+        record_id: int | str,
+        fields: list[str] | None = None,
     ) -> dict[str, Any]:
         """Get a single record by ID.
 
@@ -228,7 +304,7 @@ class NocoDBClient:
 
         return self._get(f"api/v2/tables/{table_id}/records/{record_id}", params=params)
 
-    def insert_record(self, table_id: str, record: dict[str, Any]) -> Union[int, str]:
+    def insert_record(self, table_id: str, record: dict[str, Any]) -> int | str:
         """Insert a new record into a table.
 
         Args:
@@ -242,14 +318,17 @@ class NocoDBClient:
             NocoDBException: For API errors
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
-        return response.get("Id")
+        record_id = response.get("Id")
+        if record_id is None:
+            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from insert operation")
+        return record_id  # type: ignore[no-any-return]
 
     def update_record(
         self,
         table_id: str,
         record: dict[str, Any],
-        record_id: Optional[Union[int, str]] = None,
-    ) -> Union[int, str]:
+        record_id: int | str | None = None,
+    ) -> int | str:
         """Update an existing record.
 
         Args:
@@ -268,9 +347,12 @@ class NocoDBClient:
             record["Id"] = record_id
 
         response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
-        return response.get("Id")
+        record_id = response.get("Id")
+        if record_id is None:
+            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from update operation")
+        return record_id  # type: ignore[no-any-return]
 
-    def delete_record(self, table_id: str, record_id: Union[int, str]) -> Union[int, str]:
+    def delete_record(self, table_id: str, record_id: int | str) -> int | str:
         """Delete a record from a table.
 
         Args:
@@ -285,9 +367,12 @@ class NocoDBClient:
             NocoDBException: For other API errors
         """
         response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
-        return response.get("Id")
+        deleted_id = response.get("Id")
+        if deleted_id is None:
+            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from delete operation")
+        return deleted_id  # type: ignore[no-any-return]
 
-    def count_records(self, table_id: str, where: Optional[str] = None) -> int:
+    def count_records(self, table_id: str, where: str | None = None) -> int:
         """Count records in a table.
 
         Args:
@@ -305,13 +390,14 @@ class NocoDBClient:
             params["where"] = where
 
         response = self._get(f"api/v2/tables/{table_id}/records/count", params=params)
-        return response.get("count", 0)
+        count = response.get("count", 0)
+        return int(count) if count is not None else 0
 
     def _multipart_post(
         self,
         endpoint: str,
         files: dict[str, Any],
-        fields: Optional[dict[str, Any]] = None,
+        fields: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Make a multipart POST request for file uploads."""
         url = f"{self._base_url}/{endpoint}"
@@ -322,9 +408,9 @@ class NocoDBClient:
             url, headers=headers, data=form_data, timeout=self._request_timeout
         )
         self._check_for_error(response)
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
-    def _upload_file(self, table_id: str, file_path: Union[str, Path]) -> dict[str, Any]:
+    def _upload_file(self, table_id: str, file_path: str | Path) -> Any:
         """Upload a file to NocoDB storage.
 
         Args:
@@ -355,10 +441,10 @@ class NocoDBClient:
     def attach_file_to_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_path: Union[str, Path],
-    ) -> Union[int, str]:
+        file_path: str | Path,
+    ) -> int | str:
         """Attach a file to a record.
 
         Args:
@@ -375,16 +461,24 @@ class NocoDBClient:
             NocoDBException: For other API errors
         """
         upload_response = self._upload_file(table_id, file_path)
-        record = {field_name: upload_response}
+        # Handle both list and dict responses from upload
+        if isinstance(upload_response, list) and upload_response:
+            file_data = upload_response[0]
+        elif isinstance(upload_response, dict):
+            file_data = upload_response
+        else:
+            raise NocoDBException("INVALID_RESPONSE", "Invalid upload response format")
+
+        record = {field_name: file_data}
         return self.update_record(table_id, record, record_id)
 
     def attach_files_to_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_paths: list[Union[str, Path]],
-    ) -> Union[int, str]:
+        file_paths: list[str | Path],
+    ) -> int | str:
         """Attach multiple files to a record without overwriting existing files.
 
         Args:
@@ -405,7 +499,13 @@ class NocoDBClient:
 
         for file_path in file_paths:
             upload_response = self._upload_file(table_id, file_path)
-            existing_files.append(upload_response[0])
+            # Handle both list and dict responses from upload
+            if isinstance(upload_response, list) and upload_response:
+                existing_files.append(upload_response[0])
+            elif isinstance(upload_response, dict):
+                existing_files.append(upload_response)
+            else:
+                raise NocoDBException("INVALID_RESPONSE", "Invalid upload response format")
 
         record_update = {field_name: existing_files}
         return self.update_record(table_id, record_update, record_id)
@@ -413,9 +513,9 @@ class NocoDBClient:
     def delete_file_from_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-    ) -> Union[int, str]:
+    ) -> int | str:
         """Delete all files from a record field.
 
         Args:
@@ -436,9 +536,9 @@ class NocoDBClient:
     def download_file_from_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_path: Union[str, Path],
+        file_path: str | Path,
     ) -> None:
         """Download the first file from a record field.
 
@@ -482,9 +582,9 @@ class NocoDBClient:
     def download_files_from_record(
         self,
         table_id: str,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        directory: Union[str, Path],
+        directory: str | Path,
     ) -> None:
         """Download all files from a record field.
 
@@ -518,7 +618,8 @@ class NocoDBClient:
             if response.status_code != 200:
                 raise NocoDBException(
                     "DOWNLOAD_ERROR",
-                    f"Failed to download file {file_title}. HTTP status code: {response.status_code}",
+                    f"Failed to download file {file_title}. "
+                    f"HTTP status code: {response.status_code}",
                 )
 
             file_path = directory / file_title
@@ -532,10 +633,10 @@ class NocoDBClient:
         if self._session:
             self._session.close()
 
-    def __enter__(self):
+    def __enter__(self) -> "NocoDBClient":
         """Support for context manager usage."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Support for context manager usage."""
         self.close()

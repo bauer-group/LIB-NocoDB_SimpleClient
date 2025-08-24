@@ -1,7 +1,9 @@
 """Pytest configuration and fixtures."""
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
+
 from nocodb_simple_client import NocoDBClient, NocoDBTable
 
 
@@ -29,15 +31,13 @@ def mock_session(mock_response):
 @pytest.fixture
 def client(mock_session, monkeypatch):
     """Create a NocoDBClient instance with mocked session."""
+
     def mock_session_init(*args, **kwargs):
         return mock_session
-    
+
     monkeypatch.setattr("requests.Session", mock_session_init)
-    
-    return NocoDBClient(
-        base_url="https://test.nocodb.com",
-        db_auth_token="test-token"
-    )
+
+    return NocoDBClient(base_url="https://test.nocodb.com", db_auth_token="test-token")
 
 
 @pytest.fixture
@@ -49,13 +49,7 @@ def table(client):
 @pytest.fixture
 def sample_record():
     """Sample record data for testing."""
-    return {
-        "Id": 1,
-        "Name": "Test Record",
-        "Email": "test@example.com",
-        "Age": 25,
-        "Active": True
-    }
+    return {"Id": 1, "Name": "Test Record", "Email": "test@example.com", "Age": 25, "Active": True}
 
 
 @pytest.fixture
@@ -68,6 +62,6 @@ def sample_records(sample_record):
             "Name": "Test Record 2",
             "Email": "test2@example.com",
             "Age": 30,
-            "Active": False
-        }
+            "Active": False,
+        },
     ]

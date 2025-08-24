@@ -28,17 +28,20 @@ We take the security of NocoDB Simple Client seriously. If you discover a securi
 ## Security Measures
 
 ### Dependency Management
+
 - Regular dependency updates via automated tools
 - Vulnerability scanning of dependencies
 - Minimal dependency footprint
 
 ### Code Security
+
 - Input validation and sanitization
 - Secure API communication with NocoDB
 - No sensitive data logging
 - Proper error handling without information disclosure
 
 ### Development Security
+
 - Secure development practices
 - Code review requirements
 - Automated security testing in CI/CD
@@ -46,6 +49,7 @@ We take the security of NocoDB Simple Client seriously. If you discover a securi
 ## Security Best Practices
 
 ### For Users
+
 1. **Keep Updated**: Always use the latest supported version
 2. **Secure Configuration**: Follow configuration best practices
 3. **API Keys**: Store API keys securely, never in code
@@ -53,6 +57,7 @@ We take the security of NocoDB Simple Client seriously. If you discover a securi
 5. **Access Control**: Implement proper authentication and authorization
 
 ### For Contributors
+
 1. **Secure Coding**: Follow OWASP guidelines
 2. **Dependency Review**: Evaluate new dependencies for security
 3. **Secret Management**: Never commit secrets or credentials
@@ -88,8 +93,8 @@ This security policy is subject to change. Users are responsible for staying inf
 
 ---
 
-**Last Updated**: 2025-08-23  
-**Next Review**: 2026-02-23  
+**Last Updated**: 2025-08-23
+**Next Review**: 2026-02-23
 **Policy Version**: 1.0
 
 ---

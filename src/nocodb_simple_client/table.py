@@ -1,4 +1,5 @@
-"""
+"""NocoDB table wrapper for simplified operations.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,10 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""NocoDB table wrapper for simplified operations."""
-
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from .client import NocoDBClient
 
@@ -56,9 +55,9 @@ class NocoDBTable:
 
     def get_records(
         self,
-        sort: Optional[str] = None,
-        where: Optional[str] = None,
-        fields: Optional[list[str]] = None,
+        sort: str | None = None,
+        where: str | None = None,
+        fields: list[str] | None = None,
         limit: int = 25,
     ) -> list[dict[str, Any]]:
         """Get multiple records from the table.
@@ -80,8 +79,8 @@ class NocoDBTable:
 
     def get_record(
         self,
-        record_id: Union[int, str],
-        fields: Optional[list[str]] = None,
+        record_id: int | str,
+        fields: list[str] | None = None,
     ) -> dict[str, Any]:
         """Get a single record by ID.
 
@@ -98,7 +97,7 @@ class NocoDBTable:
         """
         return self.client.get_record(self.table_id, record_id, fields)
 
-    def insert_record(self, record: dict[str, Any]) -> Union[int, str]:
+    def insert_record(self, record: dict[str, Any]) -> int | str:
         """Insert a new record into the table.
 
         Args:
@@ -115,8 +114,8 @@ class NocoDBTable:
     def update_record(
         self,
         record: dict[str, Any],
-        record_id: Optional[Union[int, str]] = None,
-    ) -> Union[int, str]:
+        record_id: int | str | None = None,
+    ) -> int | str:
         """Update an existing record.
 
         Args:
@@ -132,7 +131,7 @@ class NocoDBTable:
         """
         return self.client.update_record(self.table_id, record, record_id)
 
-    def delete_record(self, record_id: Union[int, str]) -> Union[int, str]:
+    def delete_record(self, record_id: int | str) -> int | str:
         """Delete a record from the table.
 
         Args:
@@ -147,7 +146,7 @@ class NocoDBTable:
         """
         return self.client.delete_record(self.table_id, record_id)
 
-    def count_records(self, where: Optional[str] = None) -> int:
+    def count_records(self, where: str | None = None) -> int:
         """Count records in the table.
 
         Args:
@@ -163,10 +162,10 @@ class NocoDBTable:
 
     def attach_file_to_record(
         self,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_path: Union[str, Path],
-    ) -> Union[int, str]:
+        file_path: str | Path,
+    ) -> int | str:
         """Attach a file to a record.
 
         Args:
@@ -185,10 +184,10 @@ class NocoDBTable:
 
     def attach_files_to_record(
         self,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_paths: list[Union[str, Path]],
-    ) -> Union[int, str]:
+        file_paths: list[str | Path],
+    ) -> int | str:
         """Attach multiple files to a record without overwriting existing files.
 
         Args:
@@ -207,9 +206,9 @@ class NocoDBTable:
 
     def delete_file_from_record(
         self,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-    ) -> Union[int, str]:
+    ) -> int | str:
         """Delete all files from a record field.
 
         Args:
@@ -227,9 +226,9 @@ class NocoDBTable:
 
     def download_file_from_record(
         self,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        file_path: Union[str, Path],
+        file_path: str | Path,
     ) -> None:
         """Download the first file from a record field.
 
@@ -248,9 +247,9 @@ class NocoDBTable:
 
     def download_files_from_record(
         self,
-        record_id: Union[int, str],
+        record_id: int | str,
         field_name: str,
-        directory: Union[str, Path],
+        directory: str | Path,
     ) -> None:
         """Download all files from a record field.
 

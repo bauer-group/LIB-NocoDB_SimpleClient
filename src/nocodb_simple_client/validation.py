@@ -1,4 +1,5 @@
-"""
+"""Input validation utilities for NocoDB Simple Client.
+
 MIT License
 
 Copyright (c) BAUER GROUP
@@ -22,11 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Input validation utilities for NocoDB Simple Client."""
-
 import re
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from .exceptions import ValidationException
 
@@ -59,7 +58,7 @@ def validate_table_id(table_id: str) -> str:
     return table_id
 
 
-def validate_record_id(record_id: Union[int, str]) -> Union[int, str]:
+def validate_record_id(record_id: int | str) -> int | str:
     """Validate record ID format.
 
     Args:
@@ -77,9 +76,21 @@ def validate_record_id(record_id: Union[int, str]) -> Union[int, str]:
         return record_id
 
     if isinstance(record_id, str):
-        if not record_id.strip():
+        record_id = record_id.strip()
+        if not record_id:
             raise ValidationException("Record ID cannot be empty", field_name="record_id")
-        return record_id.strip()
+
+        # Check for potentially dangerous characters/patterns
+        dangerous_patterns = [";", "--", "/*", "*/", "DROP", "DELETE", "UPDATE", "INSERT", "SELECT"]
+        record_id_upper = record_id.upper()
+        for pattern in dangerous_patterns:
+            if pattern in record_id_upper:
+                raise ValidationException(
+                    f"Record ID contains potentially dangerous pattern: {pattern}",
+                    field_name="record_id",
+                )
+
+        return record_id
 
     raise ValidationException("Record ID must be an integer or string", field_name="record_id")
 
@@ -250,7 +261,7 @@ def validate_limit(limit: int) -> int:
     return limit
 
 
-def validate_file_path(file_path: Union[str, Path]) -> Path:
+def validate_file_path(file_path: str | Path) -> Path:
     """Validate file path.
 
     Args:

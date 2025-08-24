@@ -47,10 +47,10 @@ If you find a bug or have a suggestion for improvement:
 
    # Check code formatting
    black --check .
-   
+
    # Run linting
    ruff check .
-   
+
    # Type checking
    mypy nocodb_simple_client
    ```

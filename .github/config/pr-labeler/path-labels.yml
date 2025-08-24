@@ -13,176 +13,176 @@ size-labels:
 # Path-based labeling rules
 path-labels:
   # Source code changes
-  'src/nocodb_simple_client/':
-    - 'area: core'
-    - 'type: enhancement'
-  
-  'src/nocodb_simple_client/client.py':
-    - 'area: client'
-    - 'component: api'
-  
-  'src/nocodb_simple_client/table.py':
-    - 'area: table'
-    - 'component: table-operations'
-  
-  'src/nocodb_simple_client/exceptions.py':
-    - 'area: exceptions'
-    - 'component: error-handling'
-  
+  "src/nocodb_simple_client/":
+    - "area: core"
+    - "type: enhancement"
+
+  "src/nocodb_simple_client/client.py":
+    - "area: client"
+    - "component: api"
+
+  "src/nocodb_simple_client/table.py":
+    - "area: table"
+    - "component: table-operations"
+
+  "src/nocodb_simple_client/exceptions.py":
+    - "area: exceptions"
+    - "component: error-handling"
+
   # Test changes
-  'tests/':
-    - 'area: tests'
-    - 'type: testing'
-  
-  'tests/test_client.py':
-    - 'area: tests'
-    - 'component: client-tests'
-  
-  'tests/test_table.py':
-    - 'area: tests'
-    - 'component: table-tests'
-  
-  'tests/test_integration.py':
-    - 'area: tests'
-    - 'type: integration'
-    - 'priority: high'
-  
+  "tests/":
+    - "area: tests"
+    - "type: testing"
+
+  "tests/test_client.py":
+    - "area: tests"
+    - "component: client-tests"
+
+  "tests/test_table.py":
+    - "area: tests"
+    - "component: table-tests"
+
+  "tests/test_integration.py":
+    - "area: tests"
+    - "type: integration"
+    - "priority: high"
+
   # Documentation changes
-  'README.MD':
-    - 'area: documentation'
-    - 'type: documentation'
-  
-  'docs/':
-    - 'area: documentation'
-    - 'type: documentation'
-  
-  'CHANGELOG.MD':
-    - 'area: documentation'
-    - 'type: changelog'
-  
+  "README.MD":
+    - "area: documentation"
+    - "type: documentation"
+
+  "docs/":
+    - "area: documentation"
+    - "type: documentation"
+
+  "CHANGELOG.MD":
+    - "area: documentation"
+    - "type: changelog"
+
   # Examples
-  'examples/':
-    - 'area: examples'
-    - 'type: documentation'
-  
+  "examples/":
+    - "area: examples"
+    - "type: documentation"
+
   # Configuration changes
-  'pyproject.toml':
-    - 'area: build'
-    - 'type: build'
-    - 'priority: medium'
-  
-  '.github/workflows/':
-    - 'area: ci/cd'
-    - 'type: ci'
-    - 'priority: medium'
-  
-  '.github/workflows/ci-cd.yml':
-    - 'area: ci/cd'
-    - 'type: ci'
-    - 'priority: high'
-  
-  '.github/workflows/release.yml':
-    - 'area: ci/cd'
-    - 'type: release'
-    - 'priority: high'
-  
+  "pyproject.toml":
+    - "area: build"
+    - "type: build"
+    - "priority: medium"
+
+  ".github/workflows/":
+    - "area: ci/cd"
+    - "type: ci"
+    - "priority: medium"
+
+  ".github/workflows/ci-cd.yml":
+    - "area: ci/cd"
+    - "type: ci"
+    - "priority: high"
+
+  ".github/workflows/release.yml":
+    - "area: ci/cd"
+    - "type: release"
+    - "priority: high"
+
   # Security files
-  'SECURITY.MD':
-    - 'area: security'
-    - 'type: security'
-    - 'priority: high'
-  
-  '.github/workflows/security.yml':
-    - 'area: security'
-    - 'type: security'
-    - 'priority: high'
+  "SECURITY.MD":
+    - "area: security"
+    - "type: security"
+    - "priority: high"
+
+  ".github/workflows/security.yml":
+    - "area: security"
+    - "type: security"
+    - "priority: high"
 
 # Branch-based labeling
 branch-labels:
   feature/*:
-    - 'type: feature'
+    - "type: feature"
   fix/*:
-    - 'type: bugfix'
+    - "type: bugfix"
   hotfix/*:
-    - 'type: hotfix'
-    - 'priority: critical'
+    - "type: hotfix"
+    - "priority: critical"
   chore/*:
-    - 'type: chore'
+    - "type: chore"
   docs/*:
-    - 'type: documentation'
+    - "type: documentation"
   test/*:
-    - 'type: testing'
+    - "type: testing"
   ci/*:
-    - 'type: ci'
+    - "type: ci"
   security/*:
-    - 'type: security'
-    - 'priority: high'
+    - "type: security"
+    - "priority: high"
   refactor/*:
-    - 'type: refactor'
+    - "type: refactor"
 
 # Title-based labeling (regex patterns)
 title-labels:
-  - pattern: '(?i)(breaking|major)'
+  - pattern: "(?i)(breaking|major)"
     labels:
-      - 'type: breaking-change'
-      - 'priority: critical'
-  
-  - pattern: '(?i)(fix|bug)'
+      - "type: breaking-change"
+      - "priority: critical"
+
+  - pattern: "(?i)(fix|bug)"
     labels:
-      - 'type: bugfix'
-  
-  - pattern: '(?i)(feat|feature)'
+      - "type: bugfix"
+
+  - pattern: "(?i)(feat|feature)"
     labels:
-      - 'type: feature'
-  
-  - pattern: '(?i)(doc|documentation)'
+      - "type: feature"
+
+  - pattern: "(?i)(doc|documentation)"
     labels:
-      - 'type: documentation'
-  
-  - pattern: '(?i)(test|testing)'
+      - "type: documentation"
+
+  - pattern: "(?i)(test|testing)"
     labels:
-      - 'type: testing'
-  
-  - pattern: '(?i)(security|vulnerability|cve)'
+      - "type: testing"
+
+  - pattern: "(?i)(security|vulnerability|cve)"
     labels:
-      - 'type: security'
-      - 'priority: high'
-  
-  - pattern: '(?i)(performance|perf|optimization)'
+      - "type: security"
+      - "priority: high"
+
+  - pattern: "(?i)(performance|perf|optimization)"
     labels:
-      - 'type: performance'
-  
-  - pattern: '(?i)(refactor|cleanup)'
+      - "type: performance"
+
+  - pattern: "(?i)(refactor|cleanup)"
     labels:
-      - 'type: refactor'
-  
-  - pattern: '(?i)(ci|workflow|github actions)'
+      - "type: refactor"
+
+  - pattern: "(?i)(ci|workflow|github actions)"
     labels:
-      - 'type: ci'
+      - "type: ci"
 
 # Auto-reviewers based on areas
 auto-reviewers:
-  'area: core':
+  "area: core":
     reviewers:
-      - 'karl.bauer@bauer-group.com'
-  
-  'type: security':
+      - "karl.bauer@bauer-group.com"
+
+  "type: security":
     reviewers:
-      - 'karl.bauer@bauer-group.com'
+      - "karl.bauer@bauer-group.com"
     review-required: true
-  
-  'type: breaking-change':
+
+  "type: breaking-change":
     reviewers:
-      - 'karl.bauer@bauer-group.com'
+      - "karl.bauer@bauer-group.com"
     review-required: true
 
 # Special handling
 special-labels:
   draft:
-    - 'status: draft'
-  
+    - "status: draft"
+
   ready-for-review:
     remove:
-      - 'status: draft'
+      - "status: draft"
     add:
-      - 'status: ready-for-review'
+      - "status: ready-for-review"
