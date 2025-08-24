@@ -1,0 +1,16 @@
+# This is the CODEOWNERS file for the repository.
+# It defines who is responsible (owner) for reviewing changes to certain files or folders.
+# When someone opens a pull request that modifies these files,
+# GitHub will automatically request a review from the listed owners.
+
+# Syntax:
+#   pattern   owner(s)
+# - Patterns work like .gitignore rules (wildcards, folders, extensions).
+# - Owners can be GitHub usernames (@username) or organization teams (@org/team).
+# - Multiple owners can be assigned, separated by spaces.
+
+# -------------------------------------------------------------------
+# Default rule: assign all files (*) in the repository to @karlspace.
+# This means every pull request will automatically request a review from you,
+# unless a more specific rule matches first.
+*   @karlspace

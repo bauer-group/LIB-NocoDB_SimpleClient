@@ -1,0 +1,50 @@
+name: 📄 Documentation
+
+on:
+  push:
+    branches: 
+      - main
+    tags:
+      - 'v*.*.*'
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/README.template.MD'
+  workflow_dispatch:
+    inputs:
+      force-update:
+        description: 'Force README update even without changes'
+        type: boolean
+        default: false
+      custom-version:
+        description: 'Custom version for README'
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      tag-name:
+        description: 'Tag name that triggered the documentation update'
+        type: string
+        required: false
+        default: ''
+      force-update:
+        description: 'Force README update even without changes'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-docs:
+    name: Generate Documentation
+    uses: bauer-group/automation-templates/.github/workflows/documentation.yml@main
+    with:
+      tag-name: ${{ inputs.tag-name }}
+      force-update: ${{ inputs.force-update }}
+      custom-version: ${{ inputs.custom-version }}
+    secrets: inherit

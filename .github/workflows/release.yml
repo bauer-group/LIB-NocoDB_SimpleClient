@@ -1,0 +1,267 @@
+name: 🚀 Automatic Release
+
+on:
+  push:
+    branches: 
+      - main
+    tags:
+      - 'v*.*.*'
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      force-release:
+        description: 'Force release creation even without changes'
+        type: boolean
+        default: false
+      release-type:
+        description: 'Type of release to create'
+        type: choice
+        options:
+          - 'auto'
+          - 'patch'  
+          - 'minor'
+          - 'major'
+          - 'prerelease'
+        default: 'auto'
+      publish-to-pypi:
+        description: 'Publish package to PyPI'
+        type: boolean
+        default: true
+      publish-to-testpypi:
+        description: 'Publish package to TestPyPI first'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      tag-name:
+        description: 'Tag name that triggered the release'
+        type: string
+        required: false
+        default: ''
+    outputs:
+      release-created:
+        description: 'Whether a release was created'
+        value: ${{ jobs.semantic-release.outputs.release-created }}
+      release-tag:
+        description: 'The tag of the created release'
+        value: ${{ jobs.semantic-release.outputs.release-tag }}
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  # Step 1: PR Validation for release preparation
+  pre-release-validation:
+    name: 📋 Pre-Release Validation
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    uses: bauer-group/automation-templates/.github/workflows/modules-pr-validation.yml@main
+    with:
+      validate-commits: true
+      security-check: true
+      license-check: true
+      fail-on-error: true
+    secrets: inherit
+
+  # Step 2: Comprehensive Security Scan
+  security-scan:
+    name: 🔒 Pre-Release Security Scan
+    needs: pre-release-validation
+    uses: bauer-group/automation-templates/.github/workflows/modules-security-scan.yml@main
+    with:
+      scan-engine: 'gitleaks'
+      include-dependencies: true
+      fail-on-vulnerability: true
+      severity-threshold: 'high'
+      report-format: 'sarif'
+    secrets: inherit
+
+  # Step 3: License Compliance Final Check
+  license-compliance:
+    name: 📄 License Compliance Check
+    needs: pre-release-validation
+    uses: bauer-group/automation-templates/.github/workflows/modules-license-compliance.yml@main
+    with:
+      generate-sbom: true
+      allowed-licenses: 'MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause'
+      forbidden-licenses: 'GPL-3.0,AGPL-3.0'
+      fail-on-forbidden: true
+    secrets: inherit
+
+  # Step 4: Build Python Package
+  build-package:
+    name: 📦 Build Python Package
+    needs: [security-scan, license-compliance]
+    uses: bauer-group/automation-templates/.github/workflows/python-build.yml@main
+    with:
+      python-version: '3.12'
+      project-type: 'package'
+      package-manager: 'pip'
+      dependency-file: 'pyproject.toml'
+      build-backend: 'hatchling'
+      
+      # Full Testing Suite
+      test-enabled: true
+      test-framework: 'pytest'
+      test-path: 'tests/'
+      coverage-enabled: true
+      coverage-threshold: 80
+      coverage-path: 'src/nocodb_simple_client'
+      
+      # Code Quality (strict for releases)
+      lint-enabled: true
+      format-enabled: true
+      type-check-enabled: true
+      type-check-path: 'src/nocodb_simple_client'
+      
+      # Security Scanning
+      security-scan-enabled: true
+      security-tools: 'bandit,safety,pip-audit'
+      
+      # Build Configuration
+      build-enabled: true
+      build-formats: 'wheel,sdist'
+      
+      # Matrix Testing for compatibility
+      matrix-enabled: true
+      matrix-python-versions: '["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]'
+      matrix-os: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+    secrets: inherit
+
+  # Step 5: Semantic Release
+  semantic-release:
+    name: 🏷️ Semantic Release
+    needs: build-package
+    uses: bauer-group/automation-templates/.github/workflows/modules-semantic-release.yml@main
+    with:
+      release-type: ${{ inputs.release-type || 'auto' }}
+      force-release: ${{ inputs.force-release || false }}
+      target-branch: 'main'
+      create-github-release: true
+      generate-changelog: true
+      update-version-files: true
+      version-file-patterns: |
+        src/nocodb_simple_client/__init__.py
+        pyproject.toml
+    outputs:
+      release-created: ${{ steps.release.outputs.release-created }}
+      release-tag: ${{ steps.release.outputs.release-tag }}
+      release-version: ${{ steps.release.outputs.release-version }}
+    secrets: inherit
+
+  # Step 6: Generate Release Artifacts
+  generate-artifacts:
+    name: 📁 Generate Artifacts
+    if: needs.semantic-release.outputs.release-created == 'true'
+    needs: semantic-release
+    uses: bauer-group/automation-templates/.github/workflows/modules-artifact-generation.yml@main
+    with:
+      artifact-types: 'source,python-package'
+      include-source-archive: true
+      include-checksums: true
+      release-tag: ${{ needs.semantic-release.outputs.release-tag }}
+      python-package-path: 'dist/'
+    secrets: inherit
+
+  # Step 7: Publish to TestPyPI (optional)
+  publish-testpypi:
+    name: 🧪 Publish to TestPyPI
+    if: needs.semantic-release.outputs.release-created == 'true' && (inputs.publish-to-testpypi == true)
+    needs: [semantic-release, generate-artifacts]
+    uses: bauer-group/automation-templates/.github/workflows/python-publish.yml@main
+    with:
+      python-version: '3.12'
+      build-backend: 'hatchling'
+      publish-target: 'testpypi'
+      package-path: 'dist/'
+      verify-package: true
+      create-github-release: false
+    secrets: inherit
+
+  # Step 8: Publish to PyPI
+  publish-pypi:
+    name: 🚀 Publish to PyPI
+    if: needs.semantic-release.outputs.release-created == 'true' && (inputs.publish-to-pypi != false)
+    needs: [semantic-release, generate-artifacts, publish-testpypi]
+    # Run after TestPyPI if enabled, otherwise after generate-artifacts
+    uses: bauer-group/automation-templates/.github/workflows/python-publish.yml@main
+    with:
+      python-version: '3.12'
+      build-backend: 'hatchling'
+      publish-target: 'pypi'
+      package-path: 'dist/'
+      verify-package: true
+      create-github-release: false
+      gpg-sign: false
+    secrets: inherit
+
+  # Step 9: Update Documentation
+  update-documentation:
+    name: 📚 Update Documentation
+    if: needs.semantic-release.outputs.release-created == 'true'
+    needs: [semantic-release, publish-pypi]
+    uses: ./.github/workflows/documentation.yml
+    with:
+      tag-name: ${{ needs.semantic-release.outputs.release-tag }}
+      force-update: true
+      custom-version: ${{ needs.semantic-release.outputs.release-version }}
+    secrets: inherit
+
+  # Step 10: Update Security Policy
+  update-security-policy:
+    name: 🔒 Update Security Policy
+    if: needs.semantic-release.outputs.release-created == 'true'
+    needs: [semantic-release, publish-pypi]
+    uses: ./.github/workflows/security.yml
+    with:
+      tag-name: ${{ needs.semantic-release.outputs.release-tag }}
+      force-update: true
+      custom-version: ${{ needs.semantic-release.outputs.release-version }}
+      policy-version: ${{ needs.semantic-release.outputs.release-version }}
+    secrets: inherit
+
+  # Step 11: Release Summary
+  release-summary:
+    name: 📊 Release Summary
+    if: always() && needs.semantic-release.outputs.release-created == 'true'
+    needs: [semantic-release, publish-pypi, update-documentation, update-security-policy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Release Summary
+        run: |
+          echo "# 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.semantic-release.outputs.release-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ needs.semantic-release.outputs.release-tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **PyPI Published**: ${{ needs.publish-pypi.result == 'success' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Documentation Updated**: ${{ needs.update-documentation.result == 'success' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Policy Updated**: ${{ needs.update-security-policy.result == 'success' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Post-Release Actions" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Package available on [PyPI](https://pypi.org/project/nocodb-simple-client/)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ [GitHub Release](https://github.com/${{ github.repository }}/releases/tag/${{ needs.semantic-release.outputs.release-tag }}) created" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Documentation updated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security policy updated" >> $GITHUB_STEP_SUMMARY
+
+  # Step 12: Teams Notification
+  notify-teams:
+    name: 📢 Teams Notification
+    if: needs.semantic-release.outputs.release-created == 'true'
+    needs: [semantic-release, release-summary]
+    uses: ./.github/workflows/teams-notifications.yml
+    with:
+      custom-message: |
+        🚀 **New Release Published!**
+        
+        **nocodb-simple-client v${{ needs.semantic-release.outputs.release-version }}** is now available!
+        
+        📦 [PyPI Package](https://pypi.org/project/nocodb-simple-client/)
+        📋 [Release Notes](https://github.com/${{ github.repository }}/releases/tag/${{ needs.semantic-release.outputs.release-tag }})
+        
+        Ready to use: `pip install nocodb-simple-client`
+      include-details: true
+    secrets: inherit
