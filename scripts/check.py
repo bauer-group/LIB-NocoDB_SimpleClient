@@ -8,6 +8,13 @@ import sys
 import time
 from pathlib import Path
 
+# Configure UTF-8 encoding for Windows console output
+if sys.platform == "win32":
+    import codecs
+
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+
 
 def run_quick_check(cmd: list[str], description: str) -> bool:
     """Run a quick check command."""
@@ -20,6 +27,8 @@ def run_quick_check(cmd: list[str], description: str) -> bool:
             capture_output=True,
             text=True,
             timeout=30,  # Quick timeout
+            encoding="utf-8",
+            errors="replace",
         )
 
         if result.returncode == 0:
@@ -54,10 +63,16 @@ def main():
     # Quick checks (fast ones only)
     quick_checks = [
         (["python", "-c", "import src.nocodb_simple_client; print('OK')"], "Import check"),
-        (["ruff", "check", "src/", "--select=F,E"], "Syntax check"),
-        (["black", "--check", "--fast", "src/"], "Format check"),
-        (["mypy", "src/nocodb_simple_client/__init__.py"], "Type check (minimal)"),
-        (["pytest", "-x", "--tb=no", "-q", "tests/", "-m", "not slow"], "Quick tests"),
+        (["python", "-m", "ruff", "check", "src/", "--select=F,E"], "Syntax check"),
+        (
+            ["python", "-m", "black", "--check", "--fast", "src/nocodb_simple_client/"],
+            "Format check",
+        ),
+        (["python", "-m", "mypy", "src/nocodb_simple_client/__init__.py"], "Type check (minimal)"),
+        (
+            ["python", "-m", "pytest", "-x", "--tb=no", "-q", "tests/", "-m", "not slow"],
+            "Quick tests",
+        ),
     ]
 
     passed = 0

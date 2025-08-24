@@ -96,7 +96,22 @@ class ProjectConfig:
 
     def has_tool_config(self, tool: str) -> bool:
         """Check if tool configuration exists in pyproject.toml."""
-        return f"tool.{tool}" in self._flatten_keys(self.config)
+        try:
+            tools = self.config.get("tool", {})
+            if "." in tool:
+                # Handle nested tools like pytest.ini_options
+                parts = tool.split(".")
+                current = tools
+                for part in parts:
+                    if isinstance(current, dict) and part in current:
+                        current = current[part]
+                    else:
+                        return False
+                return True
+            else:
+                return tool in tools
+        except Exception:
+            return False
 
     def get_tool_config(self, tool: str) -> dict[str, Any]:
         """Get tool configuration from pyproject.toml."""
