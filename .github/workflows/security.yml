@@ -2,47 +2,34 @@ name: 🔒 Security Management
 
 on:
   push:
-    branches: 
+    branches:
       - main
     tags:
-      - 'v*.*.*'
-      - 'v*'
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - "v*.*.*"
+      - "v*"
+      - "[0-9]+.[0-9]+.[0-9]+"
   pull_request:
     branches: [main]
     paths:
-      - 'docs/SECURITY.template.MD'
+      - "docs/SECURITY.template.MD"
   workflow_dispatch:
     inputs:
       force-update:
-        description: 'Force security policy update even without changes'
+        description: "Force security policy update even without changes"
         type: boolean
         default: false
-      custom-version:
-        description: 'Custom version for security policy'
-        type: string
-        default: ''
-      policy-version:
-        description: 'Security policy version'
-        type: string
-        default: ''
   workflow_call:
     inputs:
       tag-name:
-        description: 'Tag name that triggered the security policy update'
+        description: "Tag name that triggered the security policy update"
         type: string
         required: false
-        default: ''
+        default: ""
       force-update:
-        description: 'Force security policy update even without changes'
+        description: "Force security policy update even without changes"
         type: boolean
         required: false
         default: false
-      policy-version:
-        description: 'Security policy version'
-        type: string
-        required: false
-        default: ''
 
 permissions:
   contents: write
@@ -53,8 +40,6 @@ jobs:
     name: Security Management
     uses: bauer-group/automation-templates/.github/workflows/security-management.yml@main
     with:
-      tag-name: ${{ inputs.tag-name }}
-      force-update: ${{ inputs.force-update }}
-      custom-version: ${{ inputs.custom-version }}
-      policy-version: ${{ inputs.policy-version }}
+      tag-name: ${{ inputs.tag-name || github.ref_name }}
+      force-update: ${{ inputs.force-update || false }}
     secrets: inherit

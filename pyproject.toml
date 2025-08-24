@@ -47,12 +47,19 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
     "black>=22.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "bandit>=1.7.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
     "pre-commit>=2.20.0",
     "tox>=4.0.0",
     "tomli>=2.0.0; python_version<'3.11'",
+    "types-requests>=2.31.0",
+    "types-PyYAML>=6.0.0",
+    "types-aiofiles>=0.8.0",
 ]
 docs = [
     "mkdocs>=1.4.0",
@@ -98,6 +105,7 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "benchmark: Benchmark tests",
 ]
 
 [tool.coverage.run]
@@ -141,6 +149,8 @@ extend-exclude = '''
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -159,10 +169,10 @@ ignore = [
     "W191",  # indentation contains tabs
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ARG", "S101"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["nocodb_simple_client"]
 
 # Type checking
