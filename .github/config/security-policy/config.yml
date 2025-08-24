@@ -1,0 +1,12 @@
+# Security Policy Configuration
+policy_version: "1.0.0"
+review_cycle_months: 12
+
+# Template Configuration
+template:
+  path: "docs/SECURITY.template.MD"
+  output: "SECURITY.MD"
+
+# Version Configuration
+versions:
+  show_previous: 5

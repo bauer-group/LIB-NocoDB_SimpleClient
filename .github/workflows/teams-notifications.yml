@@ -25,29 +25,17 @@ on:
         type: string
         default: 'general'
   workflow_call:
-    inputs:
-      custom-message:
-        description: 'Custom message to include'
+    inputs:  
+      notification-level:
+        description: 'Notification level (all or errors-only)'
+        required: false
         type: string
-        required: false
-        default: ''
-      webhook-name:
-        description: 'Teams webhook secret name'
-        type: string
-        required: false
-        default: 'TEAMS_WEBHOOK_URL'
-      include-details:
-        description: 'Include detailed information'
-        type: boolean
-        required: false
-        default: true
+        default: 'errors-only'
 
 jobs:
   notify-teams:
     name: Send Teams Notification
     uses: bauer-group/automation-templates/.github/workflows/teams-notifications.yml@main
     with:
-      custom-message: ${{ inputs.custom-message || inputs.message }}
-      webhook-name: ${{ inputs.webhook-name || 'TEAMS_WEBHOOK_URL' }}
-      include-details: ${{ inputs.include-details }}
+      notification-level: ${{ inputs.notification-level || 'errors-only' }}
     secrets: inherit

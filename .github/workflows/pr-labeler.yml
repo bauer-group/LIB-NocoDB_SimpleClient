@@ -1,0 +1,48 @@
+name: 🏷️ PR Labeler
+
+# Automatically labels pull requests based on content, size, and type
+# Uses the modular PR labeler from Bauer Group automation templates
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: 'PR number to label (leave empty for all open PRs)'
+        type: string
+        required: false
+      force-update:
+        description: 'Force update labels even if already labeled'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label-pr:
+    name: Label Pull Request
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    uses: bauer-group/automation-templates/.github/workflows/pr-labeler.yml@main
+    with:
+      # Configuration for Python library project
+      config-path: '.github/config/pr-labeler/path-labels.yml'
+      sync-labels: true
+      
+      # Size labeling based on lines changed
+      size-labels: true
+      
+      # Priority labeling based on keywords and file types
+      priority-labels: true
+      
+      # Type labeling based on branch name and PR title
+      type-labels: true
+      
+      # Auto-assignment based on CODEOWNERS (if file exists)
+      auto-assign: false
+      
+      # Custom triage rules for Python projects
+      custom-rules: '.github/config/pr-labeler/triage-rules.yml'
+    secrets: inherit
