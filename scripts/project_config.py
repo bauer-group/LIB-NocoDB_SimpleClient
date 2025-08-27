@@ -92,7 +92,7 @@ class ProjectConfig:
                             return line.split("=")[1].strip().strip("\"'")
             except Exception:
                 pass
-            return "0.4.0"  # Default fallback
+            return "0.0.0"  # Default fallback
 
     def has_tool_config(self, tool: str) -> bool:
         """Check if tool configuration exists in pyproject.toml."""
