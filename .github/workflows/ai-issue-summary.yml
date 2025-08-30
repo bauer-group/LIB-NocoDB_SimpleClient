@@ -6,6 +6,7 @@ name: 🤖 Issue AI Summary
 on:
   issues:
     types: [opened]
+
   pull_request_target:
     types: [opened]
 

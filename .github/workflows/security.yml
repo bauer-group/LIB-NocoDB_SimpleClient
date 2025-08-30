@@ -2,22 +2,22 @@ name: 🔒 Security Management
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - "v*.*.*"
-      - "v*"
-      - "[0-9]+.[0-9]+.[0-9]+"
+    branches: [main]
+    paths:
+      - "docs/SECURITY.template.MD"
+
   pull_request:
     branches: [main]
     paths:
       - "docs/SECURITY.template.MD"
+
   workflow_dispatch:
     inputs:
       force-update:
         description: "Force security policy update even without changes"
         type: boolean
         default: false
+
   workflow_call:
     inputs:
       tag-name:
