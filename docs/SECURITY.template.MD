@@ -1,6 +1,6 @@
 # Security Policy
 
-## Reporting Vulnerabilities
+## 🚨 Reporting Security Vulnerabilities
 
 We take the security of NocoDB Simple Client seriously. If you discover a security vulnerability, please report it to us responsibly.
 
@@ -42,13 +42,13 @@ We are committed to responding promptly to security reports:
   - **Medium**: 1-30 days
   - **Low**: 1-90 days
 
-## Supported Versions
+## 🔐 Supported Versions
 
 {{SUPPORTED_VERSIONS_TABLE}}
 
 We provide security updates for supported versions only. Please upgrade to a supported version if you're using an older release.
 
-## Our Security Measures
+## 🛡️ Security Measures
 
 ### Repository Security
 
@@ -160,6 +160,12 @@ We follow coordinated vulnerability disclosure:
 - **Security Team**: Available through GitHub Security Advisories
 - **Maintainers**: Listed in the repository contributors
 - **Emergency**: For critical issues requiring immediate attention
+
+## 📞 Emergency Contacts
+
+### Incident Response Team
+- **Primary**: support@bauer-group.com
+- **Escalation**: Available through support portal
 
 ## Legal
 
