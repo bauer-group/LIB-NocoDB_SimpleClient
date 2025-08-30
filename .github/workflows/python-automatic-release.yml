@@ -1,4 +1,4 @@
-name: 🐍 Python CI/CD Pipeline (Automatic Release)
+name: 🐍 CI/CD Pipeline (Automatic Release)
 
 on:
   push:
