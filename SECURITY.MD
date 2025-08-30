@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/SECURITY.template.MD instead. -->
-<!-- Generated on 2025-08-30 21:18:27 UTC -->
+<!-- Generated on 2025-08-30 21:21:09 UTC -->
 
 # Security Policy
 
@@ -183,7 +183,7 @@ We appreciate the security research community and all individuals who responsibl
 ---
 
 **Current Version**: v0.0.0
-**Last Updated**: 2025-08-30 21:18:27 UTC
+**Last Updated**: 2025-08-30 21:21:09 UTC
 **Next Review**: August 2026
 **Policy Version**: 1.0.0
 
