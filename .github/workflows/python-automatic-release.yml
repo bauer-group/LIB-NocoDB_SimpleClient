@@ -1,0 +1,57 @@
+name: 🐍 Python CI/CD Pipeline (Automatic Release)
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '*.md'
+      - '*.MD'
+
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '*.md'
+      - '*.MD'
+
+  workflow_dispatch:
+    inputs:
+      security-engine:
+        description: 'Security scan engine'
+        type: choice
+        default: 'both'
+        options: ['gitleaks', 'gitguardian', 'both']
+      force-release:
+        description: 'Force create release'
+        type: boolean
+        default: false
+      skip-pypi:
+        description: 'Skip PyPI publishing'
+        type: boolean
+        default: false
+      python-version:
+        description: 'Python version to use'
+        type: string
+        default: '3.12'
+
+jobs:
+  # Main Python CI/CD Pipeline using modular automation templates
+  python-pipeline:
+    name: 🐍 Python Release Pipeline
+    uses: bauer-group/automation-templates/.github/workflows/python-automatic-release.yml@main
+    with:
+      # Python Configuration
+      python-version: ${{ inputs.python-version || '3.12' }}
+      package-source-path: 'src/nocodb_simple_client'
+
+      # Security Configuration
+      security-engine: ${{ inputs.security-engine || 'both' }}
+
+      # Release Configuration
+      force-release: ${{ inputs.force-release || false }}
+      skip-pypi: ${{ inputs.skip-pypi || false }}
+
+    secrets: inherit
