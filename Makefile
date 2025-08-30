@@ -1,7 +1,7 @@
 # NocoDB Simple Client - Development Commands
 .PHONY: help install install-dev test test-cov lint format type-check security build clean docs serve-docs pre-commit all-checks
 
-# Default target
+# Default target (help)
 help:
 	@echo "NocoDB Simple Client Development Commands"
 	@echo "========================================"
