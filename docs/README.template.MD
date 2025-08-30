@@ -1,4 +1,4 @@
-# NocoDB Simple Client
+# {{COMPANY_NAME}} - NocoDB Simple Client
 
 [![PyPI version](https://badge.fury.io/py/nocodb-simple-client.svg)](https://badge.fury.io/py/nocodb-simple-client)
 [![Python Support](https://img.shields.io/pypi/pyversions/nocodb-simple-client.svg)](https://pypi.org/project/nocodb-simple-client/)
@@ -10,7 +10,12 @@
 
 A simple and powerful Python client for interacting with [NocoDB](https://nocodb.com/) REST API. This client provides an intuitive interface for performing CRUD operations, managing file attachments, and handling complex queries on your NocoDB tables.
 
-**Version:** {{VERSION}} | **Generated:** {{DATETIME}}
+**Repository Information:**
+
+- **Version:** {{VERSION}} ({{DATE}})
+- **Repository:** [{{REPO_FULL_NAME}}]({{REPO_URL}})
+- **Branch:** {{CURRENT_BRANCH}}
+- **Architecture:** Modular, Reusable, Enterprise-Ready
 
 ## 🌟 Features
 
@@ -528,3 +533,7 @@ See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 **Made with ❤️ by [{{COMPANY_NAME}}](https://bauer-group.com)**
 
 *If this library helps you build something awesome, we'd love to hear about it!*
+
+---
+
+*Generated on {{DATETIME}} from [docs/README.template.MD](docs/README.template.MD)*
