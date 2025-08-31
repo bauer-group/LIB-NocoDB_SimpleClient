@@ -1,14 +1,14 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/README.template.MD instead. -->
-<!-- Generated on 2025-08-31 10:47:48 UTC -->
+<!-- Generated on 2025-08-31 10:55:24 UTC -->
 
 # BAUER GROUP - NocoDB Simple Client
 
-[![PyPI version](https://badge.fury.io/py/nocodb-simple-client.svg)](https://badge.fury.io/py/nocodb-simple-client)
+[![PyPI Version](https://badge.fury.io/py/nocodb-simple-client.svg)](https://badge.fury.io/py/nocodb-simple-client)
 [![Python Support](https://img.shields.io/pypi/pyversions/nocodb-simple-client.svg)](https://pypi.org/project/nocodb-simple-client/)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![CI](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/workflows/CI/badge.svg)](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/actions)
+[![🐍 CI/CD](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/actions/workflows/python-automatic-release.yml/badge.svg)](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/actions/workflows/python-automatic-release.yml)
 
 
 A simple and powerful Python client for interacting with [NocoDB](https://nocodb.com/) REST API. This client provides an intuitive interface for performing CRUD operations, managing file attachments, and handling complex queries on your NocoDB tables.
@@ -539,4 +539,4 @@ See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 
 ---
 
-*Generated on 2025-08-31 10:47:48 UTC from [docs/README.template.MD](docs/README.template.MD)*
+*Generated on 2025-08-31 10:55:24 UTC from [docs/README.template.MD](docs/README.template.MD)*
