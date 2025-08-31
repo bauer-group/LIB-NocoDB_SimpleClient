@@ -37,7 +37,7 @@ permissions:
 jobs:
   generate-docs:
     name: Generate Documentation
-    uses: bauer-group/automation-templates/.github/workflows/documentation.yml@v1.6.0
+    uses: bauer-group/automation-templates/.github/workflows/documentation.yml@main
     with:
       tag-name: ${{ inputs.tag-name || github.ref_name }}
       force-update: ${{ inputs.force-update || false }}
