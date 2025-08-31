@@ -1,5 +1,7 @@
 @echo off
+
 REM Windows wrapper for validate.py
+
 python "%~dp0validate.py" %*
 if %errorlevel% neq 0 (
     echo.
@@ -7,5 +9,6 @@ if %errorlevel% neq 0 (
     pause >nul
     exit /b %errorlevel%
 )
+
 echo.
 pause
