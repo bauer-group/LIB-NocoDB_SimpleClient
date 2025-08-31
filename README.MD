@@ -1,12 +1,24 @@
-# NocoDB Simple Client
+<!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/README.template.MD instead. -->
+<!-- Generated on 2025-08-31 10:47:48 UTC -->
+
+# BAUER GROUP - NocoDB Simple Client
 
 [![PyPI version](https://badge.fury.io/py/nocodb-simple-client.svg)](https://badge.fury.io/py/nocodb-simple-client)
 [![Python Support](https://img.shields.io/pypi/pyversions/nocodb-simple-client.svg)](https://pypi.org/project/nocodb-simple-client/)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/bauer-group/nocodb-simple-client/workflows/CI/badge.svg)](https://github.com/bauer-group/nocodb-simple-client/actions)
-[![codecov](https://codecov.io/gh/bauer-group/nocodb-simple-client/branch/main/graph/badge.svg)](https://codecov.io/gh/bauer-group/nocodb-simple-client)
+
+[![CI](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/workflows/CI/badge.svg)](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/actions)
+
 
 A simple and powerful Python client for interacting with [NocoDB](https://nocodb.com/) REST API. This client provides an intuitive interface for performing CRUD operations, managing file attachments, and handling complex queries on your NocoDB tables.
+
+**Repository Information:**
+
+- **Version:** 0.0.0 (2025-08-31)
+- **Repository:** [bauer-group/LIB-NocoDB_SimpleClient](https://github.com/bauer-group/LIB-NocoDB_SimpleClient)
+- **Branch:** main
+- **Architecture:** Modular, Reusable, Enterprise-Ready
 
 ## 🌟 Features
 
@@ -322,13 +334,19 @@ Check out the [`examples/`](examples/) directory for comprehensive examples:
 
 ## 🔧 Development
 
-### Quick Setup (Windows)
+### Quick Setup
 
-For Windows users, run the automated setup script:
+Use the automated setup script for your platform:
 
-```batch
-# Run setup script
-scripts\dev-setup.bat
+```bash
+# Windows
+scripts\setup.cmd
+
+# macOS/Linux
+./scripts/setup.sh
+
+# Or run Python directly (cross-platform)
+python scripts/setup.py
 ```
 
 This will:
@@ -341,7 +359,7 @@ This will:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/bauer-group/nocodb-simple-client.git
+git clone https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git
 cd nocodb-simple-client
 ```
 
@@ -366,16 +384,28 @@ pre-commit install
 
 Use these commands to validate your code locally:
 
-#### Quick Validation (Windows)
-```batch
-# Run quick tests and checks
-scripts\quick-test.bat
+#### Quick Validation
+```bash
+# Windows
+scripts\quick-test.cmd
+
+# macOS/Linux
+./scripts/quick-test.sh
+
+# Or cross-platform
+python scripts/quick-test.py
 ```
 
 #### Complete Validation
 ```bash
-# Run comprehensive validation (cross-platform)
-python scripts\validate.py
+# Windows
+scripts\validate.cmd
+
+# macOS/Linux
+./scripts/validate.sh
+
+# Or cross-platform
+python scripts/validate.py
 ```
 
 #### Individual Commands
@@ -432,7 +462,7 @@ make test-cov
 Pre-commit hooks automatically run quality checks before each commit:
 
 ```bash
-# Install hooks
+# Install hooks (done automatically by setup script)
 pre-commit install
 
 # Run manually on all files
@@ -448,22 +478,25 @@ python -m build
 # Test installation
 pip install dist/nocodb_simple_client-*.whl
 
-# Clean build artifacts
+# Clean build artifacts (Windows)
+rmdir /s build dist *.egg-info
+
+# Clean build artifacts (macOS/Linux)
 rm -rf build/ dist/ *.egg-info/
 ```
 
 ### Development Workflow
 
-1. **Setup**: Run `scripts\dev-setup.bat` (Windows) or manual setup
+1. **Setup**: Run setup script for your platform
 2. **Code**: Make your changes
-3. **Validate**: Run `python scripts\validate.py`
-4. **Test**: Run `pytest` for quick tests
+3. **Quick Test**: Run `python scripts/quick-test.py`
+4. **Full Validation**: Run `python scripts/validate.py`
 5. **Commit**: Pre-commit hooks will run automatically
 6. **Push**: CI will run full test suite
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! Please see [CONTRIBUTING.MD](CONTRIBUTING.MD) for details.
 
 ### Quick Contribution Guide
 
@@ -472,7 +505,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 3. Make your changes
 4. Add tests for new functionality
 5. Ensure all tests pass (`pytest`)
-6. Run code quality checks (`black .`, `ruff check .`, `mypy nocodb_simple_client`)
+6. Run code quality checks (`black .`, `ruff check .`, `mypy src/nocodb_simple_client`)
 7. Commit your changes (`git commit -m 'Add some amazing feature'`)
 8. Push to the branch (`git push origin feature/amazing-feature`)
 9. Open a Pull Request
@@ -490,25 +523,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: You're reading it! 📖
-- **Issues**: [GitHub Issues](https://github.com/bauer-group/nocodb-simple-client/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/bauer-group/nocodb-simple-client/discussions)
+- **Issues**: [GitHub Issues](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/discussions)
 - **Email**: support@bauer-group.com
-
-## 🗺️ Roadmap
-
-- [ ] Bulk operations support
-- [ ] Async client implementation
-- [ ] Advanced relationship handling
-- [ ] Query builder interface
-- [ ] Caching layer
-- [ ] CLI tool for common operations
 
 ## 📊 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 
 ---
 
 **Made with ❤️ by [BAUER GROUP](https://bauer-group.com)**
 
 *If this library helps you build something awesome, we'd love to hear about it!*
+
+---
+
+*Generated on 2025-08-31 10:47:48 UTC from [docs/README.template.MD](docs/README.template.MD)*
