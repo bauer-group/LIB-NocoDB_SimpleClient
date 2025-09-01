@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from .exceptions import NocoDBException, RecordNotFoundException
+from .exceptions import NocoDBException, RecordNotFoundException, ValidationException
 
 
 class NocoDBClient:
@@ -392,6 +392,134 @@ class NocoDBClient:
         response = self._get(f"api/v2/tables/{table_id}/records/count", params=params)
         count = response.get("count", 0)
         return int(count) if count is not None else 0
+
+    def bulk_insert_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+        """Insert multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            records: List of record dictionaries to insert
+
+        Returns:
+            List of inserted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        if not records:
+            return []
+
+        if not isinstance(records, list):
+            raise ValidationException("Records must be a list")
+
+        # NocoDB v2 API supports bulk insert via array payload
+        try:
+            response = self._post(f"api/v2/tables/{table_id}/records", data=records)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                return [record.get("Id") for record in response if record.get("Id") is not None]
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk insert"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_INSERT_ERROR", f"Bulk insert failed: {str(e)}") from e
+
+    def bulk_update_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+        """Update multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            records: List of record dictionaries to update (must include Id field)
+
+        Returns:
+            List of updated record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        if not records:
+            return []
+
+        if not isinstance(records, list):
+            raise ValidationException("Records must be a list")
+
+        # Validate that all records have ID field
+        for i, record in enumerate(records):
+            if not isinstance(record, dict):
+                raise ValidationException(f"Record at index {i} must be a dictionary")
+            if "Id" not in record:
+                raise ValidationException(f"Record at index {i} missing required 'Id' field")
+
+        try:
+            response = self._patch(f"api/v2/tables/{table_id}/records", data=records)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                return [record.get("Id") for record in response if record.get("Id") is not None]
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk update"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_UPDATE_ERROR", f"Bulk update failed: {str(e)}") from e
+
+    def bulk_delete_records(self, table_id: str, record_ids: list[int | str]) -> list[int | str]:
+        """Delete multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            record_ids: List of record IDs to delete
+
+        Returns:
+            List of deleted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If record_ids is invalid
+        """
+        if not record_ids:
+            return []
+
+        if not isinstance(record_ids, list):
+            raise ValidationException("Record IDs must be a list")
+
+        # Convert to list of dictionaries with Id field
+        records_to_delete = [{"Id": record_id} for record_id in record_ids]
+
+        try:
+            response = self._delete(f"api/v2/tables/{table_id}/records", data=records_to_delete)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                return [record.get("Id") for record in response if record.get("Id") is not None]
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk delete"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_DELETE_ERROR", f"Bulk delete failed: {str(e)}") from e
 
     def _multipart_post(
         self,

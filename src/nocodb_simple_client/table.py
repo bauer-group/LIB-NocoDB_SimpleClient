@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from .client import NocoDBClient
+from .query_builder import QueryBuilder
 
 
 class NocoDBTable:
@@ -159,6 +160,67 @@ class NocoDBTable:
             NocoDBException: For API errors
         """
         return self.client.count_records(self.table_id, where)
+
+    def bulk_insert_records(self, records: list[dict[str, Any]]) -> list[int | str]:
+        """Insert multiple records at once for better performance.
+
+        Args:
+            records: List of record dictionaries to insert
+
+        Returns:
+            List of inserted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        return self.client.bulk_insert_records(self.table_id, records)
+
+    def bulk_update_records(self, records: list[dict[str, Any]]) -> list[int | str]:
+        """Update multiple records at once for better performance.
+
+        Args:
+            records: List of record dictionaries to update (must include Id field)
+
+        Returns:
+            List of updated record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        return self.client.bulk_update_records(self.table_id, records)
+
+    def bulk_delete_records(self, record_ids: list[int | str]) -> list[int | str]:
+        """Delete multiple records at once for better performance.
+
+        Args:
+            record_ids: List of record IDs to delete
+
+        Returns:
+            List of deleted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If record_ids is invalid
+        """
+        return self.client.bulk_delete_records(self.table_id, record_ids)
+
+    def query(self) -> QueryBuilder:
+        """Create a new QueryBuilder for this table.
+
+        Returns:
+            QueryBuilder instance for building complex queries
+
+        Example:
+            >>> records = (table.query()
+            ...     .select('Name', 'Email', 'Status')
+            ...     .where('Status', 'eq', 'Active')
+            ...     .order_by('CreatedAt', 'desc')
+            ...     .limit(50)
+            ...     .execute())
+        """
+        return QueryBuilder(self)
 
     def attach_file_to_record(
         self,

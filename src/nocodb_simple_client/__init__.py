@@ -23,7 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from .cache import CacheManager, InMemoryCache, NocoDBCache
 from .client import NocoDBClient
+from .columns import NocoDBColumns, TableColumns
 from .exceptions import (
     AuthenticationException,
     AuthorizationException,
@@ -38,15 +40,36 @@ from .exceptions import (
     TableNotFoundException,
     ValidationException,
 )
+from .file_operations import FileManager, TableFileManager
+from .filter_builder import FilterBuilder, SortBuilder, create_filter, create_sort
+from .links import NocoDBLinks, TableLinks
+from .pagination import PaginatedResult, PaginationHandler
+
+# New components
+from .query_builder import QueryBuilder
 from .table import NocoDBTable
+from .views import NocoDBViews, TableViews
+from .webhooks import NocoDBWebhooks, TableWebhooks
+
+# Async support (optional)
+try:
+    from .async_client import AsyncNocoDBClient, AsyncNocoDBTable
+
+    ASYNC_AVAILABLE = True
+except ImportError:
+    ASYNC_AVAILABLE = False
+    AsyncNocoDBClient = None
+    AsyncNocoDBTable = None
 
 __version__ = "1.1.1"
 __author__ = "BAUER GROUP (Karl Bauer)"
 __email__ = "karl.bauer@bauer-group.com"
 
 __all__ = [
+    # Core classes
     "NocoDBClient",
     "NocoDBTable",
+    # Exceptions
     "NocoDBException",
     "RecordNotFoundException",
     "ValidationException",
@@ -59,4 +82,36 @@ __all__ = [
     "TableNotFoundException",
     "FileUploadException",
     "InvalidResponseException",
+    # Query building
+    "QueryBuilder",
+    "FilterBuilder",
+    "SortBuilder",
+    "create_filter",
+    "create_sort",
+    # Pagination
+    "PaginationHandler",
+    "PaginatedResult",
+    # Links and relationships
+    "NocoDBLinks",
+    "TableLinks",
+    # Views management
+    "NocoDBViews",
+    "TableViews",
+    # Webhooks and automation
+    "NocoDBWebhooks",
+    "TableWebhooks",
+    # Column/field management
+    "NocoDBColumns",
+    "TableColumns",
+    # File operations
+    "FileManager",
+    "TableFileManager",
+    # Caching
+    "CacheManager",
+    "NocoDBCache",
+    "InMemoryCache",
+    # Async support (if available)
+    "AsyncNocoDBClient",
+    "AsyncNocoDBTable",
+    "ASYNC_AVAILABLE",
 ]
