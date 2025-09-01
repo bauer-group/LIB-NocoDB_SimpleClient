@@ -4,7 +4,7 @@
 # Default target (help)
 help:
 	@echo "NocoDB Simple Client Development Commands"
-	@echo "========================================"
+	@echo "========================================="
 	@echo ""
 	@echo "Setup:"
 	@echo "  install      Install package in development mode"
