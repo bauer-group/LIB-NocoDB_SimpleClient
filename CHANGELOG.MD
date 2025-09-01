@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.1.0 (2025-09-01)
+
+### Bug Fixes
+
+- Aktualisiere Versionsnummer im CHANGELOG auf v0.4.0
+  ([`c5b164a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/c5b164a7eba67d2238a72bde425ecc320bbedf6c))
+
+- Füge fehlende Leerzeilen zwischen den Abschnitten im pyproject.toml hinzu
+  ([`7394b31`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/7394b3132e3eeb72857e540afe6149d592b61b1a))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`044c004`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/044c004249611cf623d8688c4662e33bafcde3e1))
+
+- Update SECURITY.MD [automated]
+  ([`fc8693d`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/fc8693d47fa824ba31467a19c373557a908eb01e))
+
+### Features
+
+- Füge CHANGELOG für Version 1.0.0 hinzu und strukturiere die Einträge
+  ([`7163c07`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/7163c071f6c545b82ba47ec3ecaeae071f78f36f))
+
+
 ## v1.0.0 (2025-09-01)
 
 ### Bug Fixes
@@ -14,6 +38,9 @@
 
 - Aktualisiere die Workflow-Vorlage auf den Hauptbranch
   ([`2f7855f`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/2f7855f7a894cfe49fe966287f45c99a314d93fb))
+
+- Entferne veraltete Changelog-Inhalte und bereite die Datei für zukünftige Änderungen vor
+  ([`4698411`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/4698411d9cf78540b7663fc898fea9f131eb67e6))
 
 - Entferne überflüssige Kommentarzeile aus validate.cmd
   ([`b863a80`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/b863a809d3d31dcbffd016f8858a8d5108631f79))
@@ -35,6 +62,9 @@
 
 - Füge Trennzeichen am Ende der Datei validate.cmd hinzu
   ([`9b8e942`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/9b8e9425d65e01496ac24acf4259fba5138e27d9))
+
+- Korrigiere Dateinamen für das Changelog in der Semantic Release-Konfiguration
+  ([`109bd50`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/109bd509ed572f170f27455108ad828cd1dc3836))
 
 - Korrigiere den Namen der CI/CD-Pipeline für Konsistenz
   ([`e0efe91`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/e0efe916f4a1f02d4b0366b8614e88cba506c803))
@@ -104,8 +134,3 @@
 
 - Füge Gitleaks-Konfigurationsdatei hinzu und entferne die Gitleaks-Ignore-Datei
   ([`dc37243`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/dc372436ab5c3476f76e464cd5bc14b7708df9d7))
-
-
-## v0.4.0 (2024-01-01)
-
-- Initial Release
