@@ -39,6 +39,19 @@ Install from PyPI using pip:
 pip install nocodb-simple-client
 ```
 
+Or install directly from GitHub:
+
+```bash
+# Latest version from main branch
+pip install git+{{REPO_URL}}.git
+
+# Specific version/tag
+pip install git+{{REPO_URL}}.git@v1.1.1
+
+# Specific branch
+pip install git+{{REPO_URL}}.git@develop
+```
+
 ### Basic Usage
 
 ```python
