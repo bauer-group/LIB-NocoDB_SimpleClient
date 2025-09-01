@@ -530,7 +530,7 @@ See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 
 ---
 
-**Made with ❤️ by [{{COMPANY_NAME}}](https://bauer-group.com)**
+**Made with ❤️ by [{{COMPANY_NAME}}](https://go.bauer-group.com)**
 
 *If this library helps you build something awesome, we'd love to hear about it!*
 
