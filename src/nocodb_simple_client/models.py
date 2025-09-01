@@ -80,7 +80,7 @@ if PYDANTIC_AVAILABLE:
             validate_assignment = True
             use_enum_values = True
 
-        @validator("Id")  # type: ignore[misc]
+        @validator("Id")
         def validate_id(cls, v: Any) -> Any:
             """Validate record ID."""
             if isinstance(v, str) and not v.strip():
@@ -89,7 +89,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Record ID must be positive integer")
             return v
 
-        @root_validator  # type: ignore[misc]
+        @root_validator
         def validate_record(cls, values: dict[str, Any]) -> dict[str, Any]:
             """Validate entire record."""
             data = values.get("data", {})
@@ -120,7 +120,7 @@ if PYDANTIC_AVAILABLE:
         limit: int = Field(25, gt=0, le=10000, description="Record limit")
         offset: int = Field(0, ge=0, description="Record offset")
 
-        @validator("sort")  # type: ignore[misc]
+        @validator("sort")
         def validate_sort(cls, v: str | None) -> str | None:
             """Validate sort parameter."""
             if v is None:
@@ -134,7 +134,7 @@ if PYDANTIC_AVAILABLE:
                     raise ValueError(f"Invalid sort field: {field}")
             return v
 
-        @validator("where")  # type: ignore[misc]
+        @validator("where")
         def validate_where(cls, v: str | None) -> str | None:
             """Validate where parameter."""
             if v is None:
@@ -144,7 +144,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Where clause cannot be empty")
             return v.strip()
 
-        @validator("fields")  # type: ignore[misc]
+        @validator("fields")
         def validate_fields(cls, v: list[str] | None) -> list[str] | None:
             """Validate fields parameter."""
             if v is None:
@@ -165,7 +165,7 @@ if PYDANTIC_AVAILABLE:
         file_size: int | None = Field(None, ge=0, description="File size in bytes")
         field_name: str = Field(..., description="Target field name")
 
-        @validator("filename")  # type: ignore[misc]
+        @validator("filename")
         def validate_filename(cls, v: str) -> str:
             """Validate filename."""
             if not v.strip():
@@ -176,7 +176,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Filename contains dangerous characters")
             return v.strip()
 
-        @validator("file_path")  # type: ignore[misc]
+        @validator("file_path")
         def validate_file_path(cls, v: str | Path) -> Path:
             """Validate file path."""
             path = Path(v) if isinstance(v, str) else v
@@ -186,7 +186,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError(f"Path is not a file: {path}")
             return path
 
-        @validator("file_size")  # type: ignore[misc]
+        @validator("file_size")
         def validate_file_size(cls, v: int | None, values: dict[str, Any]) -> int | None:
             """Validate file size."""
             if v is None:
@@ -205,7 +205,7 @@ if PYDANTIC_AVAILABLE:
         status_code: int | None = Field(None, description="HTTP status code")
         message: str | None = Field(None, description="Response message")
 
-        @validator("status_code")  # type: ignore[misc]
+        @validator("status_code")
         def validate_status_code(cls, v: int | None) -> int | None:
             """Validate HTTP status code."""
             if v is not None and not (100 <= v <= 599):
@@ -221,7 +221,7 @@ if PYDANTIC_AVAILABLE:
         type: str = Field("table", description="Table type")
         enabled: bool = Field(True, description="Table enabled status")
 
-        @validator("id")  # type: ignore[misc]
+        @validator("id")
         def validate_id(cls, v: str) -> str:
             """Validate table ID."""
             if not v.strip():
@@ -241,7 +241,7 @@ if PYDANTIC_AVAILABLE:
         max_retries: int = Field(3, ge=0, description="Maximum retries")
         verify_ssl: bool = Field(True, description="Verify SSL certificates")
 
-        @validator("base_url")  # type: ignore[misc]
+        @validator("base_url")
         def validate_base_url(cls, v: str) -> str:
             """Validate base URL."""
             if not v.strip():
@@ -251,7 +251,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Base URL must start with http:// or https://")
             return url
 
-        @validator("api_token")  # type: ignore[misc]
+        @validator("api_token")
         def validate_api_token(cls, v: str) -> str:
             """Validate API token."""
             if not v.strip():

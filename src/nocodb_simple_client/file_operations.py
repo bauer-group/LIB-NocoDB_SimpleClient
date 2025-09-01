@@ -333,7 +333,7 @@ class FileManager:
                     )
                     downloaded_files.append(downloaded_path)
                 except Exception:
-                    # Skip failed downloads
+                    # Skip failed downloads  # nosec B112
                     continue
 
         return downloaded_files

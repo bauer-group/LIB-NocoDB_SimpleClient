@@ -175,7 +175,19 @@ class LocalRunner:
 
         # Security
         checks.append(
-            (["python", "-m", "bandit", "-r", "src/"], "Security scanning (Bandit)", True)
+            (
+                [
+                    "python",
+                    "-m",
+                    "bandit",
+                    "-r",
+                    "src/",
+                    "--exclude",
+                    "docs,scripts,tests,examples",
+                ],
+                "Security scanning (Bandit)",
+                True,
+            )
         )
 
         # Testing - build test commands based on selected modes
