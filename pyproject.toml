@@ -88,7 +88,7 @@ Homepage = "https://github.com/bauer-group/nocodb-simple-client"
 Documentation = "https://github.com/bauer-group/nocodb-simple-client#readme"
 Repository = "https://github.com/bauer-group/nocodb-simple-client.git"
 "Bug Tracker" = "https://github.com/bauer-group/nocodb-simple-client/issues"
-Changelog = "https://github.com/bauer-group/nocodb-simple-client/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/bauer-group/nocodb-simple-client/blob/main/CHANGELOG.MD"
 
 # ============================================================================
 # SEMANTIC RELEASE CONFIGURATION
@@ -143,8 +143,8 @@ include = [
     "/tests",
     "/examples",
     "/docs",
-    "README.md",
-    "CHANGELOG.md",
+    "README.MD",
+    "CHANGELOG.MD",
     "LICENSE",
     "pyproject.toml",
 ]
