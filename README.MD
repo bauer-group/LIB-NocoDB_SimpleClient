@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/README.template.MD instead. -->
-<!-- Generated on 2025-09-01 21:08:52 UTC -->
+<!-- Generated on 2025-09-01 21:16:07 UTC -->
 
 # BAUER GROUP - NocoDB Simple Client
 
@@ -529,7 +529,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Changelog
 
-See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
 ---
 
@@ -539,4 +539,4 @@ See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 
 ---
 
-*Generated on 2025-09-01 21:08:52 UTC from [docs/README.template.MD](docs/README.template.MD)*
+*Generated on 2025-09-01 21:16:07 UTC from [docs/README.template.MD](docs/README.template.MD)*
