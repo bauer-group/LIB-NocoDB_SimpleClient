@@ -45,15 +45,27 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    # Testing
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
-    "black>=22.0.0",
+    "pytest-xdist>=3.0.0",
+
+    # Code Quality
     "ruff>=0.1.0",
+    "black>=22.0.0",
     "mypy>=1.0.0",
+
+    # Security
     "bandit>=1.7.0",
+    "safety>=2.0.0",
+
+    # Build & Release
     "build>=0.10.0",
     "twine>=4.0.0",
+    "python-semantic-release>=8.0.0",
+
+    # Development Tools
     "pre-commit>=2.20.0",
     "tox>=4.0.0",
     "tomli>=2.0.0; python_version<'3.11'",
@@ -74,6 +86,46 @@ Documentation = "https://github.com/bauer-group/nocodb-simple-client#readme"
 Repository = "https://github.com/bauer-group/nocodb-simple-client.git"
 "Bug Tracker" = "https://github.com/bauer-group/nocodb-simple-client/issues"
 Changelog = "https://github.com/bauer-group/nocodb-simple-client/blob/main/CHANGELOG.md"
+
+# ============================================================================
+# SEMANTIC RELEASE CONFIGURATION
+# ============================================================================
+[tool.semantic_release]
+# Version management
+version_toml = ["pyproject.toml:project.version"]  # Where to update version
+version_variables = [
+    "src/nocodb_simple_client/__init__.py:__version__",  # Optional: update __version__ in code
+]
+
+# Git & Release configuration
+branch = "main"
+build_command = "python -m build"
+upload_to_vcs_release = true
+
+# Changelog configuration
+changelog_file = "CHANGELOG.md"
+changelog_sections = [
+    {section = "breaking", name = "Breaking Changes"},
+    {section = "feat", name = "Features"},
+    {section = "fix", name = "Bug Fixes"},
+    {section = "perf", name = "Performance Improvements"},
+    {section = "refactor", name = "Code Refactoring"},
+    {section = "style", name = "Code Style"},
+    {section = "build", name = "Build System"},
+    {section = "docs", name = "Documentation"},
+    {section = "test", name = "Tests"},
+    {section = "ci", name = "CI/CD"},
+    {section = "chore", name = "Chores"},
+    {section = "revert", name = "Reverts"},
+]
+
+# Commit parsing
+commit_parser = "conventional"
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "ci", "build", "revert"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
 
 [tool.hatch.version]
 path = "src/nocodb_simple_client/__init__.py"
@@ -111,6 +163,13 @@ markers = [
 [tool.coverage.run]
 source = ["src/nocodb_simple_client"]
 branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    ".tox/*",
+    ".venv/*",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -125,6 +184,8 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+show_missing = true
+skip_covered = false
 
 # Code formatting
 [tool.black]

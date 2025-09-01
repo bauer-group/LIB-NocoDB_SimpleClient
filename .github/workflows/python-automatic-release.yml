@@ -1,57 +1,55 @@
 name: 🐍 CI/CD Pipeline (Automatic Release)
 
 on:
+  # Trigger on push to main branch
   push:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - '*.md'
       - '*.MD'
 
+  # Trigger on pull requests to main
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - '*.md'
       - '*.MD'
 
+  # Manual trigger
   workflow_dispatch:
     inputs:
-      security-engine:
-        description: 'Security scan engine'
-        type: choice
-        default: 'both'
-        options: ['gitleaks', 'gitguardian', 'both']
-      force-release:
-        description: 'Force create release'
-        type: boolean
-        default: false
       skip-pypi:
-        description: 'Skip PyPI publishing'
+        description: 'Skip PyPI publishing (GitHub release only)'
         type: boolean
         default: false
-      python-version:
-        description: 'Python version to use'
-        type: string
-        default: '3.12'
 
 jobs:
-  # Main Python CI/CD Pipeline using modular automation templates
-  python-pipeline:
-    name: 🐍 Python Release Pipeline
-    uses: bauer-group/automation-templates/.github/workflows/python-automatic-release.yml@main
+  python-release:
+    name: 🐍 Python Semantic Release Pipeline
+    uses: bauer-group/automation-templates/.github/workflows/python-semantic-release.yml@main
     with:
       # Python Configuration
-      python-version: ${{ inputs.python-version || '3.12' }}
-      package-source-path: 'src/nocodb_simple_client'
+      python-version: '3.12'  # or ['3.10', '3.11', '3.12'] for matrix
+
+      # Testing Configuration
+      run-tests: true
+      run-security-scan: true
 
       # Security Configuration
-      security-engine: ${{ inputs.security-engine || 'both' }}
+      security-engine: 'both'  # gitleaks, gitguardian, both
+
+      # Build Configuration
+      build-local-wheel: true
 
       # Release Configuration
-      force-release: ${{ inputs.force-release || false }}
       skip-pypi: ${{ inputs.skip-pypi || false }}
+
+      # Documentation & Security Updates
+      update-documentation: true
+      update-security-policy: true
 
     secrets: inherit
