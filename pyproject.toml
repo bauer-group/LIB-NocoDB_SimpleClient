@@ -101,6 +101,7 @@ version_variables = [
 branch = "main"
 build_command = "python -m build"
 upload_to_vcs_release = true
+major_on_zero = false  # Prevents automatic 0.x.x -> 1.0.0 transition
 
 # Changelog configuration
 changelog_file = "CHANGELOG.md"
