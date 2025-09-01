@@ -1,0 +1,44 @@
+# Gitleaks configuration file
+# This file configures gitleaks security scanning
+
+title = "Gitleaks Config for NocoDB Simple Client"
+
+# Extend the default gitleaks config
+extend-path = ""
+
+# Rules configuration
+[extend]
+# Use default rules but add custom allowlists
+
+# Allowlist configuration - paths to ignore during scanning
+[allowlist]
+description = "Allowlist for test files and documentation"
+
+# Ignore all files in tests directory
+paths = [
+    '''tests/.*''',
+    '''tests/''',
+    '''examples/.*''',
+    '''examples/''',
+    '''docs/.*''',
+    '''docs/''',
+    '''.*\.md''',
+    '''.*\.MD''',
+]
+
+# Ignore specific file patterns that commonly contain test data
+regexes = [
+    '''(?i)test.*password.*=.*dummy''',
+    '''(?i)test.*token.*=.*fake''',
+    '''(?i)example.*key.*=.*placeholder''',
+]
+
+# Stop words that indicate test/example content
+stopwords = [
+    "test",
+    "example",
+    "dummy",
+    "fake",
+    "placeholder",
+    "mock",
+]
