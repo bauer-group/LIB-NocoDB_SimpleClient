@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/README.template.MD instead. -->
-<!-- Generated on 2025-08-31 10:55:24 UTC -->
+<!-- Generated on 2025-09-01 20:25:56 UTC -->
 
 # BAUER GROUP - NocoDB Simple Client
 
@@ -15,7 +15,7 @@ A simple and powerful Python client for interacting with [NocoDB](https://nocodb
 
 **Repository Information:**
 
-- **Version:** 0.0.0 (2025-08-31)
+- **Version:** v1.0.0 (2025-09-01)
 - **Repository:** [bauer-group/LIB-NocoDB_SimpleClient](https://github.com/bauer-group/LIB-NocoDB_SimpleClient)
 - **Branch:** main
 - **Architecture:** Modular, Reusable, Enterprise-Ready
@@ -539,4 +539,4 @@ See [CHANGELOG.MD](CHANGELOG.MD) for a detailed history of changes.
 
 ---
 
-*Generated on 2025-08-31 10:55:24 UTC from [docs/README.template.MD](docs/README.template.MD)*
+*Generated on 2025-09-01 20:25:56 UTC from [docs/README.template.MD](docs/README.template.MD)*
