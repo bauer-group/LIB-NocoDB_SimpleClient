@@ -36,7 +36,9 @@ class TestNocoDBTable:
         result = table.get_records(limit=10, where="(Status,eq,active)")
 
         assert result == expected_records
-        mock_client.get_records.assert_called_once()
+        mock_client.get_records.assert_called_once_with(
+            "test_table_123", None, "(Status,eq,active)", None, 10
+        )
 
     def test_get_record(self, table, mock_client):
         """Test get_record delegation to client."""
@@ -46,7 +48,7 @@ class TestNocoDBTable:
         result = table.get_record("record_123")
 
         assert result == expected_record
-        mock_client.get_record.assert_called_once()
+        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", None)
 
     def test_insert_record(self, table, mock_client):
         """Test insert_record delegation to client."""
@@ -66,7 +68,9 @@ class TestNocoDBTable:
         result = table.update_record(update_data, "record_123")
 
         assert result == "record_123"
-        mock_client.update_record.assert_called_once()
+        mock_client.update_record.assert_called_once_with(
+            "test_table_123", update_data, "record_123"
+        )
 
     def test_delete_record(self, table, mock_client):
         """Test delete_record delegation to client."""
@@ -84,7 +88,9 @@ class TestNocoDBTable:
         result = table.count_records(where="(Status,eq,active)")
 
         assert result == 42
-        mock_client.count_records.assert_called_once()
+        mock_client.count_records.assert_called_once_with(
+            "test_table_123", "(Status,eq,active)"
+        )
 
     def test_bulk_insert_records(self, table, mock_client):
         """Test bulk_insert_records delegation to client."""
@@ -123,7 +129,9 @@ class TestNocoDBTable:
         result = table.attach_file_to_record("record_123", "Documents", "/path/to/test.txt")
 
         assert result == "record_123"
-        mock_client.attach_file_to_record.assert_called_once()
+        mock_client.attach_file_to_record.assert_called_once_with(
+            "test_table_123", "record_123", "Documents", "/path/to/test.txt"
+        )
 
     def test_download_file_from_record(self, table, mock_client):
         """Test file download delegation to client."""
@@ -133,4 +141,6 @@ class TestNocoDBTable:
         result = table.download_file_from_record("record_123", "Documents", 0)
 
         assert result == expected_content
-        mock_client.download_file_from_record.assert_called_once()
+        mock_client.download_file_from_record.assert_called_once_with(
+            "test_table_123", "record_123", "Documents", 0
+        )
