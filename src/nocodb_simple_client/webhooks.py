@@ -26,7 +26,7 @@ SOFTWARE.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .client import NocoDBClient
+    from .meta_client import NocoDBMetaClient
 
 
 class NocoDBWebhooks:
@@ -47,13 +47,13 @@ class NocoDBWebhooks:
 
     OPERATION_TYPES = ["insert", "update", "delete"]
 
-    def __init__(self, client: "NocoDBClient") -> None:
+    def __init__(self, meta_client: "NocoDBMetaClient") -> None:
         """Initialize the webhooks manager.
 
         Args:
-            client: NocoDBClient instance
+            meta_client: NocoDBMetaClient instance
         """
-        self.client = client
+        self.meta_client = meta_client
 
     def get_webhooks(self, table_id: str) -> list[dict[str, Any]]:
         """Get all webhooks for a table.
@@ -67,10 +67,7 @@ class NocoDBWebhooks:
         Raises:
             NocoDBException: For API errors
         """
-        endpoint = f"api/v2/tables/{table_id}/hooks"
-        response = self.client._get(endpoint)
-        webhook_list = response.get("list", [])
-        return webhook_list if isinstance(webhook_list, list) else []
+        return self.meta_client.list_webhooks(table_id)
 
     def get_webhook(self, table_id: str, webhook_id: str) -> dict[str, Any]:
         """Get a specific webhook by ID.
@@ -86,8 +83,7 @@ class NocoDBWebhooks:
             NocoDBException: For API errors
             WebhookNotFoundException: If the webhook is not found
         """
-        endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}"
-        return self.client._get(endpoint)
+        return self.meta_client.get_webhook(webhook_id)
 
     def create_webhook(
         self,
@@ -156,8 +152,7 @@ class NocoDBWebhooks:
         if condition:
             data["condition"] = condition
 
-        endpoint = f"api/v2/tables/{table_id}/hooks"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_webhook(table_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -223,8 +218,7 @@ class NocoDBWebhooks:
         if not data:
             raise ValueError("At least one parameter must be provided for update")
 
-        endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}"
-        response = self.client._patch(endpoint, data=data)
+        response = self.meta_client.update_webhook(webhook_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -244,8 +238,7 @@ class NocoDBWebhooks:
             NocoDBException: For API errors
             WebhookNotFoundException: If the webhook is not found
         """
-        endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.delete_webhook(webhook_id)
         return response is not None
 
     def test_webhook(
@@ -268,12 +261,7 @@ class NocoDBWebhooks:
         if sample_data:
             data["data"] = sample_data
 
-        endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/test"
-        response = self.client._post(endpoint, data=data)
-        if isinstance(response, dict):
-            return response
-        else:
-            raise ValueError("Expected dict response from webhook test")
+        return self.meta_client.test_webhook(webhook_id)
 
     def get_webhook_logs(
         self, table_id: str, webhook_id: str, limit: int = 25, offset: int = 0
@@ -295,7 +283,7 @@ class NocoDBWebhooks:
         params = {"limit": limit, "offset": offset}
 
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/logs"
-        response = self.client._get(endpoint, params=params)
+        response = self.meta_client.client._get(endpoint, params=params)
         webhook_list = response.get("list", [])
         return webhook_list if isinstance(webhook_list, list) else []
 
@@ -313,7 +301,7 @@ class NocoDBWebhooks:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/logs"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.client._delete(endpoint)
         return response is not None
 
     def create_email_webhook(
@@ -371,8 +359,7 @@ class NocoDBWebhooks:
         if condition:
             data["condition"] = condition
 
-        endpoint = f"api/v2/tables/{table_id}/hooks"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_webhook(table_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -428,8 +415,7 @@ class NocoDBWebhooks:
         if condition:
             data["condition"] = condition
 
-        endpoint = f"api/v2/tables/{table_id}/hooks"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_webhook(table_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -485,8 +471,7 @@ class NocoDBWebhooks:
         if condition:
             data["condition"] = condition
 
-        endpoint = f"api/v2/tables/{table_id}/hooks"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_webhook(table_id, data)
         if isinstance(response, dict):
             return response
         else:

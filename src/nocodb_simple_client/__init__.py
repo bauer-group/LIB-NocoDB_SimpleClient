@@ -50,6 +50,7 @@ from .exceptions import (
 from .file_operations import FileManager, TableFileManager
 from .filter_builder import FilterBuilder, SortBuilder, create_filter, create_sort
 from .links import NocoDBLinks, TableLinks
+from .meta_client import NocoDBMetaClient
 from .pagination import PaginatedResult, PaginationHandler
 
 # New components
@@ -86,6 +87,7 @@ __all__ = [
     # Core classes
     "NocoDBClient",
     "NocoDBTable",
+    "NocoDBMetaClient",
     # Exceptions
     "NocoDBException",
     "RecordNotFoundException",

@@ -26,7 +26,7 @@ SOFTWARE.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .client import NocoDBClient
+    from .meta_client import NocoDBMetaClient
 
 
 class NocoDBColumns:
@@ -70,15 +70,16 @@ class NocoDBColumns:
         "specificdbtype": "SpecificDBType",
         "barcode": "Barcode",
         "button": "Button",
+        "linktoanotherrecord": "LinkToAnotherRecord",
     }
 
-    def __init__(self, client: "NocoDBClient") -> None:
+    def __init__(self, meta_client: "NocoDBMetaClient") -> None:
         """Initialize the columns manager.
 
         Args:
-            client: NocoDBClient instance
+            meta_client: NocoDBMetaClient instance
         """
-        self.client = client
+        self.meta_client = meta_client
 
     def get_columns(self, table_id: str) -> list[dict[str, Any]]:
         """Get all columns for a table.
@@ -92,10 +93,7 @@ class NocoDBColumns:
         Raises:
             NocoDBException: For API errors
         """
-        endpoint = f"api/v2/tables/{table_id}/columns"
-        response = self.client._get(endpoint)
-        columns_list = response.get("list", [])
-        return columns_list if isinstance(columns_list, list) else []
+        return self.meta_client.list_columns(table_id)
 
     def get_column(self, table_id: str, column_id: str) -> dict[str, Any]:
         """Get a specific column by ID.
@@ -112,7 +110,7 @@ class NocoDBColumns:
             ColumnNotFoundException: If the column is not found
         """
         endpoint = f"api/v2/tables/{table_id}/columns/{column_id}"
-        return self.client._get(endpoint)
+        return self.meta_client.client._get(endpoint)
 
     def create_column(
         self, table_id: str, title: str, column_type: str, **options: Any
@@ -147,8 +145,7 @@ class NocoDBColumns:
         # Add column-specific options
         data.update(options)
 
-        endpoint = f"api/v2/tables/{table_id}/columns"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_column(table_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -183,8 +180,7 @@ class NocoDBColumns:
         if not data:
             raise ValueError("At least one parameter must be provided for update")
 
-        endpoint = f"api/v2/tables/{table_id}/columns/{column_id}"
-        response = self.client._patch(endpoint, data=data)
+        response = self.meta_client.update_column(column_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -204,8 +200,7 @@ class NocoDBColumns:
             NocoDBException: For API errors
             ColumnNotFoundException: If the column is not found
         """
-        endpoint = f"api/v2/tables/{table_id}/columns/{column_id}"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.delete_column(column_id)
         return response is not None
 
     def create_text_column(

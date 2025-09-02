@@ -26,7 +26,7 @@ SOFTWARE.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .client import NocoDBClient
+    from .meta_client import NocoDBMetaClient
 
 
 class NocoDBViews:
@@ -44,13 +44,13 @@ class NocoDBViews:
         "calendar": "Calendar",
     }
 
-    def __init__(self, client: "NocoDBClient") -> None:
+    def __init__(self, meta_client: "NocoDBMetaClient") -> None:
         """Initialize the views manager.
 
         Args:
-            client: NocoDBClient instance
+            meta_client: NocoDBMetaClient instance
         """
-        self.client = client
+        self.meta_client = meta_client
 
     def get_views(self, table_id: str) -> list[dict[str, Any]]:
         """Get all views for a table.
@@ -64,10 +64,7 @@ class NocoDBViews:
         Raises:
             NocoDBException: For API errors
         """
-        endpoint = f"api/v2/tables/{table_id}/views"
-        response = self.client._get(endpoint)
-        view_list = response.get("list", [])
-        return view_list if isinstance(view_list, list) else []
+        return self.meta_client.list_views(table_id)
 
     def get_view(self, table_id: str, view_id: str) -> dict[str, Any]:
         """Get a specific view by ID.
@@ -83,8 +80,7 @@ class NocoDBViews:
             NocoDBException: For API errors
             ViewNotFoundException: If the view is not found
         """
-        endpoint = f"api/v2/tables/{table_id}/views/{view_id}"
-        return self.client._get(endpoint)
+        return self.meta_client.get_view(view_id)
 
     def create_view(
         self, table_id: str, title: str, view_type: str, options: dict[str, Any] | None = None
@@ -115,8 +111,7 @@ class NocoDBViews:
         if options:
             data.update(options)
 
-        endpoint = f"api/v2/tables/{table_id}/views"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.create_view(table_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -155,8 +150,7 @@ class NocoDBViews:
         if not data:
             raise ValueError("At least title or options must be provided")
 
-        endpoint = f"api/v2/tables/{table_id}/views/{view_id}"
-        response = self.client._patch(endpoint, data=data)
+        response = self.meta_client.update_view(view_id, data)
         if isinstance(response, dict):
             return response
         else:
@@ -176,8 +170,7 @@ class NocoDBViews:
             NocoDBException: For API errors
             ViewNotFoundException: If the view is not found
         """
-        endpoint = f"api/v2/tables/{table_id}/views/{view_id}"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.delete_view(view_id)
         return response is not None
 
     def get_view_columns(self, table_id: str, view_id: str) -> list[dict[str, Any]]:
@@ -194,7 +187,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/columns"
-        response = self.client._get(endpoint)
+        response = self.meta_client.client._get(endpoint)
         columns_list = response.get("list", [])
         return columns_list if isinstance(columns_list, list) else []
 
@@ -216,7 +209,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/columns/{column_id}"
-        response = self.client._patch(endpoint, data=options)
+        response = self.meta_client.client._patch(endpoint, data=options)
         if isinstance(response, dict):
             return response
         else:
@@ -236,7 +229,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters"
-        response = self.client._get(endpoint)
+        response = self.meta_client.client._get(endpoint)
         filters_list = response.get("list", [])
         return filters_list if isinstance(filters_list, list) else []
 
@@ -271,7 +264,7 @@ class NocoDBViews:
             data["value"] = value
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.client._post(endpoint, data=data)
         if isinstance(response, dict):
             return response
         else:
@@ -312,7 +305,7 @@ class NocoDBViews:
             data["logical_op"] = logical_op
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters/{filter_id}"
-        response = self.client._patch(endpoint, data=data)
+        response = self.meta_client.client._patch(endpoint, data=data)
         if isinstance(response, dict):
             return response
         else:
@@ -333,7 +326,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters/{filter_id}"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.client._delete(endpoint)
         return response is not None
 
     def get_view_sorts(self, table_id: str, view_id: str) -> list[dict[str, Any]]:
@@ -350,7 +343,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts"
-        response = self.client._get(endpoint)
+        response = self.meta_client.client._get(endpoint)
         sorts_list = response.get("list", [])
         return sorts_list if isinstance(sorts_list, list) else []
 
@@ -377,7 +370,7 @@ class NocoDBViews:
         data = {"fk_column_id": column_id, "direction": direction.lower()}
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts"
-        response = self.client._post(endpoint, data=data)
+        response = self.meta_client.client._post(endpoint, data=data)
         if isinstance(response, dict):
             return response
         else:
@@ -406,7 +399,7 @@ class NocoDBViews:
         data = {"direction": direction.lower()}
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts/{sort_id}"
-        response = self.client._patch(endpoint, data=data)
+        response = self.meta_client.client._patch(endpoint, data=data)
         if isinstance(response, dict):
             return response
         else:
@@ -427,7 +420,7 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts/{sort_id}"
-        response = self.client._delete(endpoint)
+        response = self.meta_client.client._delete(endpoint)
         return response is not None
 
     def get_view_data(
@@ -459,7 +452,7 @@ class NocoDBViews:
             params["fields"] = ",".join(fields)
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/records"
-        response = self.client._get(endpoint, params=params)
+        response = self.meta_client.client._get(endpoint, params=params)
         view_list = response.get("list", [])
         return view_list if isinstance(view_list, list) else []
 
