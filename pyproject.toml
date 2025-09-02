@@ -54,6 +54,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
     "pytest-xdist>=3.0.0",
+    "pytest-asyncio>=0.23.0",
 
     # Code Quality
     "ruff>=0.1.0",
@@ -167,6 +168,7 @@ markers = [
     "integration: Integration tests",
     "slow: Slow running tests",
     "benchmark: Benchmark tests",
+    "asyncio: Asynchronous tests",
 ]
 
 [tool.coverage.run]
