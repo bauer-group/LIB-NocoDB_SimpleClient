@@ -77,7 +77,7 @@ class NocoDBColumns:
         """Initialize the columns manager.
 
         Args:
-            meta_client: NocoDBMetaClient instance
+            meta_client: NocoDBMetaClient instance (inherits from NocoDBClient)
         """
         self.meta_client = meta_client
 
@@ -110,7 +110,7 @@ class NocoDBColumns:
             ColumnNotFoundException: If the column is not found
         """
         endpoint = f"api/v2/tables/{table_id}/columns/{column_id}"
-        return self.meta_client.client._get(endpoint)
+        return self.meta_client._get(endpoint)
 
     def create_column(
         self, table_id: str, title: str, column_type: str, **options: Any

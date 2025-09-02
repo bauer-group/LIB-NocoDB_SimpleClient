@@ -51,7 +51,7 @@ class NocoDBWebhooks:
         """Initialize the webhooks manager.
 
         Args:
-            meta_client: NocoDBMetaClient instance
+            meta_client: NocoDBMetaClient instance (inherits from NocoDBClient)
         """
         self.meta_client = meta_client
 
@@ -283,7 +283,7 @@ class NocoDBWebhooks:
         params = {"limit": limit, "offset": offset}
 
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/logs"
-        response = self.meta_client.client._get(endpoint, params=params)
+        response = self.meta_client._get(endpoint, params=params)
         webhook_list = response.get("list", [])
         return webhook_list if isinstance(webhook_list, list) else []
 
@@ -301,7 +301,7 @@ class NocoDBWebhooks:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/logs"
-        response = self.meta_client.client._delete(endpoint)
+        response = self.meta_client._delete(endpoint)
         return response is not None
 
     def create_email_webhook(
