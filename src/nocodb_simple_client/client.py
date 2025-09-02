@@ -155,7 +155,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _patch(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _patch(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a PATCH request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.patch(
@@ -173,7 +175,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _delete(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _delete(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a DELETE request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.delete(
@@ -320,7 +324,12 @@ class NocoDBClient:
             NocoDBException: For API errors
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
-        record_id = response.get("Id")
+        if isinstance(response, dict):
+            record_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE", "Expected dict response from insert operation"
+            )
         if record_id is None:
             raise NocoDBException("INVALID_RESPONSE", "No record ID returned from insert operation")
         return record_id  # type: ignore[no-any-return]
@@ -349,7 +358,12 @@ class NocoDBClient:
             record["Id"] = record_id
 
         response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
-        record_id = response.get("Id")
+        if isinstance(response, dict):
+            record_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE", "Expected dict response from update operation"
+            )
         if record_id is None:
             raise NocoDBException("INVALID_RESPONSE", "No record ID returned from update operation")
         return record_id  # type: ignore[no-any-return]
@@ -369,7 +383,12 @@ class NocoDBClient:
             NocoDBException: For other API errors
         """
         response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
-        deleted_id = response.get("Id")
+        if isinstance(response, dict):
+            deleted_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE", "Expected dict response from delete operation"
+            )
         if deleted_id is None:
             raise NocoDBException("INVALID_RESPONSE", "No record ID returned from delete operation")
         return deleted_id  # type: ignore[no-any-return]
@@ -421,7 +440,11 @@ class NocoDBClient:
 
             # Response should be list of record IDs
             if isinstance(response, list):
-                return [record.get("Id") for record in response if record.get("Id") is not None]
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
             elif isinstance(response, dict) and "Id" in response:
                 # Single record response (fallback)
                 return [response["Id"]]
@@ -467,7 +490,11 @@ class NocoDBClient:
 
             # Response should be list of record IDs
             if isinstance(response, list):
-                return [record.get("Id") for record in response if record.get("Id") is not None]
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
             elif isinstance(response, dict) and "Id" in response:
                 # Single record response (fallback)
                 return [response["Id"]]
@@ -509,7 +536,11 @@ class NocoDBClient:
 
             # Response should be list of record IDs
             if isinstance(response, list):
-                return [record.get("Id") for record in response if record.get("Id") is not None]
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
             elif isinstance(response, dict) and "Id" in response:
                 # Single record response (fallback)
                 return [response["Id"]]

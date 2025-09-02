@@ -47,7 +47,7 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None
+    redis = None  # type: ignore[assignment]
 
 
 class CacheBackend(ABC):
@@ -514,18 +514,30 @@ class NocoDBCache:
         self.config = config or CacheConfig()
 
         # Initialize the appropriate backend
+        backend: CacheBackend
         if self.config.backend == "memory":
-            self.backend = MemoryCache(max_size=self.config.max_size)
+            backend = MemoryCache(max_size=self.config.max_size)
         elif self.config.backend == "disk" and DISKCACHE_AVAILABLE:
             import tempfile
 
             cache_path = self.config.disk_path or tempfile.gettempdir() + "/nocodb_cache"
-            self.backend = DiskCache(cache_path, max_size=self.config.max_size)
+            backend = DiskCache(cache_path, size_limit=self.config.max_size)
         elif self.config.backend == "redis" and REDIS_AVAILABLE:
-            self.backend = RedisCache(url=self.config.redis_url or "redis://localhost:6379")
+            backend = RedisCache(
+                host=(
+                    "localhost"
+                    if not self.config.redis_url
+                    else self.config.redis_url.split("://")[1].split(":")[0]
+                ),
+                port=(
+                    6379 if not self.config.redis_url else int(self.config.redis_url.split(":")[-1])
+                ),
+            )
         else:
             # Fallback to memory cache
-            self.backend = MemoryCache(max_size=self.config.max_size)
+            backend = MemoryCache(max_size=self.config.max_size)
+
+        self.backend = backend
 
     def get(self, key: str) -> Any | None:
         """Get value from cache."""
