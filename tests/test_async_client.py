@@ -14,7 +14,8 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from nocodb_simple_client.async_client import AsyncNocoDBClient
-from nocodb_simple_client.exceptions import AuthenticationError, NocoDBError
+from nocodb_simple_client.config import NocoDBConfig
+from nocodb_simple_client.exceptions import AuthenticationException, NocoDBException
 
 
 class TestAsyncNocoDBClient:
@@ -23,15 +24,15 @@ class TestAsyncNocoDBClient:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_client_initialization(self, client):
         """Test async client initialization."""
-        assert client.base_url == "http://localhost:8080"
-        assert client.token == "test-token"
-        assert client.headers["xc-token"] == "test-token"
-        assert client.session is None  # Not created until first use
+        assert client.config.base_url == "http://localhost:8080"
+        assert client.config.api_token == "test-token"
+        assert client._session is None  # Not created until first use
 
     @pytest.mark.asyncio
     async def test_session_creation(self, client):
@@ -61,7 +62,8 @@ class TestAsyncNocoDBClient:
     @pytest.mark.asyncio
     async def test_context_manager(self):
         """Test async context manager functionality."""
-        async with AsyncNocoDBClient("http://localhost:8080", "token") as client:
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="token")
+        async with AsyncNocoDBClient(config) as client:
             assert client is not None
 
             with patch.object(client, "_get_session", return_value=AsyncMock()) as mock_get_session:
@@ -79,7 +81,8 @@ class TestAsyncAPIOperations:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_async_get_records(self, client):
@@ -169,7 +172,8 @@ class TestAsyncRequestHandling:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_successful_request(self, client):
@@ -200,7 +204,7 @@ class TestAsyncRequestHandling:
             mock_session.request.return_value.__aenter__.return_value = mock_response
             mock_get_session.return_value = mock_session
 
-            with pytest.raises(AuthenticationError):
+            with pytest.raises(AuthenticationException):
                 await client._make_request("GET", "/test-endpoint")
 
     @pytest.mark.asyncio
@@ -214,7 +218,7 @@ class TestAsyncRequestHandling:
             mock_session.request.return_value.__aenter__.return_value = mock_response
             mock_get_session.return_value = mock_session
 
-            with pytest.raises(NocoDBError):
+            with pytest.raises(NocoDBException):
                 await client._make_request("GET", "/test-endpoint")
 
     @pytest.mark.asyncio
@@ -225,7 +229,7 @@ class TestAsyncRequestHandling:
             mock_session.request.side_effect = aiohttp.ClientConnectionError("Connection failed")
             mock_get_session.return_value = mock_session
 
-            with pytest.raises(NocoDBError, match="Connection failed"):
+            with pytest.raises(NocoDBException, match="Connection failed"):
                 await client._make_request("GET", "/test-endpoint")
 
     @pytest.mark.asyncio
@@ -236,7 +240,7 @@ class TestAsyncRequestHandling:
             mock_session.request.side_effect = TimeoutError("Request timed out")
             mock_get_session.return_value = mock_session
 
-            with pytest.raises(NocoDBError, match="Request timed out"):
+            with pytest.raises(NocoDBException, match="Request timed out"):
                 await client._make_request("GET", "/test-endpoint")
 
     @pytest.mark.asyncio
@@ -251,7 +255,7 @@ class TestAsyncRequestHandling:
             mock_session.request.return_value.__aenter__.return_value = mock_response
             mock_get_session.return_value = mock_session
 
-            with pytest.raises(NocoDBError, match="Invalid JSON response"):
+            with pytest.raises(NocoDBException, match="Invalid JSON response"):
                 await client._make_request("GET", "/test-endpoint")
 
 
@@ -261,7 +265,8 @@ class TestAsyncConcurrency:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_concurrent_requests(self, client):
@@ -364,7 +369,8 @@ class TestAsyncTableOperations:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_async_table_creation(self, client):
@@ -431,7 +437,8 @@ class TestAsyncPerformance:
     @pytest.fixture
     def client(self):
         """Create an async client instance for testing."""
-        return AsyncNocoDBClient(base_url="http://localhost:8080", token="test-token")
+        config = NocoDBConfig(base_url="http://localhost:8080", api_token="test-token")
+        return AsyncNocoDBClient(config)
 
     @pytest.mark.asyncio
     async def test_large_dataset_handling(self, client):
