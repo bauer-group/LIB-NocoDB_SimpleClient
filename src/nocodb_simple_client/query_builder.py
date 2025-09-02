@@ -26,7 +26,7 @@ SOFTWARE.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .table import NocoDBTable
+    pass
 
 from .filter_builder import FilterBuilder, SortBuilder
 
@@ -47,14 +47,32 @@ class QueryBuilder:
         ...     .execute())
     """
 
-    def __init__(self, table: "NocoDBTable") -> None:
-        """Initialize QueryBuilder with a table instance.
+    def __init__(self, client_or_table: Any, table_name: str | None = None) -> None:
+        """Initialize QueryBuilder with a client and table name OR table instance.
 
         Args:
-            table: NocoDBTable instance to query
+            client_or_table: NocoDBClient instance and table_name, or NocoDBTable instance
+            table_name: Table name (when first arg is client)
         """
-        self._table = table
-        self._select_fields: list[str] | None = None
+        if table_name is not None:
+            # Legacy API: QueryBuilder(client, table_name)
+            self.client = client_or_table
+            self.table_name = table_name
+            self._table = None  # Will be created lazily if needed
+        else:
+            # New API: QueryBuilder(table)
+            self._table = client_or_table
+            self.client = getattr(client_or_table, "client", client_or_table)
+            self.table_name = getattr(client_or_table, "table_id", "unknown")
+
+        # Initialize state
+        self._select_fields: list[str] = []
+        self._where_conditions: list[dict[str, Any]] = []  # For backward compatibility
+        self._sort_conditions: list[dict[str, Any]] = []  # For backward compatibility
+        self._limit_value: int | None = None  # For backward compatibility
+        self._offset_value: int | None = None  # For backward compatibility
+
+        # New implementation state
         self._filter_builder = FilterBuilder()
         self._sort_builder = SortBuilder()
         self._limit_count: int | None = None
@@ -73,7 +91,7 @@ class QueryBuilder:
         Example:
             >>> query.select('Name', 'Email', 'Status')
         """
-        self._select_fields = list(fields) if fields else None
+        self._select_fields = list(fields) if fields else []
         return self
 
     def where(self, field: str, operator: str, value: Any = None) -> "QueryBuilder":
@@ -363,13 +381,23 @@ class QueryBuilder:
             # and then slice the results
             effective_limit = self._offset_count + self._limit_count
 
-        # Execute query using the table's get_records method
-        records = self._table.get_records(
-            sort=sort_clause,
-            where=where_clause,
-            fields=self._select_fields,
-            limit=effective_limit if effective_limit else 25,
-        )
+        # Execute query using the table's get_records method or client directly
+        if self._table is not None:
+            records = self._table.get_records(
+                sort=sort_clause,
+                where=where_clause,
+                fields=self._select_fields,
+                limit=effective_limit if effective_limit else 25,
+            )
+        else:
+            # Legacy API - use client directly
+            records = self.client.get_records(
+                self.table_name,
+                sort=sort_clause,
+                where=where_clause,
+                fields=self._select_fields,
+                limit=effective_limit if effective_limit else 25,
+            )
 
         # Apply offset if specified
         if self._offset_count > 0:
@@ -379,7 +407,11 @@ class QueryBuilder:
         if self._limit_count and len(records) > self._limit_count:
             records = records[: self._limit_count]
 
-        return records
+        # Ensure return type is correct
+        if isinstance(records, list):
+            return records
+        else:
+            return []
 
     def count(self) -> int:
         """Get count of records matching the query conditions.
@@ -391,7 +423,16 @@ class QueryBuilder:
             NocoDBException: If the count operation fails
         """
         where_clause = self._filter_builder.build() if self._where_conditions_added else None
-        return self._table.count_records(where=where_clause)
+        if self._table is not None:
+            result = self._table.count_records(where=where_clause)
+        else:
+            result = self.client.count_records(self.table_name, where=where_clause)
+
+        # Ensure return type is int
+        if isinstance(result, int):
+            return result
+        else:
+            return 0
 
     def first(self) -> dict[str, Any] | None:
         """Get the first record matching the query.
@@ -438,7 +479,7 @@ class QueryBuilder:
             >>> active_admins = base_query.clone().where('Type', 'eq', 'Admin').execute()
         """
         new_builder = QueryBuilder(self._table)
-        new_builder._select_fields = self._select_fields.copy() if self._select_fields else None
+        new_builder._select_fields = self._select_fields.copy() if self._select_fields else []
         new_builder._filter_builder = FilterBuilder()
         new_builder._sort_builder = SortBuilder()
         new_builder._limit_count = self._limit_count
@@ -469,7 +510,7 @@ class QueryBuilder:
         Example:
             >>> query.reset().where('Status', 'eq', 'Active')  # Start fresh
         """
-        self._select_fields = None
+        self._select_fields = []
         self._filter_builder.reset()
         self._sort_builder.reset()
         self._limit_count = None
@@ -509,7 +550,8 @@ class QueryBuilder:
         else:
             parts.append("SELECT *")
 
-        parts.append(f"FROM {self._table.table_id}")
+        table_id = self._table.table_id if self._table else self.table_name
+        parts.append(f"FROM {table_id}")
 
         if self._where_conditions_added:
             where_clause = self._filter_builder.build()

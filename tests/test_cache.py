@@ -353,9 +353,9 @@ class TestCacheErrorHandling:
         # Simulate corrupted cache state
         cache.set("valid_key", "valid_value")
 
-        # Manually corrupt cache entry
+        # Manually corrupt cache entry (our cache uses tuples, not dicts)
         if "valid_key" in cache._cache:
-            cache._cache["valid_key"]["expires_at"] = "invalid_timestamp"
+            cache._cache["valid_key"] = "invalid_format"  # Should be a tuple (value, expiry)
 
         # Cache should handle corruption gracefully
         result = cache.get("valid_key")
