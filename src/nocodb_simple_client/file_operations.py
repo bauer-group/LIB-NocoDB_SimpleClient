@@ -42,7 +42,7 @@ class FileManager:
     SUPPORTED_DOCUMENT_TYPES = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt"}
     SUPPORTED_ARCHIVE_TYPES = {".zip", ".rar", ".7z", ".tar", ".gz"}
 
-    MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB default
+    MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 
     def __init__(self, client: "NocoDBClient") -> None:
         """Initialize the file manager.
@@ -51,7 +51,6 @@ class FileManager:
             client: NocoDBClient instance
         """
         self.client = client
-        self.max_file_size = 50 * 1024 * 1024
 
     def validate_file(self, file_path: str | Path) -> dict[str, Any]:
         """Validate file before upload.
