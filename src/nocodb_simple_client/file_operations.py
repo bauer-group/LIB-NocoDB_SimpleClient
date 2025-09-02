@@ -51,6 +51,7 @@ class FileManager:
             client: NocoDBClient instance
         """
         self.client = client
+        self.max_file_size = 50 * 1024 * 1024
 
     def validate_file(self, file_path: str | Path) -> dict[str, Any]:
         """Validate file before upload.
