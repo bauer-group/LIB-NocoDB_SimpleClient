@@ -164,7 +164,11 @@ class LocalRunner:
                     "Code formatting (Black)",
                     True,
                 ),
-                (["python", "-m", "ruff", "check", "src/", "tests/"], "Code linting (Ruff)", True),
+                (
+                    ["python", "-m", "ruff", "check", "src/", "tests/", "--no-cache"],
+                    "Code linting (Ruff)",
+                    True,
+                ),
                 (
                     ["python", "-m", "mypy", "src/nocodb_simple_client/"],
                     "Type checking (MyPy)",

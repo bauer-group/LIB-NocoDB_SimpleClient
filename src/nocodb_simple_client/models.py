@@ -89,7 +89,7 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError("Record ID must be positive integer")
             return v
 
-        @root_validator
+        @root_validator  # type: ignore[call-overload]
         def validate_record(cls, values: dict[str, Any]) -> dict[str, Any]:
             """Validate entire record."""
             data = values.get("data", {})

@@ -47,7 +47,7 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None  # type: ignore[assignment]
+    redis = None
 
 
 class CacheBackend(ABC):
@@ -473,3 +473,77 @@ class CacheStats:
             "hit_rate": self.hit_rate,
             "total_requests": self.hits + self.misses,
         }
+
+
+class CacheConfig:
+    """Configuration class for cache settings."""
+
+    def __init__(
+        self,
+        backend: str = "memory",
+        ttl: int = 300,
+        max_size: int = 1000,
+        redis_url: str | None = None,
+        disk_path: str | None = None,
+    ):
+        """Initialize cache configuration.
+
+        Args:
+            backend: Cache backend type ('memory', 'disk', 'redis')
+            ttl: Time to live in seconds
+            max_size: Maximum cache size
+            redis_url: Redis connection URL (for redis backend)
+            disk_path: Disk cache path (for disk backend)
+        """
+        self.backend = backend
+        self.ttl = ttl
+        self.max_size = max_size
+        self.redis_url = redis_url
+        self.disk_path = disk_path
+
+
+class NocoDBCache:
+    """NocoDB-specific cache implementation."""
+
+    def __init__(self, config: CacheConfig | None = None):
+        """Initialize NocoDB cache.
+
+        Args:
+            config: Cache configuration
+        """
+        self.config = config or CacheConfig()
+
+        # Initialize the appropriate backend
+        if self.config.backend == "memory":
+            self.backend = MemoryCache(max_size=self.config.max_size)
+        elif self.config.backend == "disk" and DISKCACHE_AVAILABLE:
+            import tempfile
+
+            cache_path = self.config.disk_path or tempfile.gettempdir() + "/nocodb_cache"
+            self.backend = DiskCache(cache_path, max_size=self.config.max_size)
+        elif self.config.backend == "redis" and REDIS_AVAILABLE:
+            self.backend = RedisCache(url=self.config.redis_url or "redis://localhost:6379")
+        else:
+            # Fallback to memory cache
+            self.backend = MemoryCache(max_size=self.config.max_size)
+
+    def get(self, key: str) -> Any | None:
+        """Get value from cache."""
+        return self.backend.get(key)
+
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
+        """Set value in cache."""
+        ttl = ttl or self.config.ttl
+        self.backend.set(key, value, ttl)
+
+    def delete(self, key: str) -> None:
+        """Delete value from cache."""
+        self.backend.delete(key)
+
+    def clear(self) -> None:
+        """Clear all cached values."""
+        self.backend.clear()
+
+    def exists(self, key: str) -> bool:
+        """Check if cache key exists."""
+        return self.backend.exists(key)

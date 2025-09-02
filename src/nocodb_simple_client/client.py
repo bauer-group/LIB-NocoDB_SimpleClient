@@ -144,7 +144,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _post(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _post(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a POST request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.post(

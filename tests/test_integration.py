@@ -10,7 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from nocodb_simple_client import NocoDBClient, NocoDBException, NocoDBTable, RecordNotFoundException
+from nocodb_simple_client import (
+    NocoDBClient,
+    NocoDBException,
+    NocoDBTable,
+    RecordNotFoundException,
+)
 
 # Skip integration tests if environment variable is set
 SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1"

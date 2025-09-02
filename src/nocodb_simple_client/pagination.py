@@ -24,7 +24,7 @@ SOFTWARE.
 """
 
 import math
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -409,7 +409,7 @@ class PaginationHandler:
         where: str | None = None,
         fields: list[str] | None = None,
         max_records: int | None = None,
-        progress_callback: callable | None = None,
+        progress_callback: Callable[..., Any] | None = None,
     ) -> list[Any]:
         """Process records in batches using a processor function.
 

@@ -23,9 +23,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .cache import CacheManager, InMemoryCache, NocoDBCache
+from .cache import CacheManager
 from .client import NocoDBClient
 from .columns import NocoDBColumns, TableColumns
+from .exceptions import AuthenticationError  # noqa: F401 (alias for compatibility)
+from .exceptions import FileOperationError  # noqa: F401
+from .exceptions import NocoDBError  # noqa: F401
+from .exceptions import QueryBuilderError  # noqa: F401
 from .exceptions import (
     AuthenticationException,
     AuthorizationException,

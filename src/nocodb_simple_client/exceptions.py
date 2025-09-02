@@ -77,6 +77,10 @@ class AuthenticationException(NocoDBException):
         super().__init__("AUTHENTICATION_ERROR", message, status_code=401)
 
 
+# Compatibility alias for AuthenticationException
+AuthenticationError = AuthenticationException
+
+
 class AuthorizationException(NocoDBException):
     """Exception raised when authorization fails."""
 
@@ -140,3 +144,35 @@ class InvalidResponseException(NocoDBException):
         response_data: dict[str, Any] | None = None,
     ):
         super().__init__("INVALID_RESPONSE", message, response_data=response_data)
+
+
+class NocoDBError(NocoDBException):
+    """Generic NocoDB error (alias for compatibility)."""
+
+    pass
+
+
+class FileOperationError(NocoDBException):
+    """Exception raised for file operation failures."""
+
+    def __init__(
+        self,
+        message: str = "File operation failed",
+        file_path: str | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__("FILE_OPERATION_ERROR", message, **kwargs)
+        self.file_path = file_path
+
+
+class QueryBuilderError(NocoDBException):
+    """Exception raised for query builder errors."""
+
+    def __init__(
+        self,
+        message: str = "Query builder error",
+        query: str | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__("QUERY_BUILDER_ERROR", message, **kwargs)
+        self.query = query
