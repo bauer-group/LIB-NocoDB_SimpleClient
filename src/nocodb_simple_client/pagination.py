@@ -111,9 +111,10 @@ class PaginatedResult:
         """Iterate over records in this page."""
         return iter(self.records)
 
-    def __getitem__(self, index) -> dict[str, Any]:
+    def __getitem__(self, index: int) -> dict[str, Any]:
         """Get a record by index."""
-        return self.records[index]
+        record = self.records[index]
+        return record if isinstance(record, dict) else {}
 
     def __bool__(self) -> bool:
         """Check if this page has any records."""
@@ -158,7 +159,7 @@ class PaginationHandler:
     def paginate(
         self,
         page: int = 1,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -214,7 +215,7 @@ class PaginationHandler:
 
     def get_first_page(
         self,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -234,7 +235,7 @@ class PaginationHandler:
 
     def get_last_page(
         self,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -270,7 +271,7 @@ class PaginationHandler:
 
     def iterate_pages(
         self,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -317,7 +318,7 @@ class PaginationHandler:
 
     def iterate_records(
         self,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -352,7 +353,7 @@ class PaginationHandler:
 
     def get_all_records(
         self,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -380,7 +381,9 @@ class PaginationHandler:
 
         return records
 
-    def get_page_info(self, where: str | None = None, page_size: int = None) -> dict[str, Any]:
+    def get_page_info(
+        self, where: str | None = None, page_size: int | None = None
+    ) -> dict[str, Any]:
         """Get pagination information without fetching records.
 
         Args:
@@ -403,8 +406,8 @@ class PaginationHandler:
 
     def batch_process(
         self,
-        processor_func: callable,
-        page_size: int = None,
+        processor_func: Callable[..., Any],
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -469,7 +472,7 @@ class PaginationHandler:
     def find_record_page(
         self,
         record_id: int | str,
-        page_size: int = None,
+        page_size: int | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,

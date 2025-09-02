@@ -176,7 +176,7 @@ class NocoDBClient:
         return response.json()  # type: ignore[no-any-return]
 
     def _delete(
-        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]] | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a DELETE request to the API."""
         url = f"{self._base_url}/{endpoint}"

@@ -74,7 +74,7 @@ class NocoDBLinks:
             NocoDBException: For API errors
             RecordNotFoundException: If the source record is not found
         """
-        params = {"limit": limit, "offset": offset}
+        params: dict[str, str | int] = {"limit": limit, "offset": offset}
 
         if fields:
             params["fields"] = ",".join(fields)
@@ -89,7 +89,8 @@ class NocoDBLinks:
         endpoint = f"api/v2/tables/{table_id}/links/{link_field_id}/records/{record_id}"
         response = self.client._get(endpoint, params=params)
 
-        return response.get("list", [])
+        linked_list = response.get("list", [])
+        return linked_list if isinstance(linked_list, list) else []
 
     def count_linked_records(
         self,
@@ -119,7 +120,8 @@ class NocoDBLinks:
         endpoint = f"api/v2/tables/{table_id}/links/{link_field_id}/records/{record_id}/count"
         response = self.client._get(endpoint, params=params)
 
-        return response.get("count", 0)
+        count = response.get("count", 0)
+        return count if isinstance(count, int) else 0
 
     def link_records(
         self,
@@ -366,7 +368,7 @@ class TableLinks:
         self._table_id = table_id
 
     def get_linked_records(
-        self, record_id: int | str, link_field_id: str, **kwargs
+        self, record_id: int | str, link_field_id: str, **kwargs: Any
     ) -> list[dict[str, Any]]:
         """Get linked records for this table."""
         return self._links.get_linked_records(self._table_id, record_id, link_field_id, **kwargs)

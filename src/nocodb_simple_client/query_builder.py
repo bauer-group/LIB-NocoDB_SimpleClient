@@ -353,8 +353,8 @@ class QueryBuilder:
         where_clause = self._filter_builder.build() if self._where_conditions_added else None
 
         # Build sort string
-        sort_clause = self._sort_builder.build()
-        sort_clause = sort_clause if sort_clause else None
+        sort_result = self._sort_builder.build()
+        sort_clause: str | None = sort_result if sort_result else None
 
         # Calculate effective limit (considering offset)
         effective_limit = self._limit_count

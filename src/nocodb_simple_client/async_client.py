@@ -31,14 +31,18 @@ if TYPE_CHECKING:
     import aiohttp
 
 try:
+    from types import ModuleType
+
     import aiofiles
     import aiohttp
 
     ASYNC_AVAILABLE = True
+    aiohttp_module: ModuleType | None = aiohttp
+    aiofiles_module: ModuleType | None = aiofiles
 except ImportError:
     ASYNC_AVAILABLE = False
-    aiohttp = None
-    aiofiles = None  # type: ignore[assignment]
+    aiohttp_module = None
+    aiofiles_module = None
 
 if ASYNC_AVAILABLE:
     from .config import NocoDBConfig

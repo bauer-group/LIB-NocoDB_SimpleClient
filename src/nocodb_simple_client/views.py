@@ -66,7 +66,8 @@ class NocoDBViews:
         """
         endpoint = f"api/v2/tables/{table_id}/views"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        view_list = response.get("list", [])
+        return view_list if isinstance(view_list, list) else []
 
     def get_view(self, table_id: str, view_id: str) -> dict[str, Any]:
         """Get a specific view by ID.
@@ -115,7 +116,11 @@ class NocoDBViews:
             data.update(options)
 
         endpoint = f"api/v2/tables/{table_id}/views"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from view creation")
 
     def update_view(
         self,
@@ -151,7 +156,11 @@ class NocoDBViews:
             raise ValueError("At least title or options must be provided")
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}"
-        return self.client._patch(endpoint, data=data)
+        response = self.client._patch(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from view update")
 
     def delete_view(self, table_id: str, view_id: str) -> bool:
         """Delete a view.
@@ -186,7 +195,8 @@ class NocoDBViews:
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/columns"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        columns_list = response.get("list", [])
+        return columns_list if isinstance(columns_list, list) else []
 
     def update_view_column(
         self, table_id: str, view_id: str, column_id: str, options: dict[str, Any]
@@ -206,7 +216,11 @@ class NocoDBViews:
             NocoDBException: For API errors
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/columns/{column_id}"
-        return self.client._patch(endpoint, data=options)
+        response = self.client._patch(endpoint, data=options)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from view column update")
 
     def get_view_filters(self, table_id: str, view_id: str) -> list[dict[str, Any]]:
         """Get filters for a view.
@@ -223,7 +237,8 @@ class NocoDBViews:
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        filters_list = response.get("list", [])
+        return filters_list if isinstance(filters_list, list) else []
 
     def create_view_filter(
         self,
@@ -256,7 +271,11 @@ class NocoDBViews:
             data["value"] = value
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from filter creation")
 
     def update_view_filter(
         self,
@@ -293,7 +312,11 @@ class NocoDBViews:
             data["logical_op"] = logical_op
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/filters/{filter_id}"
-        return self.client._patch(endpoint, data=data)
+        response = self.client._patch(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from filter update")
 
     def delete_view_filter(self, table_id: str, view_id: str, filter_id: str) -> bool:
         """Delete a view filter.
@@ -328,7 +351,8 @@ class NocoDBViews:
         """
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        sorts_list = response.get("list", [])
+        return sorts_list if isinstance(sorts_list, list) else []
 
     def create_view_sort(
         self, table_id: str, view_id: str, column_id: str, direction: str = "asc"
@@ -353,7 +377,11 @@ class NocoDBViews:
         data = {"fk_column_id": column_id, "direction": direction.lower()}
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from sort creation")
 
     def update_view_sort(
         self, table_id: str, view_id: str, sort_id: str, direction: str
@@ -378,7 +406,11 @@ class NocoDBViews:
         data = {"direction": direction.lower()}
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/sorts/{sort_id}"
-        return self.client._patch(endpoint, data=data)
+        response = self.client._patch(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from sort update")
 
     def delete_view_sort(self, table_id: str, view_id: str, sort_id: str) -> bool:
         """Delete a view sort.
@@ -421,14 +453,15 @@ class NocoDBViews:
         Raises:
             NocoDBException: For API errors
         """
-        params = {"limit": limit, "offset": offset}
+        params: dict[str, str | int] = {"limit": limit, "offset": offset}
 
         if fields:
             params["fields"] = ",".join(fields)
 
         endpoint = f"api/v2/tables/{table_id}/views/{view_id}/records"
         response = self.client._get(endpoint, params=params)
-        return response.get("list", [])
+        view_list = response.get("list", [])
+        return view_list if isinstance(view_list, list) else []
 
     def duplicate_view(self, table_id: str, view_id: str, new_title: str) -> dict[str, Any]:
         """Duplicate an existing view with a new title.

@@ -23,6 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+# Async support (optional)
+from typing import TYPE_CHECKING
+
 from .cache import CacheManager
 from .client import NocoDBClient
 from .columns import NocoDBColumns, TableColumns
@@ -55,15 +58,25 @@ from .table import NocoDBTable
 from .views import NocoDBViews, TableViews
 from .webhooks import NocoDBWebhooks, TableWebhooks
 
-# Async support (optional)
-try:
+if TYPE_CHECKING:
     from .async_client import AsyncNocoDBClient, AsyncNocoDBTable
+else:
+    try:
+        from .async_client import AsyncNocoDBClient, AsyncNocoDBTable
 
-    ASYNC_AVAILABLE = True
-except ImportError:
-    ASYNC_AVAILABLE = False
-    AsyncNocoDBClient = None
-    AsyncNocoDBTable = None
+        ASYNC_AVAILABLE = True
+    except ImportError:
+        ASYNC_AVAILABLE = False
+
+        # Create fallbacks that are safe to use
+        class AsyncNocoDBClient:  # type: ignore[misc]
+            def __init__(self, *args, **kwargs):  # type: ignore[misc]
+                raise ImportError("Async support not available. Install aiohttp and aiofiles.")
+
+        class AsyncNocoDBTable:  # type: ignore[misc]
+            def __init__(self, *args, **kwargs):  # type: ignore[misc]
+                raise ImportError("Async support not available. Install aiohttp and aiofiles.")
+
 
 __version__ = "1.1.1"
 __author__ = "BAUER GROUP (Karl Bauer)"

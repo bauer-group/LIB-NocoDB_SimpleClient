@@ -94,7 +94,8 @@ class NocoDBColumns:
         """
         endpoint = f"api/v2/tables/{table_id}/columns"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        columns_list = response.get("list", [])
+        return columns_list if isinstance(columns_list, list) else []
 
     def get_column(self, table_id: str, column_id: str) -> dict[str, Any]:
         """Get a specific column by ID.
@@ -114,7 +115,7 @@ class NocoDBColumns:
         return self.client._get(endpoint)
 
     def create_column(
-        self, table_id: str, title: str, column_type: str, **options
+        self, table_id: str, title: str, column_type: str, **options: Any
     ) -> dict[str, Any]:
         """Create a new column.
 
@@ -147,10 +148,14 @@ class NocoDBColumns:
         data.update(options)
 
         endpoint = f"api/v2/tables/{table_id}/columns"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from column creation")
 
     def update_column(
-        self, table_id: str, column_id: str, title: str | None = None, **options
+        self, table_id: str, column_id: str, title: str | None = None, **options: Any
     ) -> dict[str, Any]:
         """Update an existing column.
 
@@ -179,7 +184,11 @@ class NocoDBColumns:
             raise ValueError("At least one parameter must be provided for update")
 
         endpoint = f"api/v2/tables/{table_id}/columns/{column_id}"
-        return self.client._patch(endpoint, data=data)
+        response = self.client._patch(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from column update")
 
     def delete_column(self, table_id: str, column_id: str) -> bool:
         """Delete a column.
@@ -217,9 +226,9 @@ class NocoDBColumns:
         Returns:
             Created column dictionary
         """
-        options = {}
+        options: dict[str, Any] = {}
         if max_length:
-            options["dtxp"] = max_length
+            options["dtxp"] = str(max_length)
         if default_value:
             options["cdf"] = default_value
 
@@ -264,11 +273,11 @@ class NocoDBColumns:
         Returns:
             Created column dictionary
         """
-        options = {}
+        options: dict[str, Any] = {}
         if precision:
-            options["dtxp"] = precision
+            options["dtxp"] = str(precision)
         if scale:
-            options["dtxs"] = scale
+            options["dtxs"] = str(scale)
         if default_value is not None:
             options["cdf"] = str(default_value)
 
@@ -552,11 +561,13 @@ class TableColumns:
         """Get a specific column by ID."""
         return self._columns.get_column(self._table_id, column_id)
 
-    def create_column(self, title: str, column_type: str, **options) -> dict[str, Any]:
+    def create_column(self, title: str, column_type: str, **options: Any) -> dict[str, Any]:
         """Create a new column for this table."""
         return self._columns.create_column(self._table_id, title, column_type, **options)
 
-    def update_column(self, column_id: str, title: str | None = None, **options) -> dict[str, Any]:
+    def update_column(
+        self, column_id: str, title: str | None = None, **options: Any
+    ) -> dict[str, Any]:
         """Update an existing column."""
         return self._columns.update_column(self._table_id, column_id, title, **options)
 

@@ -69,7 +69,8 @@ class NocoDBWebhooks:
         """
         endpoint = f"api/v2/tables/{table_id}/hooks"
         response = self.client._get(endpoint)
-        return response.get("list", [])
+        webhook_list = response.get("list", [])
+        return webhook_list if isinstance(webhook_list, list) else []
 
     def get_webhook(self, table_id: str, webhook_id: str) -> dict[str, Any]:
         """Get a specific webhook by ID.
@@ -136,25 +137,31 @@ class NocoDBWebhooks:
         if method.upper() not in ["GET", "POST", "PUT", "PATCH", "DELETE"]:
             raise ValueError("Invalid HTTP method")
 
+        notification_payload: dict[str, Any] = {"method": method.upper(), "url": url}
+
+        if headers:
+            notification_payload["headers"] = headers
+
+        if body:
+            notification_payload["body"] = body
+
         data = {
             "title": title,
             "event": event_type,
             "operation": operation,
-            "notification": {"type": "URL", "payload": {"method": method.upper(), "url": url}},
+            "notification": {"type": "URL", "payload": notification_payload},
             "active": active,
         }
-
-        if headers:
-            data["notification"]["payload"]["headers"] = headers
-
-        if body:
-            data["notification"]["payload"]["body"] = body
 
         if condition:
             data["condition"] = condition
 
         endpoint = f"api/v2/tables/{table_id}/hooks"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from webhook creation")
 
     def update_webhook(
         self,
@@ -188,7 +195,7 @@ class NocoDBWebhooks:
             NocoDBException: For API errors
             WebhookNotFoundException: If the webhook is not found
         """
-        data = {}
+        data: dict[str, Any] = {}
 
         if title:
             data["title"] = title
@@ -200,7 +207,7 @@ class NocoDBWebhooks:
             data["condition"] = condition
 
         # Update notification payload if any URL/method/headers/body changed
-        notification_update = {}
+        notification_update: dict[str, Any] = {}
         if url:
             notification_update["url"] = url
         if method:
@@ -217,7 +224,11 @@ class NocoDBWebhooks:
             raise ValueError("At least one parameter must be provided for update")
 
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}"
-        return self.client._patch(endpoint, data=data)
+        response = self.client._patch(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from webhook update")
 
     def delete_webhook(self, table_id: str, webhook_id: str) -> bool:
         """Delete a webhook.
@@ -253,12 +264,16 @@ class NocoDBWebhooks:
         Raises:
             NocoDBException: For API errors
         """
-        data = {}
+        data: dict[str, Any] = {}
         if sample_data:
             data["data"] = sample_data
 
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/test"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from webhook test")
 
     def get_webhook_logs(
         self, table_id: str, webhook_id: str, limit: int = 25, offset: int = 0
@@ -281,7 +296,8 @@ class NocoDBWebhooks:
 
         endpoint = f"api/v2/tables/{table_id}/hooks/{webhook_id}/logs"
         response = self.client._get(endpoint, params=params)
-        return response.get("list", [])
+        webhook_list = response.get("list", [])
+        return webhook_list if isinstance(webhook_list, list) else []
 
     def clear_webhook_logs(self, table_id: str, webhook_id: str) -> bool:
         """Clear all logs for a webhook.
@@ -356,7 +372,11 @@ class NocoDBWebhooks:
             data["condition"] = condition
 
         endpoint = f"api/v2/tables/{table_id}/hooks"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from email webhook creation")
 
     def create_slack_webhook(
         self,
@@ -409,7 +429,11 @@ class NocoDBWebhooks:
             data["condition"] = condition
 
         endpoint = f"api/v2/tables/{table_id}/hooks"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from Slack webhook creation")
 
     def create_teams_webhook(
         self,
@@ -462,7 +486,11 @@ class NocoDBWebhooks:
             data["condition"] = condition
 
         endpoint = f"api/v2/tables/{table_id}/hooks"
-        return self.client._post(endpoint, data=data)
+        response = self.client._post(endpoint, data=data)
+        if isinstance(response, dict):
+            return response
+        else:
+            raise ValueError("Expected dict response from Teams webhook creation")
 
     def toggle_webhook(self, table_id: str, webhook_id: str) -> dict[str, Any]:
         """Toggle a webhook's active status.
@@ -511,14 +539,14 @@ class TableWebhooks:
         return self._webhooks.get_webhook(self._table_id, webhook_id)
 
     def create_webhook(
-        self, title: str, event_type: str, operation: str, url: str, **kwargs
+        self, title: str, event_type: str, operation: str, url: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Create a new webhook for this table."""
         return self._webhooks.create_webhook(
             self._table_id, title, event_type, operation, url, **kwargs
         )
 
-    def update_webhook(self, webhook_id: str, **kwargs) -> dict[str, Any]:
+    def update_webhook(self, webhook_id: str, **kwargs: Any) -> dict[str, Any]:
         """Update an existing webhook."""
         return self._webhooks.update_webhook(self._table_id, webhook_id, **kwargs)
 

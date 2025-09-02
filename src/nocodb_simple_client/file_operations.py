@@ -145,7 +145,8 @@ class FileManager:
         else:
             file_path = Path(file_path)
 
-        return self.client.upload_file(table_id, file_path)
+        result = self.client._upload_file(table_id, file_path)
+        return result if isinstance(result, dict) else {}
 
     def upload_files_batch(
         self,
@@ -269,7 +270,13 @@ class FileManager:
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Use the client's existing download functionality
-        self.client.download_file_from_url(file_url, save_path)
+        # Note: This method doesn't exist directly, we need to implement it
+        response = self.client._session.get(file_url, stream=True)
+        response.raise_for_status()
+
+        with open(save_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
 
         return save_path
 
@@ -484,7 +491,7 @@ class FileManager:
             table_id, fields=[field_name, "Id"], where=where, limit=1000
         )
 
-        summary = {
+        summary: dict[str, Any] = {
             "total_records": len(records),
             "records_with_attachments": 0,
             "total_attachments": 0,
@@ -495,8 +502,10 @@ class FileManager:
             "max_attachments_count": 0,
         }
 
-        for record in records:
-            attachments = record.get(field_name, [])
+        for record_data in records:
+            if not isinstance(record_data, dict):
+                continue
+            attachments = record_data.get(field_name, [])
             if not isinstance(attachments, list):
                 continue
 
@@ -507,7 +516,7 @@ class FileManager:
 
                 if attachment_count > summary["max_attachments_count"]:
                     summary["max_attachments_count"] = attachment_count
-                    summary["most_attachments_record"] = record.get("Id")
+                    summary["most_attachments_record"] = record_data.get("Id")
 
                 for attachment in attachments:
                     if isinstance(attachment, dict):
@@ -539,7 +548,7 @@ class FileManager:
                                 summary["largest_file"] = {
                                     "title": title,
                                     "size": size,
-                                    "record_id": record.get("Id"),
+                                    "record_id": record_data.get("Id"),
                                 }
 
         return summary
@@ -558,7 +567,7 @@ class TableFileManager:
         self._file_manager = file_manager
         self._table_id = table_id
 
-    def upload_file(self, file_path: str | Path, **kwargs) -> dict[str, Any]:
+    def upload_file(self, file_path: str | Path, **kwargs: Any) -> dict[str, Any]:
         """Upload file to this table."""
         return self._file_manager.upload_file(self._table_id, file_path, **kwargs)
 
@@ -567,7 +576,7 @@ class TableFileManager:
         record_id: int | str,
         field_name: str,
         file_paths: list[str | Path],
-        **kwargs,
+        **kwargs: Any,
     ) -> int | str:
         """Attach files to a record in this table."""
         return self._file_manager.attach_files_to_record(
@@ -575,7 +584,7 @@ class TableFileManager:
         )
 
     def download_record_attachments(
-        self, record_id: int | str, field_name: str, download_dir: str | Path, **kwargs
+        self, record_id: int | str, field_name: str, download_dir: str | Path, **kwargs: Any
     ) -> list[Path]:
         """Download attachments from a record in this table."""
         return self._file_manager.download_record_attachments(

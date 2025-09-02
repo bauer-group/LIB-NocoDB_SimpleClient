@@ -42,12 +42,15 @@ except ImportError:
     dc = None
 
 try:
+    from types import ModuleType
+
     import redis
 
     REDIS_AVAILABLE = True
+    redis_module: ModuleType | None = redis
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None
+    redis_module = None
 
 
 class CacheBackend(ABC):
@@ -216,7 +219,9 @@ class RedisCache(CacheBackend):
                 "Install with: pip install 'nocodb-simple-client[caching]'"
             )
 
-        self.client = redis.Redis(
+        if redis_module is None:
+            raise ImportError("Redis module not available")
+        self.client = redis_module.Redis(
             host=host,
             port=port,
             db=db,
@@ -240,7 +245,7 @@ class RedisCache(CacheBackend):
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     # Fall back to pickle for complex objects
                     return pickle.loads(data)  # nosec B301
-        except (redis.RedisError, pickle.PickleError):
+        except (Exception, pickle.PickleError):
             pass
         return None
 
@@ -258,14 +263,14 @@ class RedisCache(CacheBackend):
                 self.client.setex(self._make_key(key), ttl, data)
             else:
                 self.client.set(self._make_key(key), data)
-        except (redis.RedisError, pickle.PickleError):
+        except (Exception, pickle.PickleError):
             pass  # Fail silently for cache operations
 
     def delete(self, key: str) -> None:
         """Delete value from cache."""
         try:
             self.client.delete(self._make_key(key))
-        except redis.RedisError:
+        except Exception:
             pass
 
     def clear(self) -> None:
@@ -275,14 +280,14 @@ class RedisCache(CacheBackend):
             keys = self.client.keys(pattern)
             if keys:
                 self.client.delete(*keys)
-        except redis.RedisError:
+        except Exception:
             pass
 
     def exists(self, key: str) -> bool:
         """Check if cache key exists."""  # nosec - false positive
         try:
             return bool(self.client.exists(self._make_key(key)))
-        except redis.RedisError:
+        except Exception:
             return False
 
 
