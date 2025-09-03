@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ feature-* ]
 
+  workflow_dispatch:
+
+  workflow_call:
+
 jobs:
   # 🔬 Unit tests on multiple Python versions (fast)
   unit-tests:
