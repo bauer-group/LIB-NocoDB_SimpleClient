@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from nocodb_simple_client.client import NocoDBClient
-from nocodb_simple_client.exceptions import NocoDBException, RecordNotFoundException, ValidationException
+from nocodb_simple_client.exceptions import RecordNotFoundException, ValidationException
 
 
 class TestNocoDBClientInit:

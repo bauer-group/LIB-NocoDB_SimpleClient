@@ -1,12 +1,11 @@
 """Tests for NocoDB Webhooks operations based on actual implementation."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 import pytest
 
 from nocodb_simple_client.webhooks import NocoDBWebhooks, TableWebhooks
 from nocodb_simple_client.meta_client import NocoDBMetaClient
 from nocodb_simple_client.table import NocoDBTable
-from nocodb_simple_client.exceptions import NocoDBException, ValidationException
 
 
 class TestNocoDBWebhooks:

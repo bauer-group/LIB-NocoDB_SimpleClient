@@ -1,6 +1,5 @@
 """Tests for FilterBuilder and SortBuilder classes based on actual implementation."""
 
-import pytest
 from datetime import date, datetime
 
 from nocodb_simple_client.filter_builder import FilterBuilder, SortBuilder
