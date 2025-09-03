@@ -51,36 +51,29 @@ class TestNocoDBWebhooks:
         result = webhooks.get_webhook("table_123", "webhook_123")
 
         assert result == expected_webhook
-        meta_client.get_webhook.assert_called_once_with("table_123", "webhook_123")
+        meta_client.get_webhook.assert_called_once_with("webhook_123")
 
     def test_create_webhook(self, webhooks, meta_client):
         """Test create_webhook method."""
-        webhook_data = {
-            "title": "New Webhook",
-            "event": "after_insert",
-            "notification": {
-                "type": "URL",
-                "payload": {"method": "POST", "url": "https://example.com/webhook"}
-            }
-        }
-        expected_webhook = {"id": "new_webhook_123", **webhook_data}
+        expected_webhook = {"id": "new_webhook_123"}
         meta_client.create_webhook.return_value = expected_webhook
 
-        result = webhooks.create_webhook("table_123", **webhook_data)
+        result = webhooks.create_webhook(
+            "table_123", "New Webhook", "after", "insert", "https://example.com/webhook"
+        )
 
         assert result == expected_webhook
-        meta_client.create_webhook.assert_called_once_with("table_123", **webhook_data)
+        meta_client.create_webhook.assert_called_once()
 
     def test_update_webhook(self, webhooks, meta_client):
         """Test update_webhook method."""
-        update_data = {"title": "Updated Webhook"}
         expected_webhook = {"id": "webhook_123", "title": "Updated Webhook"}
         meta_client.update_webhook.return_value = expected_webhook
 
-        result = webhooks.update_webhook("table_123", "webhook_123", **update_data)
+        result = webhooks.update_webhook("table_123", "webhook_123", title="Updated Webhook")
 
         assert result == expected_webhook
-        meta_client.update_webhook.assert_called_once_with("table_123", "webhook_123", **update_data)
+        meta_client.update_webhook.assert_called_once_with("webhook_123", {"title": "Updated Webhook"})
 
     def test_delete_webhook(self, webhooks, meta_client):
         """Test delete_webhook method."""
@@ -89,7 +82,7 @@ class TestNocoDBWebhooks:
         result = webhooks.delete_webhook("table_123", "webhook_123")
 
         assert result is True
-        meta_client.delete_webhook.assert_called_once_with("table_123", "webhook_123")
+        meta_client.delete_webhook.assert_called_once_with("webhook_123")
 
     def test_test_webhook(self, webhooks, meta_client):
         """Test test_webhook method."""
@@ -99,7 +92,7 @@ class TestNocoDBWebhooks:
         result = webhooks.test_webhook("table_123", "webhook_123", {"test": "data"})
 
         assert result == test_response
-        meta_client.test_webhook.assert_called_once_with("table_123", "webhook_123", {"test": "data"})
+        meta_client.test_webhook.assert_called_once_with("webhook_123")
 
     def test_get_webhook_logs(self, webhooks, meta_client):
         """Test get_webhook_logs method."""
@@ -107,21 +100,21 @@ class TestNocoDBWebhooks:
             {"id": "log_1", "status": "success"},
             {"id": "log_2", "status": "error"}
         ]
-        meta_client.get_webhook_logs.return_value = expected_logs
+        meta_client._get.return_value = {"list": expected_logs}
 
         result = webhooks.get_webhook_logs("table_123", "webhook_123", limit=10)
 
         assert result == expected_logs
-        meta_client.get_webhook_logs.assert_called_once_with("table_123", "webhook_123", limit=10)
+        meta_client._get.assert_called_once_with("api/v2/tables/table_123/hooks/webhook_123/logs", params={"limit": 10, "offset": 0})
 
     def test_clear_webhook_logs(self, webhooks, meta_client):
         """Test clear_webhook_logs method."""
-        meta_client.clear_webhook_logs.return_value = True
+        meta_client._delete.return_value = True
 
         result = webhooks.clear_webhook_logs("table_123", "webhook_123")
 
         assert result is True
-        meta_client.clear_webhook_logs.assert_called_once_with("table_123", "webhook_123")
+        meta_client._delete.assert_called_once_with("api/v2/tables/table_123/hooks/webhook_123/logs")
 
     def test_create_email_webhook(self, webhooks, meta_client):
         """Test create_email_webhook method."""
@@ -129,8 +122,8 @@ class TestNocoDBWebhooks:
         meta_client.create_webhook.return_value = expected_webhook
 
         result = webhooks.create_email_webhook(
-            "table_123", "Email Alert", "after_insert",
-            ["user@example.com"], "New Record Created"
+            "table_123", "Email Alert", "after", "insert",
+            ["user@example.com"], "New Record Created", "Email body"
         )
 
         assert result == expected_webhook
@@ -142,8 +135,8 @@ class TestNocoDBWebhooks:
         meta_client.create_webhook.return_value = expected_webhook
 
         result = webhooks.create_slack_webhook(
-            "table_123", "Slack Alert", "after_insert",
-            "https://hooks.slack.com/webhook", "#general"
+            "table_123", "Slack Alert", "after", "insert",
+            "https://hooks.slack.com/webhook", "New record created"
         )
 
         assert result == expected_webhook
@@ -155,8 +148,8 @@ class TestNocoDBWebhooks:
         meta_client.create_webhook.return_value = expected_webhook
 
         result = webhooks.create_teams_webhook(
-            "table_123", "Teams Alert", "after_insert",
-            "https://outlook.office.com/webhook"
+            "table_123", "Teams Alert", "after", "insert",
+            "https://outlook.office.com/webhook", "New record created"
         )
 
         assert result == expected_webhook
@@ -184,96 +177,80 @@ class TestTableWebhooks:
         return table
 
     @pytest.fixture
-    def table_webhooks(self, mock_table):
+    def table_webhooks(self):
         """Create table webhooks instance."""
-        return TableWebhooks(mock_table)
+        webhooks_manager = Mock()
+        return TableWebhooks(webhooks_manager, "test_table_123")
 
-    def test_table_webhooks_initialization(self, mock_table):
+    def test_table_webhooks_initialization(self):
         """Test table webhooks initialization."""
-        table_webhooks = TableWebhooks(mock_table)
+        webhooks_manager = Mock()
+        table_webhooks = TableWebhooks(webhooks_manager, "test_table_123")
 
-        assert table_webhooks.table == mock_table
-        assert table_webhooks.table_id == "test_table_123"
+        assert table_webhooks._webhooks == webhooks_manager
+        assert table_webhooks._table_id == "test_table_123"
 
-    def test_get_webhooks_table_delegation(self, table_webhooks, mock_table):
-        """Test get_webhooks delegation to table's client."""
+    def test_get_webhooks_table_delegation(self, table_webhooks):
+        """Test get_webhooks delegation to webhooks manager."""
         expected_webhooks = [{"id": "webhook_1", "title": "Test Webhook"}]
-
-        # Mock the client's webhooks property
-        mock_webhooks = Mock()
-        mock_webhooks.get_webhooks.return_value = expected_webhooks
-        mock_table.client.webhooks = mock_webhooks
+        table_webhooks._webhooks.get_webhooks.return_value = expected_webhooks
 
         result = table_webhooks.get_webhooks()
 
         assert result == expected_webhooks
-        mock_webhooks.get_webhooks.assert_called_once_with("test_table_123")
+        table_webhooks._webhooks.get_webhooks.assert_called_once_with("test_table_123")
 
-    def test_create_webhook_table_delegation(self, table_webhooks, mock_table):
-        """Test create_webhook delegation to table's client."""
-        webhook_data = {"title": "New Webhook", "event": "after_insert"}
-        expected_webhook = {"id": "new_webhook_123", **webhook_data}
+    def test_create_webhook_table_delegation(self, table_webhooks):
+        """Test create_webhook delegation to webhooks manager."""
+        expected_webhook = {"id": "new_webhook_123"}
+        table_webhooks._webhooks.create_webhook.return_value = expected_webhook
 
-        # Mock the client's webhooks property
-        mock_webhooks = Mock()
-        mock_webhooks.create_webhook.return_value = expected_webhook
-        mock_table.client.webhooks = mock_webhooks
-
-        result = table_webhooks.create_webhook(**webhook_data)
+        result = table_webhooks.create_webhook("New Webhook", "after", "insert", "https://example.com")
 
         assert result == expected_webhook
-        mock_webhooks.create_webhook.assert_called_once_with("test_table_123", **webhook_data)
+        table_webhooks._webhooks.create_webhook.assert_called_once_with(
+            "test_table_123", "New Webhook", "after", "insert", "https://example.com"
+        )
 
-    def test_delete_webhook_table_delegation(self, table_webhooks, mock_table):
-        """Test delete_webhook delegation to table's client."""
-        mock_webhooks = Mock()
-        mock_webhooks.delete_webhook.return_value = True
-        mock_table.client.webhooks = mock_webhooks
+    def test_delete_webhook_table_delegation(self, table_webhooks):
+        """Test delete_webhook delegation to webhooks manager."""
+        table_webhooks._webhooks.delete_webhook.return_value = True
 
         result = table_webhooks.delete_webhook("webhook_123")
 
         assert result is True
-        mock_webhooks.delete_webhook.assert_called_once_with("test_table_123", "webhook_123")
+        table_webhooks._webhooks.delete_webhook.assert_called_once_with("test_table_123", "webhook_123")
 
-    def test_test_webhook_table_delegation(self, table_webhooks, mock_table):
-        """Test test_webhook delegation to table's client."""
+    def test_test_webhook_table_delegation(self, table_webhooks):
+        """Test test_webhook delegation to webhooks manager."""
         test_data = {"test": "payload"}
         expected_response = {"status": "success"}
-
-        mock_webhooks = Mock()
-        mock_webhooks.test_webhook.return_value = expected_response
-        mock_table.client.webhooks = mock_webhooks
+        table_webhooks._webhooks.test_webhook.return_value = expected_response
 
         result = table_webhooks.test_webhook("webhook_123", test_data)
 
         assert result == expected_response
-        mock_webhooks.test_webhook.assert_called_once_with("test_table_123", "webhook_123", test_data)
+        table_webhooks._webhooks.test_webhook.assert_called_once_with("test_table_123", "webhook_123", test_data)
 
-    def test_get_webhook_logs_table_delegation(self, table_webhooks, mock_table):
-        """Test get_webhook_logs delegation to table's client."""
+    def test_get_webhook_logs_table_delegation(self, table_webhooks):
+        """Test get_webhook_logs delegation to webhooks manager."""
         expected_logs = [{"id": "log_1", "status": "success"}]
-
-        mock_webhooks = Mock()
-        mock_webhooks.get_webhook_logs.return_value = expected_logs
-        mock_table.client.webhooks = mock_webhooks
+        table_webhooks._webhooks.get_webhook_logs.return_value = expected_logs
 
         result = table_webhooks.get_webhook_logs("webhook_123", limit=5)
 
         assert result == expected_logs
-        mock_webhooks.get_webhook_logs.assert_called_once_with("test_table_123", "webhook_123", limit=5)
+        table_webhooks._webhooks.get_webhook_logs.assert_called_once_with("test_table_123", "webhook_123", 5, 0)
 
-    def test_toggle_webhook_table_delegation(self, table_webhooks, mock_table):
-        """Test toggle_webhook delegation to table's client."""
+    def test_toggle_webhook_table_delegation(self, table_webhooks):
+        """Test toggle_webhook delegation to webhooks manager."""
         expected_webhook = {"id": "webhook_123", "active": False}
-
-        mock_webhooks = Mock()
-        mock_webhooks.toggle_webhook.return_value = expected_webhook
-        mock_table.client.webhooks = mock_webhooks
+        table_webhooks._webhooks.toggle_webhook.return_value = expected_webhook
 
         result = table_webhooks.toggle_webhook("webhook_123")
 
         assert result == expected_webhook
-        mock_webhooks.toggle_webhook.assert_called_once_with("test_table_123", "webhook_123")
+        table_webhooks._webhooks.toggle_webhook.assert_called_once_with("test_table_123", "webhook_123")
 
 
 class TestWebhookConstants:
