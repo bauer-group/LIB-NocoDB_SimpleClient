@@ -89,11 +89,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bauer-group/nocodb-simple-client"
-Documentation = "https://github.com/bauer-group/nocodb-simple-client#readme"
-Repository = "https://github.com/bauer-group/nocodb-simple-client.git"
-"Bug Tracker" = "https://github.com/bauer-group/nocodb-simple-client/issues"
-Changelog = "https://github.com/bauer-group/nocodb-simple-client/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient"
+Documentation = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient#readme"
+Repository = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git"
+"Bug Tracker" = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient/issues"
+Changelog = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient/blob/main/CHANGELOG.md"
 
 # ============================================================================
 # SEMANTIC RELEASE CONFIGURATION
