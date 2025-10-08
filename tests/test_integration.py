@@ -250,48 +250,20 @@ class NocoDBTestSetup:
 
         print("Successfully authenticated, token obtained")
 
-        # Step 3: Get existing base (NocoDB creates a default base on first run)
-        # Note: POST /api/v2/bases is not supported in current NocoDB version
-        # Instead, we list existing bases and use the first one
-        headers = {"xc-token": self.token, "Content-Type": "application/json"}
-
-        print("Fetching existing bases...")
-        response = requests.get(
-            f"{self.base_url}/api/v2/bases",
-            headers=headers,
-            timeout=30
-        )
-
-        if response.status_code != 200:
-            print(f"List bases response status: {response.status_code}")
-            print(f"List bases response body: {response.text}")
-            raise RuntimeError(f"Failed to list bases: {response.status_code} - {response.text}")
-
-        bases_result = response.json()
-        print(f"Bases response: {bases_result}")
-
-        # Get the list of bases
-        bases = bases_result.get("list", []) if isinstance(bases_result, dict) else bases_result
-
-        if not bases or len(bases) == 0:
-            raise RuntimeError("No bases found. NocoDB should create a default base on startup.")
-
-        # Use the first available base (typically the default base)
-        first_base = bases[0]
-        self.project_id = first_base.get("id")
-
-        if not self.project_id:
-            print(f"First base: {first_base}")
-            raise RuntimeError("Base ID not found in response")
-
-        print(f"Using existing base: {first_base.get('title', 'Unknown')} (ID: {self.project_id})")
-
-        # Step 4: Initialize Meta Client with token
+        # Step 3: Initialize Meta Client early with token
+        # This allows us to use Library methods wherever possible
         self.meta_client = NocoDBMetaClient(
             base_url=self.base_url,
             db_auth_token=self.token,
             timeout=30
         )
+
+        # Step 4: Discover workspace and base
+        # TODO: Add these methods to NocoDBMetaClient in the future:
+        #   - list_workspaces() -> list[dict]
+        #   - list_bases(workspace_id) -> list[dict]
+        #   - get_base_info(base_id) -> dict
+        self.project_id = self._discover_base()
 
         # Step 5: Create test table using the Library
         self._create_test_table()
@@ -301,6 +273,89 @@ class NocoDBTestSetup:
             "project_id": self.project_id,
             "table_id": self.test_table_id,
         }
+
+    def _discover_base(self) -> str:
+        """Discover and return a usable base ID.
+
+        This method uses direct API calls since workspace/base listing
+        is not yet implemented in the Library.
+
+        TODO: Replace this with Library methods once available:
+            workspaces = self.meta_client.list_workspaces()
+            bases = self.meta_client.list_bases(workspace_id)
+
+        Returns:
+            Base ID string
+        """
+        headers = {"xc-token": self.token, "Content-Type": "application/json"}
+
+        # Try to get user info which might contain workspace/base information
+        print("Fetching user information...")
+        try:
+            user_response = requests.get(
+                f"{self.base_url}/api/v2/user/me",
+                headers=headers,
+                timeout=30
+            )
+            if user_response.status_code == 200:
+                user_info = user_response.json()
+                print(f"User info: {user_info}")
+        except Exception as e:
+            print(f"Could not fetch user info: {e}")
+
+        # Try to list workspaces (which contain bases)
+        print("Attempting to fetch workspaces...")
+        workspace_response = requests.get(
+            f"{self.base_url}/api/v2/workspaces",
+            headers=headers,
+            timeout=30
+        )
+
+        if workspace_response.status_code == 200:
+            workspaces = workspace_response.json()
+            print(f"Workspaces response: {workspaces}")
+
+            # Extract bases from workspaces
+            workspace_list = workspaces.get("list", []) if isinstance(workspaces, dict) else workspaces
+            if workspace_list and len(workspace_list) > 0:
+                first_workspace = workspace_list[0]
+                workspace_id = first_workspace.get("id")
+                print(f"Using workspace: {first_workspace.get('title', 'Unknown')} (ID: {workspace_id})")
+
+                # Get bases in this workspace
+                bases_response = requests.get(
+                    f"{self.base_url}/api/v2/workspaces/{workspace_id}/bases",
+                    headers=headers,
+                    timeout=30
+                )
+
+                if bases_response.status_code == 200:
+                    bases_result = bases_response.json()
+                    print(f"Bases in workspace: {bases_result}")
+
+                    bases = bases_result.get("list", []) if isinstance(bases_result, dict) else bases_result
+                    if bases and len(bases) > 0:
+                        first_base = bases[0]
+                        self.project_id = first_base.get("id")
+                        print(f"Using base: {first_base.get('title', 'Unknown')} (ID: {self.project_id})")
+                    else:
+                        raise RuntimeError("No bases found in workspace")
+                else:
+                    print(f"Failed to get bases in workspace: {bases_response.status_code} - {bases_response.text}")
+                    raise RuntimeError(f"Could not fetch bases from workspace: {bases_response.text}")
+            else:
+                raise RuntimeError("No workspaces found")
+        else:
+            print(f"Workspace listing failed: {workspace_response.status_code} - {workspace_response.text}")
+            raise RuntimeError(
+                f"Could not fetch workspaces. Status: {workspace_response.status_code}, "
+                f"Response: {workspace_response.text}"
+            )
+
+        if not self.project_id:
+            raise RuntimeError("Failed to obtain a valid base ID from NocoDB")
+
+        return self.project_id
 
     def _create_test_table(self) -> None:
         """Erstellt Test-Tabelle mit der nocodb_simple_client Library."""
