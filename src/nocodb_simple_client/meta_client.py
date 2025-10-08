@@ -80,6 +80,229 @@ class NocoDBMetaClient(NocoDBClient):
         super().__init__(config=config, **kwargs)
 
     # ========================================================================
+    # WORKSPACE OPERATIONS (Meta API)
+    # ========================================================================
+
+    def list_workspaces(self) -> list[dict[str, Any]]:
+        """List all workspaces accessible to the authenticated user.
+
+        Returns:
+            List of workspace metadata dictionaries
+
+        Raises:
+            NocoDBException: For API errors
+
+        Example:
+            >>> workspaces = meta_client.list_workspaces()
+            >>> for workspace in workspaces:
+            ...     print(workspace['id'], workspace['title'])
+        """
+        response = self._get("api/v2/meta/workspaces")
+        workspace_list = response.get("list", [])
+        return workspace_list if isinstance(workspace_list, list) else []
+
+    def get_workspace(self, workspace_id: str) -> dict[str, Any]:
+        """Get detailed information about a specific workspace.
+
+        Args:
+            workspace_id: The workspace ID
+
+        Returns:
+            Workspace metadata dictionary
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_id is invalid
+
+        Example:
+            >>> workspace = meta_client.get_workspace("ws_abc123")
+            >>> print(workspace['title'], workspace['created_at'])
+        """
+        result = self._get(f"api/v2/meta/workspaces/{workspace_id}")
+        return result if isinstance(result, dict) else {"data": result}
+
+    def create_workspace(self, workspace_data: dict[str, Any]) -> dict[str, Any]:
+        """Create a new workspace.
+
+        Args:
+            workspace_data: Workspace creation data (title, description, etc.)
+
+        Returns:
+            Created workspace metadata
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_data is invalid
+
+        Example:
+            >>> workspace_data = {
+            ...     "title": "My Workspace",
+            ...     "description": "Team workspace"
+            ... }
+            >>> workspace = meta_client.create_workspace(workspace_data)
+        """
+        result = self._post("api/v2/meta/workspaces", data=workspace_data)
+        return result if isinstance(result, dict) else {"data": result}
+
+    def update_workspace(self, workspace_id: str, workspace_data: dict[str, Any]) -> dict[str, Any]:
+        """Update workspace metadata.
+
+        Args:
+            workspace_id: The workspace ID to update
+            workspace_data: Updated workspace data
+
+        Returns:
+            Updated workspace metadata
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_id or workspace_data is invalid
+
+        Example:
+            >>> updated = meta_client.update_workspace(
+            ...     "ws_abc123",
+            ...     {"title": "Updated Workspace Name"}
+            ... )
+        """
+        result = self._patch(f"api/v2/meta/workspaces/{workspace_id}", data=workspace_data)
+        return result if isinstance(result, dict) else {"data": result}
+
+    def delete_workspace(self, workspace_id: str) -> dict[str, Any]:
+        """Delete a workspace.
+
+        Warning: This will delete all bases and data within the workspace.
+
+        Args:
+            workspace_id: The workspace ID to delete
+
+        Returns:
+            Deletion confirmation
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_id is invalid
+
+        Example:
+            >>> result = meta_client.delete_workspace("ws_abc123")
+        """
+        result = self._delete(f"api/v2/meta/workspaces/{workspace_id}")
+        return result if isinstance(result, dict) else {"data": result}
+
+    # ========================================================================
+    # BASE OPERATIONS (Meta API)
+    # ========================================================================
+
+    def list_bases(self, workspace_id: str) -> list[dict[str, Any]]:
+        """List all bases in a workspace.
+
+        Args:
+            workspace_id: The workspace ID
+
+        Returns:
+            List of base metadata dictionaries
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_id is invalid
+
+        Example:
+            >>> bases = meta_client.list_bases("ws_abc123")
+            >>> for base in bases:
+            ...     print(base['id'], base['title'])
+        """
+        response = self._get(f"api/v2/meta/workspaces/{workspace_id}/bases")
+        base_list = response.get("list", [])
+        return base_list if isinstance(base_list, list) else []
+
+    def get_base(self, base_id: str) -> dict[str, Any]:
+        """Get detailed information about a specific base.
+
+        Args:
+            base_id: The base ID
+
+        Returns:
+            Base metadata dictionary
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If base_id is invalid
+
+        Example:
+            >>> base = meta_client.get_base("p_abc123")
+            >>> print(base['title'], base['status'])
+        """
+        result = self._get(f"api/v2/meta/bases/{base_id}")
+        return result if isinstance(result, dict) else {"data": result}
+
+    def create_base(self, workspace_id: str, base_data: dict[str, Any]) -> dict[str, Any]:
+        """Create a new base in a workspace.
+
+        Args:
+            workspace_id: The workspace ID where base will be created
+            base_data: Base creation data (title, description, etc.)
+
+        Returns:
+            Created base metadata
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If workspace_id or base_data is invalid
+
+        Example:
+            >>> base_data = {
+            ...     "title": "My Project",
+            ...     "description": "Project database"
+            ... }
+            >>> base = meta_client.create_base("ws_abc123", base_data)
+        """
+        result = self._post(f"api/v2/meta/workspaces/{workspace_id}/bases", data=base_data)
+        return result if isinstance(result, dict) else {"data": result}
+
+    def update_base(self, base_id: str, base_data: dict[str, Any]) -> dict[str, Any]:
+        """Update base metadata.
+
+        Args:
+            base_id: The base ID to update
+            base_data: Updated base data
+
+        Returns:
+            Updated base metadata
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If base_id or base_data is invalid
+
+        Example:
+            >>> updated = meta_client.update_base(
+            ...     "p_abc123",
+            ...     {"title": "Updated Project Name"}
+            ... )
+        """
+        result = self._patch(f"api/v2/meta/bases/{base_id}", data=base_data)
+        return result if isinstance(result, dict) else {"data": result}
+
+    def delete_base(self, base_id: str) -> dict[str, Any]:
+        """Delete a base.
+
+        Warning: This will delete all tables and data within the base.
+
+        Args:
+            base_id: The base ID to delete
+
+        Returns:
+            Deletion confirmation
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If base_id is invalid
+
+        Example:
+            >>> result = meta_client.delete_base("p_abc123")
+        """
+        result = self._delete(f"api/v2/meta/bases/{base_id}")
+        return result if isinstance(result, dict) else {"data": result}
+
+    # ========================================================================
     # TABLE STRUCTURE OPERATIONS (Meta API)
     # ========================================================================
 
