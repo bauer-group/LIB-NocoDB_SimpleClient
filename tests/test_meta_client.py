@@ -148,6 +148,178 @@ class TestTableOperations:
         meta_client._delete.assert_called_once_with("api/v2/meta/tables/table123")
 
 
+class TestWorkspaceOperations:
+    """Test workspace operations in meta client."""
+
+    @pytest.fixture
+    def meta_client(self):
+        """Create meta client with mocked HTTP methods."""
+        client = Mock(spec=NocoDBMetaClient)
+        client.list_workspaces = NocoDBMetaClient.list_workspaces.__get__(client)
+        client.get_workspace = NocoDBMetaClient.get_workspace.__get__(client)
+        client.create_workspace = NocoDBMetaClient.create_workspace.__get__(client)
+        client.update_workspace = NocoDBMetaClient.update_workspace.__get__(client)
+        client.delete_workspace = NocoDBMetaClient.delete_workspace.__get__(client)
+        return client
+
+    def test_list_workspaces(self, meta_client):
+        """Test list_workspaces method."""
+        expected_workspaces = [
+            {"id": "ws1", "title": "Default Workspace"},
+            {"id": "ws2", "title": "Team Workspace"}
+        ]
+        expected_response = {"list": expected_workspaces}
+        meta_client._get.return_value = expected_response
+
+        result = meta_client.list_workspaces()
+
+        assert result == expected_workspaces
+        meta_client._get.assert_called_once_with("api/v2/meta/workspaces")
+
+    def test_list_workspaces_empty_response(self, meta_client):
+        """Test list_workspaces with empty response."""
+        meta_client._get.return_value = {"list": None}
+
+        result = meta_client.list_workspaces()
+
+        assert result == []
+
+    def test_get_workspace(self, meta_client):
+        """Test get_workspace method."""
+        expected_workspace = {
+            "id": "ws123",
+            "title": "My Workspace",
+            "created_at": "2025-01-01"
+        }
+        meta_client._get.return_value = expected_workspace
+
+        result = meta_client.get_workspace("ws123")
+
+        assert result == expected_workspace
+        meta_client._get.assert_called_once_with("api/v2/meta/workspaces/ws123")
+
+    def test_create_workspace(self, meta_client):
+        """Test create_workspace method."""
+        workspace_data = {
+            "title": "New Workspace",
+            "description": "Team collaboration space"
+        }
+        expected_response = {"id": "ws_new", "title": "New Workspace"}
+        meta_client._post.return_value = expected_response
+
+        result = meta_client.create_workspace(workspace_data)
+
+        assert result == expected_response
+        meta_client._post.assert_called_once_with("api/v2/meta/workspaces", data=workspace_data)
+
+    def test_update_workspace(self, meta_client):
+        """Test update_workspace method."""
+        update_data = {"title": "Updated Workspace"}
+        expected_response = {"id": "ws123", "title": "Updated Workspace"}
+        meta_client._patch.return_value = expected_response
+
+        result = meta_client.update_workspace("ws123", update_data)
+
+        assert result == expected_response
+        meta_client._patch.assert_called_once_with("api/v2/meta/workspaces/ws123", data=update_data)
+
+    def test_delete_workspace(self, meta_client):
+        """Test delete_workspace method."""
+        expected_response = {"success": True, "message": "Workspace deleted"}
+        meta_client._delete.return_value = expected_response
+
+        result = meta_client.delete_workspace("ws123")
+
+        assert result == expected_response
+        meta_client._delete.assert_called_once_with("api/v2/meta/workspaces/ws123")
+
+
+class TestBaseOperations:
+    """Test base operations in meta client."""
+
+    @pytest.fixture
+    def meta_client(self):
+        """Create meta client with mocked HTTP methods."""
+        client = Mock(spec=NocoDBMetaClient)
+        client.list_bases = NocoDBMetaClient.list_bases.__get__(client)
+        client.get_base = NocoDBMetaClient.get_base.__get__(client)
+        client.create_base = NocoDBMetaClient.create_base.__get__(client)
+        client.update_base = NocoDBMetaClient.update_base.__get__(client)
+        client.delete_base = NocoDBMetaClient.delete_base.__get__(client)
+        return client
+
+    def test_list_bases(self, meta_client):
+        """Test list_bases method."""
+        expected_bases = [
+            {"id": "base1", "title": "Project A", "status": "active"},
+            {"id": "base2", "title": "Project B", "status": "active"}
+        ]
+        expected_response = {"list": expected_bases}
+        meta_client._get.return_value = expected_response
+
+        result = meta_client.list_bases("ws123")
+
+        assert result == expected_bases
+        meta_client._get.assert_called_once_with("api/v2/meta/workspaces/ws123/bases")
+
+    def test_list_bases_empty_response(self, meta_client):
+        """Test list_bases with empty response."""
+        meta_client._get.return_value = {"list": None}
+
+        result = meta_client.list_bases("ws123")
+
+        assert result == []
+
+    def test_get_base(self, meta_client):
+        """Test get_base method."""
+        expected_base = {
+            "id": "base123",
+            "title": "My Project",
+            "status": "active"
+        }
+        meta_client._get.return_value = expected_base
+
+        result = meta_client.get_base("base123")
+
+        assert result == expected_base
+        meta_client._get.assert_called_once_with("api/v2/meta/bases/base123")
+
+    def test_create_base(self, meta_client):
+        """Test create_base method."""
+        base_data = {
+            "title": "New Project",
+            "description": "Project database"
+        }
+        expected_response = {"id": "base_new", "title": "New Project"}
+        meta_client._post.return_value = expected_response
+
+        result = meta_client.create_base("ws123", base_data)
+
+        assert result == expected_response
+        meta_client._post.assert_called_once_with("api/v2/meta/workspaces/ws123/bases", data=base_data)
+
+    def test_update_base(self, meta_client):
+        """Test update_base method."""
+        update_data = {"title": "Updated Project"}
+        expected_response = {"id": "base123", "title": "Updated Project"}
+        meta_client._patch.return_value = expected_response
+
+        result = meta_client.update_base("base123", update_data)
+
+        assert result == expected_response
+        meta_client._patch.assert_called_once_with("api/v2/meta/bases/base123", data=update_data)
+
+    def test_delete_base(self, meta_client):
+        """Test delete_base method."""
+        expected_response = {"success": True, "message": "Base deleted"}
+        meta_client._delete.return_value = expected_response
+
+        result = meta_client.delete_base("base123")
+
+        assert result == expected_response
+        meta_client._delete.assert_called_once_with("api/v2/meta/bases/base123")
+
+
 class TestColumnOperations:
     """Test column operations in meta client."""
 
@@ -155,22 +327,70 @@ class TestColumnOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
-        # Add methods that exist in the real implementation
-        client.list_columns = Mock()
+        client.list_columns = NocoDBMetaClient.list_columns.__get__(client)
+        client.create_column = NocoDBMetaClient.create_column.__get__(client)
+        client.update_column = NocoDBMetaClient.update_column.__get__(client)
+        client.delete_column = NocoDBMetaClient.delete_column.__get__(client)
         return client
 
-    def test_list_columns_method_exists(self, meta_client):
-        """Test that list_columns method exists and can be called."""
+    def test_list_columns(self, meta_client):
+        """Test list_columns method."""
         expected_columns = [
             {"id": "col1", "title": "Name", "uidt": "SingleLineText"},
             {"id": "col2", "title": "Email", "uidt": "Email"}
         ]
-        meta_client.list_columns.return_value = expected_columns
+        expected_response = {"list": expected_columns}
+        meta_client._get.return_value = expected_response
 
         result = meta_client.list_columns("table123")
 
         assert result == expected_columns
-        meta_client.list_columns.assert_called_once_with("table123")
+        meta_client._get.assert_called_once_with("api/v2/meta/tables/table123/columns")
+
+    def test_list_columns_empty_response(self, meta_client):
+        """Test list_columns with empty response."""
+        meta_client._get.return_value = {"list": None}
+
+        result = meta_client.list_columns("table123")
+
+        assert result == []
+
+    def test_create_column(self, meta_client):
+        """Test create_column method."""
+        column_data = {
+            "title": "Age",
+            "uidt": "Number",
+            "dtxp": "3",
+            "dtxs": "0"
+        }
+        expected_response = {"id": "col_new", "title": "Age", "uidt": "Number"}
+        meta_client._post.return_value = expected_response
+
+        result = meta_client.create_column("table123", column_data)
+
+        assert result == expected_response
+        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/columns", data=column_data)
+
+    def test_update_column(self, meta_client):
+        """Test update_column method."""
+        update_data = {"title": "Updated Name"}
+        expected_response = {"id": "col123", "title": "Updated Name"}
+        meta_client._patch.return_value = expected_response
+
+        result = meta_client.update_column("col123", update_data)
+
+        assert result == expected_response
+        meta_client._patch.assert_called_once_with("api/v2/meta/columns/col123", data=update_data)
+
+    def test_delete_column(self, meta_client):
+        """Test delete_column method."""
+        expected_response = {"success": True, "message": "Column deleted"}
+        meta_client._delete.return_value = expected_response
+
+        result = meta_client.delete_column("col123")
+
+        assert result == expected_response
+        meta_client._delete.assert_called_once_with("api/v2/meta/columns/col123")
 
 
 class TestViewOperations:
@@ -178,39 +398,198 @@ class TestViewOperations:
 
     @pytest.fixture
     def meta_client(self):
-        """Create meta client with mocked view methods."""
+        """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
-        # Add methods that are used by the views module
-        client.list_views = Mock()
-        client.get_view = Mock()
-        client.create_view = Mock()
-        client.update_view = Mock()
-        client.delete_view = Mock()
+        client.list_views = NocoDBMetaClient.list_views.__get__(client)
+        client.get_view = NocoDBMetaClient.get_view.__get__(client)
+        client.create_view = NocoDBMetaClient.create_view.__get__(client)
+        client.update_view = NocoDBMetaClient.update_view.__get__(client)
+        client.delete_view = NocoDBMetaClient.delete_view.__get__(client)
         return client
 
-    def test_list_views_delegation(self, meta_client):
-        """Test list_views method delegation."""
+    def test_list_views(self, meta_client):
+        """Test list_views method."""
         expected_views = [
             {"id": "view1", "title": "Grid View", "type": "Grid"},
             {"id": "view2", "title": "Gallery View", "type": "Gallery"}
         ]
-        meta_client.list_views.return_value = expected_views
+        expected_response = {"list": expected_views}
+        meta_client._get.return_value = expected_response
 
         result = meta_client.list_views("table123")
 
         assert result == expected_views
-        meta_client.list_views.assert_called_once_with("table123")
+        meta_client._get.assert_called_once_with("api/v2/meta/tables/table123/views")
 
-    def test_create_view_delegation(self, meta_client):
-        """Test create_view method delegation."""
-        view_data = {"title": "New View", "type": "Grid"}
-        expected_response = {"id": "view123", "title": "New View"}
-        meta_client.create_view.return_value = expected_response
+    def test_list_views_empty_response(self, meta_client):
+        """Test list_views with empty response."""
+        meta_client._get.return_value = {"list": None}
+
+        result = meta_client.list_views("table123")
+
+        assert result == []
+
+    def test_get_view(self, meta_client):
+        """Test get_view method."""
+        expected_view = {
+            "id": "view123",
+            "title": "Active Users",
+            "type": "Grid"
+        }
+        meta_client._get.return_value = expected_view
+
+        result = meta_client.get_view("view123")
+
+        assert result == expected_view
+        meta_client._get.assert_called_once_with("api/v2/meta/views/view123")
+
+    def test_create_view(self, meta_client):
+        """Test create_view method."""
+        view_data = {
+            "title": "New View",
+            "type": "Grid",
+            "show_system_fields": False
+        }
+        expected_response = {"id": "view_new", "title": "New View"}
+        meta_client._post.return_value = expected_response
 
         result = meta_client.create_view("table123", view_data)
 
         assert result == expected_response
-        meta_client.create_view.assert_called_once_with("table123", view_data)
+        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/views", data=view_data)
+
+    def test_update_view(self, meta_client):
+        """Test update_view method."""
+        update_data = {"title": "Updated View"}
+        expected_response = {"id": "view123", "title": "Updated View"}
+        meta_client._patch.return_value = expected_response
+
+        result = meta_client.update_view("view123", update_data)
+
+        assert result == expected_response
+        meta_client._patch.assert_called_once_with("api/v2/meta/views/view123", data=update_data)
+
+    def test_delete_view(self, meta_client):
+        """Test delete_view method."""
+        expected_response = {"success": True, "message": "View deleted"}
+        meta_client._delete.return_value = expected_response
+
+        result = meta_client.delete_view("view123")
+
+        assert result == expected_response
+        meta_client._delete.assert_called_once_with("api/v2/meta/views/view123")
+
+
+class TestWebhookOperations:
+    """Test webhook operations in meta client."""
+
+    @pytest.fixture
+    def meta_client(self):
+        """Create meta client with mocked HTTP methods."""
+        client = Mock(spec=NocoDBMetaClient)
+        client.list_webhooks = NocoDBMetaClient.list_webhooks.__get__(client)
+        client.get_webhook = NocoDBMetaClient.get_webhook.__get__(client)
+        client.create_webhook = NocoDBMetaClient.create_webhook.__get__(client)
+        client.update_webhook = NocoDBMetaClient.update_webhook.__get__(client)
+        client.delete_webhook = NocoDBMetaClient.delete_webhook.__get__(client)
+        client.test_webhook = NocoDBMetaClient.test_webhook.__get__(client)
+        return client
+
+    def test_list_webhooks(self, meta_client):
+        """Test list_webhooks method."""
+        expected_webhooks = [
+            {"id": "hook1", "title": "Slack Notification", "event": "after"},
+            {"id": "hook2", "title": "Email Alert", "event": "before"}
+        ]
+        expected_response = {"list": expected_webhooks}
+        meta_client._get.return_value = expected_response
+
+        result = meta_client.list_webhooks("table123")
+
+        assert result == expected_webhooks
+        meta_client._get.assert_called_once_with("api/v2/meta/tables/table123/hooks")
+
+    def test_list_webhooks_empty_response(self, meta_client):
+        """Test list_webhooks with empty response."""
+        meta_client._get.return_value = {"list": None}
+
+        result = meta_client.list_webhooks("table123")
+
+        assert result == []
+
+    def test_get_webhook(self, meta_client):
+        """Test get_webhook method."""
+        expected_webhook = {
+            "id": "hook123",
+            "title": "Slack Notification",
+            "event": "after",
+            "operation": "insert"
+        }
+        meta_client._get.return_value = expected_webhook
+
+        result = meta_client.get_webhook("hook123")
+
+        assert result == expected_webhook
+        meta_client._get.assert_called_once_with("api/v2/meta/hooks/hook123")
+
+    def test_create_webhook(self, meta_client):
+        """Test create_webhook method."""
+        webhook_data = {
+            "title": "Slack Notification",
+            "event": "after",
+            "operation": "insert",
+            "notification": {
+                "type": "URL",
+                "payload": {
+                    "method": "POST",
+                    "url": "https://hooks.slack.com/...",
+                    "body": "New record: {{title}}"
+                }
+            },
+            "active": True
+        }
+        expected_response = {"id": "hook_new", "title": "Slack Notification"}
+        meta_client._post.return_value = expected_response
+
+        result = meta_client.create_webhook("table123", webhook_data)
+
+        assert result == expected_response
+        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/hooks", data=webhook_data)
+
+    def test_update_webhook(self, meta_client):
+        """Test update_webhook method."""
+        update_data = {"title": "Updated Webhook", "active": False}
+        expected_response = {"id": "hook123", "title": "Updated Webhook"}
+        meta_client._patch.return_value = expected_response
+
+        result = meta_client.update_webhook("hook123", update_data)
+
+        assert result == expected_response
+        meta_client._patch.assert_called_once_with("api/v2/meta/hooks/hook123", data=update_data)
+
+    def test_delete_webhook(self, meta_client):
+        """Test delete_webhook method."""
+        expected_response = {"success": True, "message": "Webhook deleted"}
+        meta_client._delete.return_value = expected_response
+
+        result = meta_client.delete_webhook("hook123")
+
+        assert result == expected_response
+        meta_client._delete.assert_called_once_with("api/v2/meta/hooks/hook123")
+
+    def test_test_webhook(self, meta_client):
+        """Test test_webhook method."""
+        expected_response = {
+            "success": True,
+            "status_code": 200,
+            "response": "OK"
+        }
+        meta_client._post.return_value = expected_response
+
+        result = meta_client.test_webhook("hook123")
+
+        assert result == expected_response
+        meta_client._post.assert_called_once_with("api/v2/meta/hooks/hook123/test", data={})
 
 
 class TestMetaClientEndpoints:
