@@ -250,35 +250,41 @@ class NocoDBTestSetup:
 
         print("Successfully authenticated, token obtained")
 
-        # Step 3: Create Base/Project using direct API
-        # TODO: Add create_base method to NocoDBMetaClient in future
+        # Step 3: Get existing base (NocoDB creates a default base on first run)
+        # Note: POST /api/v2/bases is not supported in current NocoDB version
+        # Instead, we list existing bases and use the first one
         headers = {"xc-token": self.token, "Content-Type": "application/json"}
 
-        project_data = {
-            "title": f"{PROJECT_NAME}_{uuid4().hex[:8]}",
-            "description": "Automated integration test project",
-        }
-
-        response = requests.post(
+        print("Fetching existing bases...")
+        response = requests.get(
             f"{self.base_url}/api/v2/bases",
-            json=project_data,
             headers=headers,
             timeout=30
         )
 
-        if response.status_code not in [200, 201]:
-            print(f"Base creation response status: {response.status_code}")
-            print(f"Base creation response body: {response.text}")
-            raise RuntimeError(f"Project creation failed: {response.status_code} - {response.text}")
+        if response.status_code != 200:
+            print(f"List bases response status: {response.status_code}")
+            print(f"List bases response body: {response.text}")
+            raise RuntimeError(f"Failed to list bases: {response.status_code} - {response.text}")
 
-        project_result = response.json()
-        self.project_id = project_result.get("id")
+        bases_result = response.json()
+        print(f"Bases response: {bases_result}")
+
+        # Get the list of bases
+        bases = bases_result.get("list", []) if isinstance(bases_result, dict) else bases_result
+
+        if not bases or len(bases) == 0:
+            raise RuntimeError("No bases found. NocoDB should create a default base on startup.")
+
+        # Use the first available base (typically the default base)
+        first_base = bases[0]
+        self.project_id = first_base.get("id")
 
         if not self.project_id:
-            print(f"Project result: {project_result}")
-            raise RuntimeError("Project ID not found in creation response")
+            print(f"First base: {first_base}")
+            raise RuntimeError("Base ID not found in response")
 
-        print(f"Base/Project created with ID: {self.project_id}")
+        print(f"Using existing base: {first_base.get('title', 'Unknown')} (ID: {self.project_id})")
 
         # Step 4: Initialize Meta Client with token
         self.meta_client = NocoDBMetaClient(
