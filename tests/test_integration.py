@@ -10,9 +10,23 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
-import docker
 import pytest
 import requests
+
+# Optional dependencies for integration tests
+try:
+    import docker
+    DOCKER_AVAILABLE = True
+except ImportError:
+    DOCKER_AVAILABLE = False
+    docker = None
+
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+    Image = None
 
 from nocodb_simple_client import (
     AsyncNocoDBClient,
@@ -23,8 +37,8 @@ from nocodb_simple_client import (
     RecordNotFoundException,
 )
 
-# Skip integration tests if environment variable is set
-SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1"
+# Skip integration tests if environment variable is set OR if docker is not available
+SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1" or not DOCKER_AVAILABLE
 
 # Test configuration
 NOCODB_IMAGE = "nocodb/nocodb:latest"
@@ -215,14 +229,15 @@ def generate_test_file(content: str = "Test file content", suffix: str = ".txt")
 
 def generate_test_image() -> Path:
     """Generiert ein Test-Bild."""
-    try:
-        from PIL import Image
-        image = Image.new("RGB", (100, 100), color="red")
-        temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        image.save(temp_file.name)
-        return Path(temp_file.name)
-    except ImportError:
+    if not PILLOW_AVAILABLE:
+        # Fallback: generate a fake PNG file
         return generate_test_file("fake image content", ".png")
+
+    from PIL import Image
+    image = Image.new("RGB", (100, 100), color="red")
+    temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    image.save(temp_file.name)
+    return Path(temp_file.name)
 
 
 @pytest.fixture(scope="session")
