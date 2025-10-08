@@ -4,13 +4,10 @@ Diese Tests setzen und verwalten eine eigene NocoDB Container-Instanz
 und testen alle verfügbaren Client-Operationen umfassend.
 """
 
-import io
-import json
 import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Any
 from uuid import uuid4
 
 import docker
@@ -24,7 +21,6 @@ from nocodb_simple_client import (
     NocoDBMetaClient,
     NocoDBTable,
     RecordNotFoundException,
-    ValidationException,
 )
 
 # Skip integration tests if environment variable is set
