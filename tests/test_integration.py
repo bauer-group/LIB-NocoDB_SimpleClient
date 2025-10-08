@@ -66,21 +66,48 @@ class NocoDBContainerManager:
         self._cleanup_existing_container()
 
         print(f"Starte NocoDB Container: {self.image}")
-        self.container = self.client.containers.run(
-            self.image,
-            name=CONTAINER_NAME,
-            ports={f"{CONTAINER_PORT}/tcp": self.port},
-            environment={
-                "NC_AUTH_JWT_SECRET": f"test-jwt-secret-{uuid4()}",
-                "NC_PUBLIC_URL": self.base_url,
-                "NC_DISABLE_TELE": "true",
-                "NC_MIN": "true",
-            },
-            detach=True,
-            remove=True,
-        )
+        print(f"Port mapping: {self.port}:{CONTAINER_PORT}")
 
-        self._wait_for_readiness()
+        try:
+            self.container = self.client.containers.run(
+                self.image,
+                name=CONTAINER_NAME,
+                ports={f"{CONTAINER_PORT}/tcp": self.port},
+                environment={
+                    "NC_AUTH_JWT_SECRET": f"test-jwt-secret-{uuid4()}",
+                    "NC_PUBLIC_URL": self.base_url,
+                    "NC_DISABLE_TELE": "true",
+                    "NC_MIN": "true",
+                },
+                detach=True,
+                remove=False,  # Don't auto-remove to allow log inspection
+                auto_remove=False,
+            )
+            print(f"Container started with ID: {self.container.id}")
+
+            # Give container a moment to initialize
+            time.sleep(3)
+
+            # Check if container is still running
+            self.container.reload()
+            if self.container.status != "running":
+                logs = self.container.logs().decode("utf-8")
+                print(f"Container status: {self.container.status}")
+                print(f"Container logs:\n{logs}")
+                raise RuntimeError(f"Container failed to start. Status: {self.container.status}")
+
+            print(f"Container is running. Status: {self.container.status}")
+            self._wait_for_readiness()
+
+        except Exception as e:
+            print(f"Failed to start container: {e}")
+            if self.container:
+                try:
+                    logs = self.container.logs().decode("utf-8")
+                    print(f"Container logs:\n{logs}")
+                except Exception:
+                    pass
+            raise
 
     def _cleanup_existing_container(self) -> None:
         """Räumt bestehende Container auf."""
@@ -95,29 +122,75 @@ class NocoDBContainerManager:
         """Wartet bis NocoDB bereit ist."""
         print("Warte auf NocoDB-Bereitschaft...")
         start_time = time.time()
+        last_error = None
 
         while time.time() - start_time < timeout:
+            # Check if container is still running
+            try:
+                self.container.reload()
+                if self.container.status != "running":
+                    logs = self.container.logs().decode("utf-8")
+                    print(f"Container stopped unexpectedly. Status: {self.container.status}")
+                    print(f"Container logs:\n{logs}")
+                    raise RuntimeError(f"Container stopped with status: {self.container.status}")
+            except Exception as e:
+                print(f"Error checking container status: {e}")
+
+            # Try to connect to NocoDB
             try:
                 response = requests.get(f"{self.base_url}/dashboard", timeout=5)
                 if response.status_code == 200:
                     print("NocoDB ist bereit")
-                    time.sleep(5)
+                    time.sleep(2)  # Small delay to ensure full initialization
                     return
-            except requests.exceptions.RequestException:
-                pass
+                else:
+                    last_error = f"HTTP {response.status_code}"
+            except requests.exceptions.RequestException as e:
+                last_error = str(e)
+
+            elapsed = int(time.time() - start_time)
+            if elapsed % 10 == 0:  # Log every 10 seconds
+                print(f"Waiting for NocoDB... ({elapsed}s elapsed, last error: {last_error})")
+
             time.sleep(3)
 
-        raise RuntimeError(f"NocoDB wurde nicht innerhalb von {timeout} Sekunden bereit")
+        # Timeout reached - get final logs
+        try:
+            logs = self.container.logs().decode("utf-8")
+            print(f"Container logs after timeout:\n{logs}")
+        except Exception:
+            pass
+
+        raise RuntimeError(
+            f"NocoDB wurde nicht innerhalb von {timeout} Sekunden bereit. "
+            f"Last error: {last_error}"
+        )
 
     def stop_container(self) -> None:
-        """Stoppt den NocoDB Container."""
+        """Stoppt und entfernt den NocoDB Container."""
         if self.container:
             try:
-                self.container.kill()
-                self.container.wait()
-                print("NocoDB Container gestoppt")
+                print("Stoppe NocoDB Container...")
+                self.container.reload()
+
+                # Stop container if running
+                if self.container.status == "running":
+                    self.container.stop(timeout=10)
+                    print("Container gestoppt")
+
+                # Always try to remove the container
+                self.container.remove(force=True)
+                print("NocoDB Container entfernt")
+
             except Exception as e:
-                print(f"Fehler beim Stoppen des Containers: {e}")
+                print(f"Fehler beim Stoppen/Entfernen des Containers: {e}")
+                # Try force removal as last resort
+                try:
+                    if self.container:
+                        self.container.remove(force=True)
+                        print("Container mit force=True entfernt")
+                except Exception as e2:
+                    print(f"Force-Removal fehlgeschlagen: {e2}")
 
     def get_logs(self) -> str:
         """Gibt Container-Logs zurück."""
@@ -127,16 +200,18 @@ class NocoDBContainerManager:
 
 
 class NocoDBTestSetup:
-    """Setup-Helfer für NocoDB-Tests."""
+    """Setup-Helfer für NocoDB-Tests mit der nocodb_simple_client Library."""
 
     def __init__(self, base_url: str):
         self.base_url = base_url
         self.token = None
         self.project_id = None
         self.test_table_id = None
+        self.meta_client = None
 
     def setup_admin_and_project(self) -> dict[str, str]:
         """Erstellt Admin-Benutzer und Test-Projekt."""
+        # Step 1: User Registration
         signup_data = {
             "email": ADMIN_EMAIL,
             "password": ADMIN_PASSWORD,
@@ -145,40 +220,74 @@ class NocoDBTestSetup:
         }
 
         try:
-            requests.post(f"{self.base_url}/api/v2/auth/user/signup", json=signup_data, timeout=30)
+            signup_response = requests.post(
+                f"{self.base_url}/api/v2/auth/user/signup",
+                json=signup_data,
+                timeout=30
+            )
+            print(f"Signup response: {signup_response.status_code}")
         except Exception as e:
-            print(f"Signup error (expected): {e}")
+            print(f"Signup error (expected if user exists): {e}")
 
+        # Step 2: User Authentication
         auth_data = {"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
-        response = requests.post(f"{self.base_url}/api/v2/auth/user/signin", json=auth_data, timeout=30)
+        response = requests.post(
+            f"{self.base_url}/api/v2/auth/user/signin",
+            json=auth_data,
+            timeout=30
+        )
 
         if response.status_code != 200:
+            print(f"Auth response body: {response.text}")
             raise RuntimeError(f"Authentication failed: {response.status_code}")
 
         auth_result = response.json()
         self.token = auth_result.get("token")
 
         if not self.token:
+            print(f"Auth result: {auth_result}")
             raise RuntimeError("Token not found in auth response")
+
+        print("Successfully authenticated, token obtained")
+
+        # Step 3: Create Base/Project using direct API
+        # TODO: Add create_base method to NocoDBMetaClient in future
+        headers = {"xc-token": self.token, "Content-Type": "application/json"}
 
         project_data = {
             "title": f"{PROJECT_NAME}_{uuid4().hex[:8]}",
             "description": "Automated integration test project",
-            "color": "#24716E",
         }
 
-        headers = {"xc-token": self.token, "Content-Type": "application/json"}
-        response = requests.post(f"{self.base_url}/api/v2/meta/projects", json=project_data, headers=headers, timeout=30)
+        response = requests.post(
+            f"{self.base_url}/api/v2/bases",
+            json=project_data,
+            headers=headers,
+            timeout=30
+        )
 
-        if response.status_code != 200:
-            raise RuntimeError(f"Project creation failed: {response.status_code}")
+        if response.status_code not in [200, 201]:
+            print(f"Base creation response status: {response.status_code}")
+            print(f"Base creation response body: {response.text}")
+            raise RuntimeError(f"Project creation failed: {response.status_code} - {response.text}")
 
         project_result = response.json()
         self.project_id = project_result.get("id")
 
         if not self.project_id:
+            print(f"Project result: {project_result}")
             raise RuntimeError("Project ID not found in creation response")
 
+        print(f"Base/Project created with ID: {self.project_id}")
+
+        # Step 4: Initialize Meta Client with token
+        self.meta_client = NocoDBMetaClient(
+            base_url=self.base_url,
+            db_auth_token=self.token,
+            timeout=30
+        )
+
+        # Step 5: Create test table using the Library
         self._create_test_table()
 
         return {
@@ -188,7 +297,7 @@ class NocoDBTestSetup:
         }
 
     def _create_test_table(self) -> None:
-        """Erstellt Test-Tabelle mit verschiedenen Spaltentypen."""
+        """Erstellt Test-Tabelle mit der nocodb_simple_client Library."""
         table_data = {
             "title": "integration_test_table",
             "table_name": "integration_test_table",
@@ -206,17 +315,21 @@ class NocoDBTestSetup:
             ],
         }
 
-        headers = {"xc-token": self.token, "Content-Type": "application/json"}
-        response = requests.post(f"{self.base_url}/api/v2/meta/projects/{self.project_id}/tables", json=table_data, headers=headers, timeout=30)
+        try:
+            # Use the Library's create_table method
+            print("Creating table using NocoDBMetaClient...")
+            table_result = self.meta_client.create_table(self.project_id, table_data)
+            self.test_table_id = table_result.get("id")
 
-        if response.status_code != 200:
-            raise RuntimeError(f"Table creation failed: {response.status_code}")
+            if not self.test_table_id:
+                print(f"Table result: {table_result}")
+                raise RuntimeError("Table ID not found in creation response")
 
-        table_result = response.json()
-        self.test_table_id = table_result.get("id")
+            print(f"Table created successfully with ID: {self.test_table_id}")
 
-        if not self.test_table_id:
-            raise RuntimeError("Table ID not found in creation response")
+        except Exception as e:
+            print(f"Table creation failed: {e}")
+            raise
 
 
 def generate_test_file(content: str = "Test file content", suffix: str = ".txt") -> Path:
