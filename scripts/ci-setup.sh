@@ -120,14 +120,23 @@ wait_for_nocodb() {
             exit 1
         fi
 
-        # Check if NocoDB is responding
+        # Check if NocoDB health endpoint is responding
         if curl -s "$NOCODB_URL/api/v1/health" > /dev/null 2>&1; then
-            log "✅ NocoDB ist bereit!"
-            return 0
+            # Additional check: verify auth API is available
+            local signin_check=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X POST "$NOCODB_URL/api/v1/auth/user/signin" \
+                -H "Content-Type: application/json" \
+                -d '{}' 2>/dev/null)
+
+            # We expect 400/401/422 (auth errors) not 404 (not found) - means API is ready
+            if [ "$signin_check" = "400" ] || [ "$signin_check" = "401" ] || [ "$signin_check" = "422" ]; then
+                log "✅ NocoDB ist bereit!"
+                return 0
+            fi
         fi
 
         echo -n "."
-        sleep 2
+        sleep 1
         attempt=$((attempt + 1))
     done
 
