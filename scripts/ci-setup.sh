@@ -191,7 +191,7 @@ generate_token() {
         log "✅ API Token erfolgreich erstellt"
     fi
 }
-        -d '{"description": "CI/CD Test Token", "permissions": ["*"]}')
+        -d '{"description": "CI/CD Test Token", "permissions": ["*"]}'
 
     # Extract API token with error handling
     if command -v jq &> /dev/null; then
