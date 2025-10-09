@@ -80,11 +80,26 @@ jobs:
         NC_ADMIN_EMAIL=test@integration.local \
         NC_ADMIN_PASSWORD=IntegrationTest123! \
         ./scripts/ci-setup.sh setup
-      env:
-        PYTHONPATH: ${{ github.workspace }}/src
 
-    - name: 🔗 Run Python-managed integration tests
+        # Verify that config files were created
+        echo "=== Checking generated config files ==="
+        ls -la nocodb-config.json .env.test 2>/dev/null || echo "Config files not found!"
+
+        # Show config content (without sensitive data in logs)
+        if [ -f nocodb-config.json ]; then
+          echo "✅ nocodb-config.json created"
+          cat nocodb-config.json | jq 'del(.api_token)' || cat nocodb-config.json
+        fi
+
+    - name: 🔗 Run integration tests
       run: |
+        # Verify config files are available
+        if [ ! -f nocodb-config.json ]; then
+          echo "❌ ERROR: nocodb-config.json not found!"
+          exit 1
+        fi
+
+        # Run tests with config file
         python -m pytest tests/test_integration.py -v --tb=short
       env:
         PYTHONPATH: ${{ github.workspace }}/src

@@ -39,7 +39,7 @@ def load_config_from_file() -> dict:
     if env_test_file.exists():
         try:
             with open(env_test_file) as f:
-                config = {}
+                env_config = {}
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -47,7 +47,19 @@ def load_config_from_file() -> dict:
                         # Handle export statements
                         if key.startswith("export "):
                             key = key[7:]
-                        config[key.strip()] = value.strip().strip('"').strip("'")
+                        env_config[key.strip()] = value.strip().strip('"').strip("'")
+
+                # Normalize keys: NOCODB_API_TOKEN -> api_token, NOCODB_URL -> base_url
+                config = {}
+                if "NOCODB_API_TOKEN" in env_config:
+                    config["api_token"] = env_config["NOCODB_API_TOKEN"]
+                if "NOCODB_URL" in env_config:
+                    config["base_url"] = env_config["NOCODB_URL"]
+                if "NC_ADMIN_EMAIL" in env_config:
+                    config["admin_email"] = env_config["NC_ADMIN_EMAIL"]
+                if "NC_ADMIN_PASSWORD" in env_config:
+                    config["admin_password"] = env_config["NC_ADMIN_PASSWORD"]
+
                 print(f"✅ Konfiguration aus {env_test_file} geladen")
                 return config
         except Exception as e:

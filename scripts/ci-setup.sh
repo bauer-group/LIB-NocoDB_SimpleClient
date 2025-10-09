@@ -101,8 +101,8 @@ setup_docker() {
     log "Container gestartet: $CONTAINER_NAME"
 
     # Gib dem Container Zeit zum Initialisieren
-    info "Warte 10 Sekunden für Container-Initialisierung..."
-    sleep 10
+    info "Warte 3 Sekunden für Container-Initialisierung..."
+    sleep 3
 }
 
 # Wait for NocoDB
