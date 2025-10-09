@@ -93,19 +93,16 @@ setup_docker() {
         --name $CONTAINER_NAME \
         --network $NETWORK_NAME \
         -p $NOCODB_PORT:8080 \
-        -e NC_DB="sqlite3://noco.db" \
-        -e NC_AUTH_JWT_SECRET="ci-test-secret-$(date +%s)" \
         -e NC_DISABLE_TELE="true" \
         -e NC_ADMIN_EMAIL="$NC_ADMIN_EMAIL" \
         -e NC_ADMIN_PASSWORD="$NC_ADMIN_PASSWORD" \
-        --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/health || exit 1" \
-        --health-interval 5s \
-        --health-timeout 5s \
-        --health-retries 10 \
-        --health-start-period 20s \
         nocodb/nocodb:$NOCODB_VERSION
 
     log "Container gestartet: $CONTAINER_NAME"
+
+    # Gib dem Container Zeit zum Initialisieren
+    info "Warte 10 Sekunden für Container-Initialisierung..."
+    sleep 10
 }
 
 # Wait for NocoDB
@@ -116,14 +113,18 @@ wait_for_nocodb() {
     local attempt=0
 
     while [ $attempt -lt $max_attempts ]; do
+        # Check if container is still running
+        if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+            error "Container $CONTAINER_NAME läuft nicht mehr!"
+            echo "Container Logs:"
+            docker logs $CONTAINER_NAME 2>&1 | tail -50
+            exit 1
+        fi
+
+        # Check if NocoDB is responding
         if curl -s "$NOCODB_URL/api/v1/health" > /dev/null 2>&1; then
             log "✅ NocoDB ist bereit!"
             return 0
-        fi
-
-        # Check container status
-        if ! docker ps | grep -q $CONTAINER_NAME; then
-            error "Container $CONTAINER_NAME läuft nicht mehr!"
         fi
 
         echo -n "."
@@ -133,6 +134,8 @@ wait_for_nocodb() {
 
     echo ""
     error "NocoDB konnte nicht gestartet werden (Timeout nach $max_attempts Versuchen)"
+    echo "Container Logs:"
+    docker logs $CONTAINER_NAME 2>&1 | tail -50
 }
 
 # Generate API Token
