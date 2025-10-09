@@ -122,7 +122,8 @@ class TestNocoDBClient:
 
     def test_insert_record(self, client, mock_session):
         """Test insert_record method."""
-        mock_session.post.return_value.json.return_value = {"Id": 123}
+        # API v2 returns array: [{"Id": 123}]
+        mock_session.post.return_value.json.return_value = [{"Id": 123}]
 
         new_record = {"Name": "New Record", "Email": "new@example.com"}
         record_id = client.insert_record("test-table", new_record)
@@ -132,7 +133,8 @@ class TestNocoDBClient:
 
     def test_update_record(self, client, mock_session):
         """Test update_record method."""
-        mock_session.patch.return_value.json.return_value = {"Id": 123}
+        # API v2 returns array: [{"Id": 123}]
+        mock_session.patch.return_value.json.return_value = [{"Id": 123}]
 
         update_data = {"Name": "Updated Record"}
         record_id = client.update_record("test-table", update_data, 123)
@@ -142,7 +144,8 @@ class TestNocoDBClient:
 
     def test_delete_record(self, client, mock_session):
         """Test delete_record method."""
-        mock_session.delete.return_value.json.return_value = {"Id": 123}
+        # API v2 returns array: [{"Id": 123}]
+        mock_session.delete.return_value.json.return_value = [{"Id": 123}]
 
         record_id = client.delete_record("test-table", 123)
 

@@ -113,7 +113,8 @@ class TestRecordOperations:
     def test_insert_record_success(self, client):
         """Test successful record insertion."""
         with patch.object(client, '_post') as mock_post:
-            mock_post.return_value = {"Id": "new_record_123"}
+            # API v2 returns array: [{"Id": "new_record_123"}]
+            mock_post.return_value = [{"Id": "new_record_123"}]
 
             record_data = {"Name": "New Record", "Status": "active"}
             result = client.insert_record("table_123", record_data)
@@ -134,7 +135,8 @@ class TestRecordOperations:
     def test_update_record_success(self, client):
         """Test successful record update."""
         with patch.object(client, '_patch') as mock_patch:
-            mock_patch.return_value = {"Id": "record_123"}
+            # API v2 returns array: [{"Id": "record_123"}]
+            mock_patch.return_value = [{"Id": "record_123"}]
 
             update_data = {"Name": "Updated Record", "Status": "inactive"}
             result = client.update_record("table_123", update_data, "record_123")
@@ -145,7 +147,8 @@ class TestRecordOperations:
     def test_delete_record_success(self, client):
         """Test successful record deletion."""
         with patch.object(client, '_delete') as mock_delete:
-            mock_delete.return_value = {"Id": "record_123"}
+            # API v2 returns array: [{"Id": "record_123"}]
+            mock_delete.return_value = [{"Id": "record_123"}]
 
             result = client.delete_record("table_123", "record_123")
 
