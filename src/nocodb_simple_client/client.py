@@ -324,17 +324,13 @@ class NocoDBClient:
             NocoDBException: For API errors
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
-        if isinstance(response, list) and len(response) > 0:
-            first_item = response[0]
-            # Try both "Id" (data API) and "id" (meta API) for compatibility
-            record_id = first_item.get("Id") or first_item.get("id")
-        elif isinstance(response, dict):
-            # Fallback for potential single-object response
-            record_id = response.get("Id") or response.get("id")
+        # API v2 returns a single object: {"Id": 123}
+        if isinstance(response, dict):
+            record_id = response.get("Id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
-                f"Expected list or dict response from insert operation, got {type(response)}",
+                f"Expected dict response from insert operation, got {type(response)}",
             )
         if record_id is None:
             raise NocoDBException(
@@ -367,16 +363,12 @@ class NocoDBClient:
             record["Id"] = record_id
 
         response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
-        if isinstance(response, list) and len(response) > 0:
-            first_item = response[0]
-            record_id = first_item.get("Id") or first_item.get("id")
-        elif isinstance(response, dict):
-            # Fallback for potential single-object response
-            record_id = response.get("Id") or response.get("id")
+        if isinstance(response, dict):
+            record_id = response.get("Id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
-                f"Expected list or dict response from update operation, got {type(response)}",
+                f"Expected dict response from update operation, got {type(response)}",
             )
         if record_id is None:
             raise NocoDBException(
@@ -401,16 +393,12 @@ class NocoDBClient:
         """
 
         response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
-        if isinstance(response, list) and len(response) > 0:
-            first_item = response[0]
-            deleted_id = first_item.get("Id") or first_item.get("id")
-        elif isinstance(response, dict):
-            # Fallback for potential single-object response
-            deleted_id = response.get("Id") or response.get("id")
+        if isinstance(response, dict):
+            deleted_id = response.get("Id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
-                f"Expected list or dict response from delete operation, got {type(response)}",
+                f"Expected dict response from delete operation, got {type(response)}",
             )
         if deleted_id is None:
             raise NocoDBException(
