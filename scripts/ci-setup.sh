@@ -142,33 +142,55 @@ wait_for_nocodb() {
 generate_token() {
     log "🔑 Generiere API Token..."
 
-    # Login
-    local auth_response=$(curl -s -X POST "$NOCODB_URL/api/v1/auth/user/signin" \
-        -H "Content-Type: application/json" \
-        -d "{\"email\": \"$NC_ADMIN_EMAIL\", \"password\": \"$NC_ADMIN_PASSWORD\"}")
+    # Step 1: Get list of bases (using Basic Auth with admin credentials)
+    log "📋 Hole Base-Liste..."
+    local auth_header="Authorization: Basic $(echo -n "$NC_ADMIN_EMAIL:$NC_ADMIN_PASSWORD" | base64)"
 
-    # Debug: Show response if it doesn't look like JSON
-    if ! echo "$auth_response" | grep -q '^{'; then
-        error "Login fehlgeschlagen - keine JSON-Response erhalten. Response: $auth_response"
+    local bases_response=$(curl -s -X GET "$NOCODB_URL/api/v2/meta/bases" \
+        -H "$auth_header")
+
+    # Debug output
+    if ! echo "$bases_response" | grep -q '^{'; then
+        error "Konnte Bases nicht abrufen. Response: $bases_response"
     fi
 
-    # Extract token (works with and without jq)
+    # Extract first base ID
+    local base_id=""
     if command -v jq &> /dev/null; then
-        AUTH_TOKEN=$(echo "$auth_response" | jq -r '.token // empty' 2>/dev/null)
+        base_id=$(echo "$bases_response" | jq -r '.list[0].id // empty' 2>/dev/null)
     else
-        AUTH_TOKEN=$(echo "$auth_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
+        base_id=$(echo "$bases_response" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
     fi
 
-    if [ -z "$AUTH_TOKEN" ] || [ "$AUTH_TOKEN" = "null" ]; then
-        error "Login fehlgeschlagen - kein Token in Response. Response: $auth_response"
+    if [ -z "$base_id" ]; then
+        error "Keine Base gefunden. Response: $bases_response"
     fi
 
-    log "✅ Authentifizierung erfolgreich"
+    log "✅ Base gefunden: $base_id"
 
-    # Try to create API Token (Note: Use xc-auth header, not xc-token)
-    local api_token_response=$(curl -s -X POST "$NOCODB_URL/api/v1/api-tokens" \
-        -H "xc-auth: $AUTH_TOKEN" \
+    # Step 2: Create API Token for this base
+    log "🔐 Erstelle API Token für Base..."
+    local token_response=$(curl -s -X POST "$NOCODB_URL/api/v2/meta/bases/$base_id/api-tokens" \
+        -H "$auth_header" \
         -H "Content-Type: application/json" \
+        -d '{"description":"CI/CD Integration Token"}')
+
+    # Extract API token
+    if command -v jq &> /dev/null; then
+        API_TOKEN=$(echo "$token_response" | jq -r '.token // empty' 2>/dev/null)
+    else
+        API_TOKEN=$(echo "$token_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//;s/"//')
+    fi
+
+    if [ -z "$API_TOKEN" ]; then
+        warning "API Token Erstellung fehlgeschlagen, verwende Basic Auth"
+        warning "Response war: $token_response"
+        # Fallback: Use Basic Auth credentials
+        API_TOKEN="$NC_ADMIN_EMAIL:$NC_ADMIN_PASSWORD"
+    else
+        log "✅ API Token erfolgreich erstellt"
+    fi
+}
         -d '{"description": "CI/CD Test Token", "permissions": ["*"]}')
 
     # Extract API token with error handling
