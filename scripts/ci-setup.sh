@@ -26,6 +26,7 @@ NC_ADMIN_EMAIL="${NC_ADMIN_EMAIL:-admin@test.local}"
 NC_ADMIN_PASSWORD="${NC_ADMIN_PASSWORD:-TestPassword123!}"
 CONTAINER_NAME="${CONTAINER_NAME:-nocodb-ci-test}"
 NETWORK_NAME="${NETWORK_NAME:-nocodb-test-net}"
+AUTH_TOKEN=""
 
 # Farben für Output
 RED='\033[0;31m'
@@ -142,11 +143,29 @@ wait_for_nocodb() {
 generate_token() {
     log "🔑 Generiere API Token..."
 
-    # Step 1: Get list of bases (using Basic Auth with admin credentials)
-    log "📋 Hole Base-Liste..."
-    local auth_header="Authorization: Basic $(echo -n "$NC_ADMIN_EMAIL:$NC_ADMIN_PASSWORD" | base64)"
+    # Step 0: Sign in to retrieve auth token (xc-token)
+    log "👤 Melde Admin-Benutzer an..."
 
-    local bases_response=$(curl -s -X GET "$NOCODB_URL/api/v2/meta/bases" \
+    local signin_response=$(curl -s -X POST "$NOCODB_URL/api/v2/auth/user/signin" \
+        -H "Content-Type: application/json" \
+        -d "{\"email\":\"$NC_ADMIN_EMAIL\",\"password\":\"$NC_ADMIN_PASSWORD\"}")
+
+    if command -v jq &> /dev/null; then
+        AUTH_TOKEN=$(echo "$signin_response" | jq -r '.token // empty' 2>/dev/null)
+    else
+        AUTH_TOKEN=$(echo "$signin_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//;s/"//')
+    fi
+
+    if [ -z "$AUTH_TOKEN" ]; then
+        error "Login fehlgeschlagen. Response: $signin_response"
+    fi
+
+    local auth_header="xc-token: $AUTH_TOKEN"
+
+    # Step 1: Get list of bases using xc-token
+    log "📋 Hole Base-Liste..."
+
+    local bases_response=$(curl -s -X GET "$NOCODB_URL/api/v2/meta/bases/" \
         -H "$auth_header")
 
     # Debug output
@@ -163,10 +182,26 @@ generate_token() {
     fi
 
     if [ -z "$base_id" ]; then
-        error "Keine Base gefunden. Response: $bases_response"
-    fi
+        log "ℹ️  Keine Base gefunden, erstelle Standard-Base..."
+        local create_response=$(curl -s -X POST "$NOCODB_URL/api/v2/meta/bases/" \
+            -H "$auth_header" \
+            -H "Content-Type: application/json" \
+            -d '{"title":"CI Test Base"}')
 
-    log "✅ Base gefunden: $base_id"
+        if command -v jq &> /dev/null; then
+            base_id=$(echo "$create_response" | jq -r '.id // empty' 2>/dev/null)
+        else
+            base_id=$(echo "$create_response" | grep -o '"id":"[^"]*' | head -1 | sed 's/"id":"//;s/"//')
+        fi
+
+        if [ -z "$base_id" ]; then
+            error "Base konnte nicht erstellt werden. Response: $create_response"
+        fi
+
+        log "✅ Base erstellt: $base_id"
+    else
+        log "✅ Base gefunden: $base_id"
+    fi
 
     # Step 2: Create API Token for this base
     log "🔐 Erstelle API Token für Base..."
@@ -183,10 +218,9 @@ generate_token() {
     fi
 
     if [ -z "$API_TOKEN" ]; then
-        warning "API Token Erstellung fehlgeschlagen, verwende Basic Auth"
+        warning "API Token Erstellung fehlgeschlagen"
         warning "Response war: $token_response"
-        # Fallback: Use Basic Auth credentials
-        API_TOKEN="$NC_ADMIN_EMAIL:$NC_ADMIN_PASSWORD"
+        error "Konnte keinen API Token generieren"
     else
         log "✅ API Token erfolgreich erstellt"
     fi
@@ -235,7 +269,7 @@ test_connection() {
 
     local response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
         -H "xc-token: $API_TOKEN" \
-        "$NOCODB_URL/api/v1/db/meta/projects")
+        "$NOCODB_URL/api/v2/meta/bases/")
 
     local http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d: -f2)
     local body=$(echo "$response" | sed '$d')  # Remove last line (HTTP_STATUS)
