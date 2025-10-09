@@ -324,11 +324,14 @@ class NocoDBClient:
             NocoDBException: For API errors
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
-        if isinstance(response, dict):
+        if isinstance(response, list) and len(response) > 0:
+            record_id = response[0].get("Id")
+        elif isinstance(response, dict):
             record_id = response.get("Id")
         else:
             raise NocoDBException(
-                "INVALID_RESPONSE", "Expected dict response from insert operation"
+                "INVALID_RESPONSE",
+                f"Expected list or dict response from insert operation, got {type(response)}",
             )
         if record_id is None:
             raise NocoDBException("INVALID_RESPONSE", "No record ID returned from insert operation")
