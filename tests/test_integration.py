@@ -22,8 +22,34 @@ SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1"
 
 
 def load_config_from_file() -> dict:
-    """Lädt Konfiguration aus nocodb-config.json oder .env.test falls vorhanden."""
-    # Priorität 1: nocodb-config.json
+    """Lädt Konfiguration aus tests/.env, nocodb-config.json oder .env.test falls vorhanden."""
+    # Priorität 1: tests/.env (vom CI-Script erstellt)
+    tests_env_file = Path("tests/.env")
+    if tests_env_file.exists():
+        try:
+            with open(tests_env_file) as f:
+                env_config = {}
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, value = line.split("=", 1)
+                        env_config[key.strip()] = value.strip().strip('"').strip("'")
+
+                # Map new env variable names to config keys
+                config = {}
+                if "NOCODB_TOKEN" in env_config:
+                    config["api_token"] = env_config["NOCODB_TOKEN"]
+                if "NOCODB_BASE_URL" in env_config:
+                    config["base_url"] = env_config["NOCODB_BASE_URL"]
+                if "NOCODB_PROJECT_ID" in env_config:
+                    config["base_id"] = env_config["NOCODB_PROJECT_ID"]
+
+                print(f"✅ Konfiguration aus {tests_env_file} geladen")
+                return config
+        except Exception as e:
+            print(f"⚠️  Konnte tests/.env nicht laden: {e}")
+
+    # Priorität 2: nocodb-config.json
     config_file = Path("nocodb-config.json")
     if config_file.exists():
         try:
@@ -34,7 +60,7 @@ def load_config_from_file() -> dict:
         except Exception as e:
             print(f"⚠️  Konnte nocodb-config.json nicht laden: {e}")
 
-    # Priorität 2: .env.test
+    # Priorität 3: .env.test
     env_test_file = Path(".env.test")
     if env_test_file.exists():
         try:
@@ -49,12 +75,21 @@ def load_config_from_file() -> dict:
                             key = key[7:]
                         env_config[key.strip()] = value.strip().strip('"').strip("'")
 
-                # Normalize keys: NOCODB_API_TOKEN -> api_token, NOCODB_URL -> base_url
+                # Map env variable names to config keys (support both old and new names)
                 config = {}
-                if "NOCODB_API_TOKEN" in env_config:
+                # New names (preferred)
+                if "NOCODB_TOKEN" in env_config:
+                    config["api_token"] = env_config["NOCODB_TOKEN"]
+                if "NOCODB_BASE_URL" in env_config:
+                    config["base_url"] = env_config["NOCODB_BASE_URL"]
+                if "NOCODB_PROJECT_ID" in env_config:
+                    config["base_id"] = env_config["NOCODB_PROJECT_ID"]
+                # Old names (fallback)
+                if "api_token" not in config and "NOCODB_API_TOKEN" in env_config:
                     config["api_token"] = env_config["NOCODB_API_TOKEN"]
-                if "NOCODB_URL" in env_config:
+                if "base_url" not in config and "NOCODB_URL" in env_config:
                     config["base_url"] = env_config["NOCODB_URL"]
+
                 if "NC_ADMIN_EMAIL" in env_config:
                     config["admin_email"] = env_config["NC_ADMIN_EMAIL"]
                 if "NC_ADMIN_PASSWORD" in env_config:
@@ -81,17 +116,29 @@ class TestIntegration:
         file_config = load_config_from_file()
 
         # Build configuration with priority: env vars > config file > defaults
+        # Support both new and old environment variable names
         config = {
-            "base_url": os.getenv("NOCODB_URL") or os.getenv("NOCODB_TEST_BASE_URL") or file_config.get("base_url") or "http://localhost:8080",
-            "api_token": os.getenv("NOCODB_API_TOKEN") or os.getenv("NOCODB_TEST_API_TOKEN") or file_config.get("api_token"),
+            "base_url": (
+                os.getenv("NOCODB_BASE_URL") or
+                os.getenv("NOCODB_URL") or
+                os.getenv("NOCODB_TEST_BASE_URL") or
+                file_config.get("base_url") or
+                "http://localhost:8080"
+            ),
+            "api_token": (
+                os.getenv("NOCODB_TOKEN") or
+                os.getenv("NOCODB_API_TOKEN") or
+                os.getenv("NOCODB_TEST_API_TOKEN") or
+                file_config.get("api_token")
+            ),
         }
 
         if not config["api_token"]:
             pytest.skip(
                 "Integration tests require API token.\n"
                 "Provide via:\n"
-                "  - Environment: NOCODB_API_TOKEN or NOCODB_TEST_API_TOKEN\n"
-                "  - Config file: nocodb-config.json or .env.test\n"
+                "  - Environment: NOCODB_TOKEN (or legacy NOCODB_API_TOKEN)\n"
+                "  - Config file: tests/.env, nocodb-config.json or .env.test\n"
                 "  - CI: Run './scripts/ci-setup.sh setup' first"
             )
 

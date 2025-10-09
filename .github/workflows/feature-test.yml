@@ -78,24 +78,24 @@ jobs:
         CONTAINER_NAME=nocodb-integration-test \
         NOCODB_PORT=8080 \
         NC_ADMIN_EMAIL=test@integration.local \
-        NC_ADMIN_PASSWORD=IntegrationTest123! \
+        NC_ADMIN_PASSWORD=IntegrationTest123 \
         ./scripts/ci-setup.sh setup
 
         # Verify that config files were created
         echo "=== Checking generated config files ==="
-        ls -la nocodb-config.json .env.test 2>/dev/null || echo "Config files not found!"
+        ls -la tests/.env nocodb-config.json .env.test 2>/dev/null || echo "Config files not found!"
 
         # Show config content (without sensitive data in logs)
-        if [ -f nocodb-config.json ]; then
-          echo "✅ nocodb-config.json created"
-          cat nocodb-config.json | jq 'del(.api_token)' || cat nocodb-config.json
+        if [ -f tests/.env ]; then
+          echo "✅ tests/.env created"
+          cat tests/.env | grep -v TOKEN
         fi
 
     - name: 🔗 Run integration tests
       run: |
         # Verify config files are available
-        if [ ! -f nocodb-config.json ]; then
-          echo "❌ ERROR: nocodb-config.json not found!"
+        if [ ! -f tests/.env ]; then
+          echo "❌ ERROR: tests/.env not found!"
           exit 1
         fi
 
@@ -157,7 +157,7 @@ jobs:
         CONTAINER_NAME=nocodb-integration-test \
         NOCODB_PORT=8080 \
         NC_ADMIN_EMAIL=test@integration.local \
-        NC_ADMIN_PASSWORD=IntegrationTest123! \
+        NC_ADMIN_PASSWORD=IntegrationTest123 \
         ./scripts/ci-setup.sh setup
       env:
         PYTHONPATH: ${{ github.workspace }}/src
