@@ -620,7 +620,7 @@ class NocoDBClient:
         field_name: str,
         file_path: str | Path,
     ) -> int | str:
-        """Attach a file to a record.
+        """Attach a file to a record without overwriting existing files.
 
         Args:
             table_id: The ID of the table
@@ -635,17 +635,7 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        upload_response = self._upload_file(table_id, file_path)
-        # Handle both list and dict responses from upload
-        if isinstance(upload_response, list) and upload_response:
-            file_data = upload_response[0]
-        elif isinstance(upload_response, dict):
-            file_data = upload_response
-        else:
-            raise NocoDBException("INVALID_RESPONSE", "Invalid upload response format")
-
-        record = {field_name: file_data}
-        return self.update_record(table_id, record, record_id)
+        return self.attach_files_to_record(table_id, record_id, field_name, [file_path])
 
     def attach_files_to_record(
         self,
@@ -674,9 +664,9 @@ class NocoDBClient:
 
         for file_path in file_paths:
             upload_response = self._upload_file(table_id, file_path)
-            # Handle both list and dict responses from upload
-            if isinstance(upload_response, list) and upload_response:
-                existing_files.append(upload_response[0])
+            # NocoDB upload returns an array of file objects
+            if isinstance(upload_response, list):
+                existing_files.extend(upload_response)
             elif isinstance(upload_response, dict):
                 existing_files.append(upload_response)
             else:
@@ -708,6 +698,36 @@ class NocoDBClient:
         record = {field_name: "[]"}
         return self.update_record(table_id, record, record_id)
 
+    def _download_single_file(self, file_info: dict[str, Any], file_path: Path) -> None:
+        """Helper method to download a single file.
+
+        Args:
+            file_info: File information dict from NocoDB (must contain 'signedPath')
+            file_path: Path where the file should be saved
+
+        Raises:
+            NocoDBException: If download fails
+        """
+        signed_path = file_info["signedPath"]
+        download_url = f"{self._base_url}/{signed_path}"
+
+        response = self._session.get(
+            download_url, headers=self.headers, timeout=self._request_timeout, stream=True
+        )
+
+        if response.status_code != 200:
+            file_title = file_info.get("title", "unknown")
+            raise NocoDBException(
+                "DOWNLOAD_ERROR",
+                f"Failed to download file {file_title}. HTTP status code: {response.status_code}",
+            )
+
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
     def download_file_from_record(
         self,
         table_id: str,
@@ -733,26 +753,7 @@ class NocoDBClient:
             raise NocoDBException("FILE_NOT_FOUND", "No file found in the specified field.")
 
         file_info = record[field_name][0]  # Get first file
-        signed_path = file_info["signedPath"]
-        download_url = f"{self._base_url}/{signed_path}"
-
-        response = self._session.get(
-            download_url, headers=self.headers, timeout=self._request_timeout, stream=True
-        )
-
-        if response.status_code != 200:
-            raise NocoDBException(
-                "DOWNLOAD_ERROR",
-                f"Failed to download file. HTTP status code: {response.status_code}",
-            )
-
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with file_path.open("wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+        self._download_single_file(file_info, Path(file_path))
 
     def download_files_from_record(
         self,
@@ -782,26 +783,9 @@ class NocoDBClient:
         directory.mkdir(parents=True, exist_ok=True)
 
         for file_info in record[field_name]:
-            signed_path = file_info["signedPath"]
             file_title = file_info["title"]
-            download_url = f"{self._base_url}/{signed_path}"
-
-            response = self._session.get(
-                download_url, headers=self.headers, timeout=self._request_timeout, stream=True
-            )
-
-            if response.status_code != 200:
-                raise NocoDBException(
-                    "DOWNLOAD_ERROR",
-                    f"Failed to download file {file_title}. "
-                    f"HTTP status code: {response.status_code}",
-                )
-
             file_path = directory / file_title
-            with file_path.open("wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
+            self._download_single_file(file_info, file_path)
 
     def close(self) -> None:
         """Close the HTTP session."""

@@ -143,11 +143,18 @@ class TestIntegration:
         table_name = f"test_integration_{uuid4().hex[:8]}"
 
         # Define table schema
-        # Note: NocoDB automatically creates an ID field, so we don't define it
+        # Note: NocoDB 0.265.1+ requires explicit ID column for insert operations to return an ID
         table_data = {
             "title": table_name,
             "table_name": table_name,
             "columns": [
+                {
+                    "title": "Id",
+                    "column_name": "Id",
+                    "uidt": "ID",
+                    "pk": True,
+                    "ai": True,
+                },
                 {
                     "title": "Name",
                     "column_name": "Name",
@@ -172,6 +179,11 @@ class TestIntegration:
                     "title": "age",
                     "column_name": "age",
                     "uidt": "Number",
+                },
+                {
+                    "title": "Document",
+                    "column_name": "Document",
+                    "uidt": "Attachment",
                 },
             ],
         }
