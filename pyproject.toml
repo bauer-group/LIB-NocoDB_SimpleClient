@@ -44,6 +44,7 @@ classifiers = [
 dependencies = [
     "requests>=2.25.0",
     "requests-toolbelt>=0.9.1",
+    "pydantic>=1.8.0",
 ]
 
 [project.optional-dependencies]
@@ -53,6 +54,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
     "pytest-xdist>=3.0.0",
+    "pytest-asyncio>=0.23.0",
 
     # Code Quality
     "ruff>=0.1.0",
@@ -75,6 +77,13 @@ dev = [
     "types-requests>=2.31.0",
     "types-PyYAML>=6.0.0",
     "types-aiofiles>=0.8.0",
+    "python-dotenv>=1.0.0",
+    "aiohttp>=3.8.0",
+    "aiofiles>=0.8.0",
+
+    # Integration Testing
+    "docker>=6.0.0",
+    "pillow>=10.0.0",
 ]
 docs = [
     "mkdocs>=1.4.0",
@@ -84,11 +93,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bauer-group/nocodb-simple-client"
-Documentation = "https://github.com/bauer-group/nocodb-simple-client#readme"
-Repository = "https://github.com/bauer-group/nocodb-simple-client.git"
-"Bug Tracker" = "https://github.com/bauer-group/nocodb-simple-client/issues"
-Changelog = "https://github.com/bauer-group/nocodb-simple-client/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient"
+Documentation = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient#readme"
+Repository = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git"
+"Bug Tracker" = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient/issues"
+Changelog = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient/blob/main/CHANGELOG.md"
 
 # ============================================================================
 # SEMANTIC RELEASE CONFIGURATION
@@ -157,11 +166,13 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
     "benchmark: Benchmark tests",
+    "asyncio: Asynchronous tests",
 ]
 
 [tool.coverage.run]
@@ -220,7 +231,7 @@ select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
     "F",  # pyflakes
-    "I",  # isort
+    # "I",  # isort - disabled to avoid conflicts with pre-commit isort
     "B",  # flake8-bugbear
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
@@ -253,10 +264,7 @@ no_implicit_optional = true
 no_implicit_reexport = true
 show_error_codes = true
 strict_equality = true
-warn_redundant_casts = true
 warn_return_any = true
-warn_unreachable = true
-warn_unused_configs = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]

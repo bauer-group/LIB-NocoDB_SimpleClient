@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from .exceptions import NocoDBException, RecordNotFoundException
+from .exceptions import NocoDBException, RecordNotFoundException, ValidationException
 
 
 class NocoDBClient:
@@ -144,7 +144,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _post(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _post(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a POST request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.post(
@@ -153,7 +155,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _patch(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _patch(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a PATCH request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.patch(
@@ -171,7 +175,9 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _delete(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+    def _delete(
+        self, endpoint: str, data: dict[str, Any] | list[dict[str, Any]] | None = None
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a DELETE request to the API."""
         url = f"{self._base_url}/{endpoint}"
         response = self._session.delete(
@@ -318,9 +324,19 @@ class NocoDBClient:
             NocoDBException: For API errors
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
-        record_id = response.get("Id")
+        # API v2 returns a single object: {"Id": 123}
+        if isinstance(response, dict):
+            record_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"Expected dict response from insert operation, got {type(response)}",
+            )
         if record_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from insert operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from insert operation. Response: {response}",
+            )
         return record_id  # type: ignore[no-any-return]
 
     def update_record(
@@ -347,9 +363,18 @@ class NocoDBClient:
             record["Id"] = record_id
 
         response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
-        record_id = response.get("Id")
+        if isinstance(response, dict):
+            record_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"Expected dict response from update operation, got {type(response)}",
+            )
         if record_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from update operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from update operation. Response: {response}",
+            )
         return record_id  # type: ignore[no-any-return]
 
     def delete_record(self, table_id: str, record_id: int | str) -> int | str:
@@ -366,10 +391,20 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
+
         response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
-        deleted_id = response.get("Id")
+        if isinstance(response, dict):
+            deleted_id = response.get("Id")
+        else:
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"Expected dict response from delete operation, got {type(response)}",
+            )
         if deleted_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from delete operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from delete operation. Response: {response}",
+            )
         return deleted_id  # type: ignore[no-any-return]
 
     def count_records(self, table_id: str, where: str | None = None) -> int:
@@ -392,6 +427,146 @@ class NocoDBClient:
         response = self._get(f"api/v2/tables/{table_id}/records/count", params=params)
         count = response.get("count", 0)
         return int(count) if count is not None else 0
+
+    def bulk_insert_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+        """Insert multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            records: List of record dictionaries to insert
+
+        Returns:
+            List of inserted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        if not records:
+            return []
+
+        if not isinstance(records, list):
+            raise ValidationException("Records must be a list")
+
+        # NocoDB v2 API supports bulk insert via array payload
+        try:
+            response = self._post(f"api/v2/tables/{table_id}/records", data=records)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk insert"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_INSERT_ERROR", f"Bulk insert failed: {str(e)}") from e
+
+    def bulk_update_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+        """Update multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            records: List of record dictionaries to update (must include Id field)
+
+        Returns:
+            List of updated record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If records data is invalid
+        """
+        if not records:
+            return []
+
+        if not isinstance(records, list):
+            raise ValidationException("Records must be a list")
+
+        # Validate that all records have ID field
+        for i, record in enumerate(records):
+            if not isinstance(record, dict):
+                raise ValidationException(f"Record at index {i} must be a dictionary")
+            if "Id" not in record:
+                raise ValidationException(f"Record at index {i} missing required 'Id' field")
+
+        try:
+            response = self._patch(f"api/v2/tables/{table_id}/records", data=records)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk update"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_UPDATE_ERROR", f"Bulk update failed: {str(e)}") from e
+
+    def bulk_delete_records(self, table_id: str, record_ids: list[int | str]) -> list[int | str]:
+        """Delete multiple records at once for better performance.
+
+        Args:
+            table_id: The ID of the table
+            record_ids: List of record IDs to delete
+
+        Returns:
+            List of deleted record IDs
+
+        Raises:
+            NocoDBException: For API errors
+            ValidationException: If record_ids is invalid
+        """
+        if not record_ids:
+            return []
+
+        if not isinstance(record_ids, list):
+            raise ValidationException("Record IDs must be a list")
+
+        # Convert to list of dictionaries with Id field
+        records_to_delete = [{"Id": record_id} for record_id in record_ids]
+
+        try:
+            response = self._delete(f"api/v2/tables/{table_id}/records", data=records_to_delete)
+
+            # Response should be list of record IDs
+            if isinstance(response, list):
+                record_ids = []
+                for record in response:
+                    if isinstance(record, dict) and record.get("Id") is not None:
+                        record_ids.append(record["Id"])
+                return record_ids
+            elif isinstance(response, dict) and "Id" in response:
+                # Single record response (fallback)
+                return [response["Id"]]
+            else:
+                raise NocoDBException(
+                    "INVALID_RESPONSE", "Unexpected response format from bulk delete"
+                )
+
+        except Exception as e:
+            if isinstance(e, NocoDBException):
+                raise
+            raise NocoDBException("BULK_DELETE_ERROR", f"Bulk delete failed: {str(e)}") from e
 
     def _multipart_post(
         self,
@@ -445,7 +620,7 @@ class NocoDBClient:
         field_name: str,
         file_path: str | Path,
     ) -> int | str:
-        """Attach a file to a record.
+        """Attach a file to a record without overwriting existing files.
 
         Args:
             table_id: The ID of the table
@@ -460,17 +635,7 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        upload_response = self._upload_file(table_id, file_path)
-        # Handle both list and dict responses from upload
-        if isinstance(upload_response, list) and upload_response:
-            file_data = upload_response[0]
-        elif isinstance(upload_response, dict):
-            file_data = upload_response
-        else:
-            raise NocoDBException("INVALID_RESPONSE", "Invalid upload response format")
-
-        record = {field_name: file_data}
-        return self.update_record(table_id, record, record_id)
+        return self.attach_files_to_record(table_id, record_id, field_name, [file_path])
 
     def attach_files_to_record(
         self,
@@ -499,9 +664,9 @@ class NocoDBClient:
 
         for file_path in file_paths:
             upload_response = self._upload_file(table_id, file_path)
-            # Handle both list and dict responses from upload
-            if isinstance(upload_response, list) and upload_response:
-                existing_files.append(upload_response[0])
+            # NocoDB upload returns an array of file objects
+            if isinstance(upload_response, list):
+                existing_files.extend(upload_response)
             elif isinstance(upload_response, dict):
                 existing_files.append(upload_response)
             else:
@@ -533,6 +698,36 @@ class NocoDBClient:
         record = {field_name: "[]"}
         return self.update_record(table_id, record, record_id)
 
+    def _download_single_file(self, file_info: dict[str, Any], file_path: Path) -> None:
+        """Helper method to download a single file.
+
+        Args:
+            file_info: File information dict from NocoDB (must contain 'signedPath')
+            file_path: Path where the file should be saved
+
+        Raises:
+            NocoDBException: If download fails
+        """
+        signed_path = file_info["signedPath"]
+        download_url = f"{self._base_url}/{signed_path}"
+
+        response = self._session.get(
+            download_url, headers=self.headers, timeout=self._request_timeout, stream=True
+        )
+
+        if response.status_code != 200:
+            file_title = file_info.get("title", "unknown")
+            raise NocoDBException(
+                "DOWNLOAD_ERROR",
+                f"Failed to download file {file_title}. HTTP status code: {response.status_code}",
+            )
+
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
     def download_file_from_record(
         self,
         table_id: str,
@@ -558,26 +753,7 @@ class NocoDBClient:
             raise NocoDBException("FILE_NOT_FOUND", "No file found in the specified field.")
 
         file_info = record[field_name][0]  # Get first file
-        signed_path = file_info["signedPath"]
-        download_url = f"{self._base_url}/{signed_path}"
-
-        response = self._session.get(
-            download_url, headers=self.headers, timeout=self._request_timeout, stream=True
-        )
-
-        if response.status_code != 200:
-            raise NocoDBException(
-                "DOWNLOAD_ERROR",
-                f"Failed to download file. HTTP status code: {response.status_code}",
-            )
-
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with file_path.open("wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+        self._download_single_file(file_info, Path(file_path))
 
     def download_files_from_record(
         self,
@@ -607,26 +783,9 @@ class NocoDBClient:
         directory.mkdir(parents=True, exist_ok=True)
 
         for file_info in record[field_name]:
-            signed_path = file_info["signedPath"]
             file_title = file_info["title"]
-            download_url = f"{self._base_url}/{signed_path}"
-
-            response = self._session.get(
-                download_url, headers=self.headers, timeout=self._request_timeout, stream=True
-            )
-
-            if response.status_code != 200:
-                raise NocoDBException(
-                    "DOWNLOAD_ERROR",
-                    f"Failed to download file {file_title}. "
-                    f"HTTP status code: {response.status_code}",
-                )
-
             file_path = directory / file_title
-            with file_path.open("wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
+            self._download_single_file(file_info, file_path)
 
     def close(self) -> None:
         """Close the HTTP session."""

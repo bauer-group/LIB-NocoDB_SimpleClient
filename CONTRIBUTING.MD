@@ -8,7 +8,7 @@ Thank you for your interest in contributing to NocoDB Simple Client! We welcome 
 
 If you find a bug or have a suggestion for improvement:
 
-1. Check if the issue already exists in the [GitHub Issues](https://github.com/bauer-group/nocodb-simple-client/issues)
+1. Check if the issue already exists in the [GitHub Issues](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/issues)
 2. If not, create a new issue with:
    - A clear, descriptive title
    - Detailed description of the issue or suggestion
@@ -19,7 +19,7 @@ If you find a bug or have a suggestion for improvement:
 
 1. **Fork the Repository**
    ```bash
-   git clone https://github.com/bauer-group/nocodb-simple-client.git
+   git clone https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git
    cd nocodb-simple-client
    ```
 

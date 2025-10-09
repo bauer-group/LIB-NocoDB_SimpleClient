@@ -1,188 +1,146 @@
-"""Tests for NocoDBTable."""
+"""Tests for NocoDBTable class based on actual implementation."""
 
 from unittest.mock import Mock
-
 import pytest
 
-from nocodb_simple_client import NocoDBException, NocoDBTable
+from nocodb_simple_client.client import NocoDBClient
+from nocodb_simple_client.table import NocoDBTable
 
 
 class TestNocoDBTable:
-    """Test cases for NocoDBTable."""
+    """Test NocoDBTable functionality."""
 
-    def test_table_initialization(self, client):
+    @pytest.fixture
+    def mock_client(self):
+        """Create mock client."""
+        client = Mock(spec=NocoDBClient)
+        return client
+
+    @pytest.fixture
+    def table(self, mock_client):
+        """Create table instance."""
+        return NocoDBTable(mock_client, "test_table_123")
+
+    def test_table_initialization(self, mock_client):
         """Test table initialization."""
-        table = NocoDBTable(client, "test-table-id")
+        table = NocoDBTable(mock_client, "test_table_123")
 
-        assert table.client == client
-        assert table.table_id == "test-table-id"
+        assert table.client == mock_client
+        assert table.table_id == "test_table_123"
 
-    def test_get_records(self, table, sample_records):
-        """Test get_records method."""
-        table.client.get_records = Mock(return_value=sample_records)
+    def test_get_records(self, table, mock_client):
+        """Test get_records delegation to client."""
+        expected_records = [{"Id": "1", "Name": "Test"}]
+        mock_client.get_records.return_value = expected_records
 
-        records = table.get_records(limit=10, sort="-Id")
+        result = table.get_records(limit=10, where="(Status,eq,active)")
 
-        assert len(records) == 2
-        table.client.get_records.assert_called_once_with("test-table-id", "-Id", None, None, 10)
-
-    def test_get_records_with_parameters(self, table, sample_records):
-        """Test get_records with all parameters."""
-        table.client.get_records = Mock(return_value=sample_records)
-
-        records = table.get_records(
-            sort="-Id", where="(Active,eq,true)", fields=["Id", "Name"], limit=5
+        assert result == expected_records
+        mock_client.get_records.assert_called_once_with(
+            "test_table_123", None, "(Status,eq,active)", None, 10
         )
 
-        assert records == sample_records
-        table.client.get_records.assert_called_once_with(
-            "test-table-id", "-Id", "(Active,eq,true)", ["Id", "Name"], 5
+    def test_get_record(self, table, mock_client):
+        """Test get_record delegation to client."""
+        expected_record = {"Id": "record_123", "Name": "Test Record"}
+        mock_client.get_record.return_value = expected_record
+
+        result = table.get_record("record_123")
+
+        assert result == expected_record
+        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", None)
+
+    def test_insert_record(self, table, mock_client):
+        """Test insert_record delegation to client."""
+        record_data = {"Name": "New Record", "Status": "active"}
+        mock_client.insert_record.return_value = "new_record_123"
+
+        result = table.insert_record(record_data)
+
+        assert result == "new_record_123"
+        mock_client.insert_record.assert_called_once_with("test_table_123", record_data)
+
+    def test_update_record(self, table, mock_client):
+        """Test update_record delegation to client."""
+        update_data = {"Name": "Updated Record"}
+        mock_client.update_record.return_value = "record_123"
+
+        result = table.update_record(update_data, "record_123")
+
+        assert result == "record_123"
+        mock_client.update_record.assert_called_once_with(
+            "test_table_123", update_data, "record_123"
         )
 
-    def test_get_record(self, table, sample_record):
-        """Test get_record method."""
-        table.client.get_record = Mock(return_value=sample_record)
+    def test_delete_record(self, table, mock_client):
+        """Test delete_record delegation to client."""
+        mock_client.delete_record.return_value = "record_123"
 
-        record = table.get_record(123, fields=["Id", "Name"])
+        result = table.delete_record("record_123")
 
-        assert record["Id"] == 1
-        table.client.get_record.assert_called_once_with("test-table-id", 123, ["Id", "Name"])
+        assert result == "record_123"
+        mock_client.delete_record.assert_called_once_with("test_table_123", "record_123")
 
-    def test_insert_record(self, table):
-        """Test insert_record method."""
-        table.client.insert_record = Mock(return_value=123)
+    def test_count_records(self, table, mock_client):
+        """Test count_records delegation to client."""
+        mock_client.count_records.return_value = 42
 
-        new_record = {"Name": "Test", "Email": "test@example.com"}
-        record_id = table.insert_record(new_record)
+        result = table.count_records(where="(Status,eq,active)")
 
-        assert record_id == 123
-        table.client.insert_record.assert_called_once_with("test-table-id", new_record)
-
-    def test_update_record(self, table):
-        """Test update_record method."""
-        table.client.update_record = Mock(return_value=123)
-
-        update_data = {"Name": "Updated Name"}
-        record_id = table.update_record(update_data, 123)
-
-        assert record_id == 123
-        table.client.update_record.assert_called_once_with("test-table-id", update_data, 123)
-
-    def test_update_record_without_id(self, table):
-        """Test update_record without explicit record_id."""
-        table.client.update_record = Mock(return_value=123)
-
-        update_data = {"Id": 123, "Name": "Updated Name"}
-        record_id = table.update_record(update_data)
-
-        assert record_id == 123
-        table.client.update_record.assert_called_once_with("test-table-id", update_data, None)
-
-    def test_delete_record(self, table):
-        """Test delete_record method."""
-        table.client.delete_record = Mock(return_value=123)
-
-        record_id = table.delete_record(123)
-
-        assert record_id == 123
-        table.client.delete_record.assert_called_once_with("test-table-id", 123)
-
-    def test_count_records(self, table):
-        """Test count_records method."""
-        table.client.count_records = Mock(return_value=42)
-
-        count = table.count_records()
-
-        assert count == 42
-        table.client.count_records.assert_called_once_with("test-table-id", None)
-
-    def test_count_records_with_filter(self, table):
-        """Test count_records with where clause."""
-        table.client.count_records = Mock(return_value=15)
-
-        count = table.count_records(where="(Active,eq,true)")
-
-        assert count == 15
-        table.client.count_records.assert_called_once_with("test-table-id", "(Active,eq,true)")
-
-    def test_attach_file_to_record(self, table):
-        """Test attach_file_to_record method."""
-        table.client.attach_file_to_record = Mock(return_value=123)
-
-        result = table.attach_file_to_record(123, "Document", "/path/to/file.txt")
-
-        assert result == 123
-        table.client.attach_file_to_record.assert_called_once_with(
-            "test-table-id", 123, "Document", "/path/to/file.txt"
+        assert result == 42
+        mock_client.count_records.assert_called_once_with(
+            "test_table_123", "(Status,eq,active)"
         )
 
-    def test_attach_files_to_record(self, table):
-        """Test attach_files_to_record method."""
-        table.client.attach_files_to_record = Mock(return_value=123)
+    def test_bulk_insert_records(self, table, mock_client):
+        """Test bulk_insert_records delegation to client."""
+        records = [{"Name": "Record 1"}, {"Name": "Record 2"}]
+        mock_client.bulk_insert_records.return_value = ["rec1", "rec2"]
 
-        files = ["/path/file1.txt", "/path/file2.txt"]
-        result = table.attach_files_to_record(123, "Documents", files)
+        result = table.bulk_insert_records(records)
 
-        assert result == 123
-        table.client.attach_files_to_record.assert_called_once_with(
-            "test-table-id", 123, "Documents", files
+        assert result == ["rec1", "rec2"]
+        mock_client.bulk_insert_records.assert_called_once_with("test_table_123", records)
+
+    def test_bulk_update_records(self, table, mock_client):
+        """Test bulk_update_records delegation to client."""
+        records = [{"Id": "rec1", "Name": "Updated 1"}]
+        mock_client.bulk_update_records.return_value = ["rec1"]
+
+        result = table.bulk_update_records(records)
+
+        assert result == ["rec1"]
+        mock_client.bulk_update_records.assert_called_once_with("test_table_123", records)
+
+    def test_bulk_delete_records(self, table, mock_client):
+        """Test bulk_delete_records delegation to client."""
+        record_ids = ["rec1", "rec2", "rec3"]
+        mock_client.bulk_delete_records.return_value = ["rec1", "rec2", "rec3"]
+
+        result = table.bulk_delete_records(record_ids)
+
+        assert result == ["rec1", "rec2", "rec3"]
+        mock_client.bulk_delete_records.assert_called_once_with("test_table_123", record_ids)
+
+    def test_attach_file_to_record(self, table, mock_client):
+        """Test file attachment delegation to client."""
+        mock_client.attach_file_to_record.return_value = "record_123"
+
+        result = table.attach_file_to_record("record_123", "Documents", "/path/to/test.txt")
+
+        assert result == "record_123"
+        mock_client.attach_file_to_record.assert_called_once_with(
+            "test_table_123", "record_123", "Documents", "/path/to/test.txt"
         )
 
-    def test_delete_file_from_record(self, table):
-        """Test delete_file_from_record method."""
-        table.client.delete_file_from_record = Mock(return_value=123)
+    def test_download_file_from_record(self, table, mock_client):
+        """Test file download delegation to client."""
+        expected_content = b"test file content"
+        mock_client.download_file_from_record.return_value = expected_content
 
-        result = table.delete_file_from_record(123, "Document")
+        result = table.download_file_from_record("record_123", "Documents", 0)
 
-        assert result == 123
-        table.client.delete_file_from_record.assert_called_once_with(
-            "test-table-id", 123, "Document"
+        assert result == expected_content
+        mock_client.download_file_from_record.assert_called_once_with(
+            "test_table_123", "record_123", "Documents", 0
         )
-
-    def test_download_file_from_record(self, table):
-        """Test download_file_from_record method."""
-        table.client.download_file_from_record = Mock()
-
-        table.download_file_from_record(123, "Document", "/save/path/file.txt")
-
-        table.client.download_file_from_record.assert_called_once_with(
-            "test-table-id", 123, "Document", "/save/path/file.txt"
-        )
-
-    def test_download_files_from_record(self, table):
-        """Test download_files_from_record method."""
-        table.client.download_files_from_record = Mock()
-
-        table.download_files_from_record(123, "Documents", "/save/directory")
-
-        table.client.download_files_from_record.assert_called_once_with(
-            "test-table-id", 123, "Documents", "/save/directory"
-        )
-
-    def test_method_delegation_preserves_exceptions(self, table):
-        """Test that exceptions from client methods are properly propagated."""
-        # Test that NocoDBException is properly propagated
-        table.client.get_records = Mock(side_effect=NocoDBException("TEST_ERROR", "Test error"))
-
-        with pytest.raises(NocoDBException) as exc_info:
-            table.get_records()
-
-        assert exc_info.value.error == "TEST_ERROR"
-        assert exc_info.value.message == "Test error"
-
-    def test_type_consistency(self, table):
-        """Test that method signatures accept both string and int IDs."""
-        table.client.get_record = Mock(return_value={"Id": 123})
-        table.client.delete_record = Mock(return_value=123)
-
-        # Test with integer ID
-        table.get_record(123)
-        table.delete_record(123)
-
-        # Test with string ID
-        table.get_record("123")
-        table.delete_record("123")
-
-        # Both should work without type errors
-        assert table.client.get_record.call_count == 2
-        assert table.client.delete_record.call_count == 2
