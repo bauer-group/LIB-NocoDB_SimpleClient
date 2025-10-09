@@ -78,19 +78,20 @@ class TestIntegration:
         file_config = load_config_from_file()
 
         # Build configuration with priority: env vars > config file > defaults
+        # Use consistent variable names throughout
         config = {
-            "base_url": (
+            "NOCODB_BASE_URL": (
                 os.getenv("NOCODB_BASE_URL") or
                 file_config.get("NOCODB_BASE_URL") or
                 "http://localhost:8080"
             ),
-            "api_token": (
+            "NOCODB_TOKEN": (
                 os.getenv("NOCODB_TOKEN") or
                 file_config.get("NOCODB_TOKEN")
             ),
         }
 
-        if not config["api_token"]:
+        if not config["NOCODB_TOKEN"]:
             pytest.skip(
                 "Integration tests require API token.\n"
                 "Provide via:\n"
@@ -105,8 +106,8 @@ class TestIntegration:
     def integration_client(self, integration_config):
         """Create a client for integration testing."""
         with NocoDBClient(
-            base_url=integration_config["base_url"],
-            db_auth_token=integration_config["api_token"],
+            base_url=integration_config["NOCODB_BASE_URL"],
+            db_auth_token=integration_config["NOCODB_TOKEN"],
             timeout=30,
         ) as client:
             yield client
@@ -115,8 +116,8 @@ class TestIntegration:
     def meta_client(self, integration_config):
         """Create a meta client for managing tables."""
         with NocoDBMetaClient(
-            base_url=integration_config["base_url"],
-            db_auth_token=integration_config["api_token"],
+            base_url=integration_config["NOCODB_BASE_URL"],
+            db_auth_token=integration_config["NOCODB_TOKEN"],
             timeout=30,
         ) as client:
             yield client
@@ -340,8 +341,8 @@ class TestIntegration:
         """Test context manager behavior with real client."""
         # Test that context manager works properly
         with NocoDBClient(
-            base_url=integration_config["base_url"],
-            db_auth_token=integration_config["api_token"],
+            base_url=integration_config["NOCODB_BASE_URL"],
+            db_auth_token=integration_config["NOCODB_TOKEN"],
             timeout=30,
         ) as client:
             table = NocoDBTable(client, test_table_id)
