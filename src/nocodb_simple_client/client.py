@@ -325,16 +325,22 @@ class NocoDBClient:
         """
         response = self._post(f"api/v2/tables/{table_id}/records", data=record)
         if isinstance(response, list) and len(response) > 0:
-            record_id = response[0].get("Id")
+            first_item = response[0]
+            # Try both "Id" (data API) and "id" (meta API) for compatibility
+            record_id = first_item.get("Id") or first_item.get("id")
         elif isinstance(response, dict):
-            record_id = response.get("Id")
+            # Fallback for potential single-object response
+            record_id = response.get("Id") or response.get("id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
                 f"Expected list or dict response from insert operation, got {type(response)}",
             )
         if record_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from insert operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from insert operation. Response: {response}",
+            )
         return record_id  # type: ignore[no-any-return]
 
     def update_record(
@@ -360,20 +366,23 @@ class NocoDBClient:
         if record_id is not None:
             record["Id"] = record_id
 
-        # API v2 bulk update endpoint returns array: [{"Id": 123}]
         response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
         if isinstance(response, list) and len(response) > 0:
-            record_id = response[0].get("Id")
+            first_item = response[0]
+            record_id = first_item.get("Id") or first_item.get("id")
         elif isinstance(response, dict):
             # Fallback for potential single-object response
-            record_id = response.get("Id")
+            record_id = response.get("Id") or response.get("id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
                 f"Expected list or dict response from update operation, got {type(response)}",
             )
         if record_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from update operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from update operation. Response: {response}",
+            )
         return record_id  # type: ignore[no-any-return]
 
     def delete_record(self, table_id: str, record_id: int | str) -> int | str:
@@ -390,20 +399,24 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        # API v2 bulk delete endpoint returns array: [{"Id": 123}]
+
         response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
         if isinstance(response, list) and len(response) > 0:
-            deleted_id = response[0].get("Id")
+            first_item = response[0]
+            deleted_id = first_item.get("Id") or first_item.get("id")
         elif isinstance(response, dict):
             # Fallback for potential single-object response
-            deleted_id = response.get("Id")
+            deleted_id = response.get("Id") or response.get("id")
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
                 f"Expected list or dict response from delete operation, got {type(response)}",
             )
         if deleted_id is None:
-            raise NocoDBException("INVALID_RESPONSE", "No record ID returned from delete operation")
+            raise NocoDBException(
+                "INVALID_RESPONSE",
+                f"No record ID returned from delete operation. Response: {response}",
+            )
         return deleted_id  # type: ignore[no-any-return]
 
     def count_records(self, table_id: str, where: str | None = None) -> int:
