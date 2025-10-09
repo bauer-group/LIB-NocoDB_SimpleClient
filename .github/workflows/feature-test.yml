@@ -83,19 +83,19 @@ jobs:
 
         # Verify that config files were created
         echo "=== Checking generated config files ==="
-        ls -la tests/.env nocodb-config.json .env.test 2>/dev/null || echo "Config files not found!"
+        ls -la nocodb-config.json .env.test 2>/dev/null || echo "Config files not found!"
 
         # Show config content (without sensitive data in logs)
-        if [ -f tests/.env ]; then
-          echo "✅ tests/.env created"
-          cat tests/.env | grep -v TOKEN
+        if [ -f nocodb-config.json ]; then
+          echo "✅ nocodb-config.json created"
+          cat nocodb-config.json | jq 'del(.api_token)' || cat nocodb-config.json
         fi
 
     - name: 🔗 Run integration tests
       run: |
         # Verify config files are available
-        if [ ! -f tests/.env ]; then
-          echo "❌ ERROR: tests/.env not found!"
+        if [ ! -f nocodb-config.json ]; then
+          echo "❌ ERROR: nocodb-config.json not found!"
           exit 1
         fi
 
