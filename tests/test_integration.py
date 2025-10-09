@@ -290,33 +290,27 @@ class TestIntegration:
             # Expected behavior - exception was raised
             pass
 
-    def test_file_operations_if_supported(self, integration_table):
-        """Test file operations if the table supports them."""
-        # This test is more complex as it requires a table with file fields
-        # and we need to handle the case where file operations aren't supported
-
+    def test_file_operations(self, integration_table):
+        """Test file upload and download operations."""
         # Create a temporary file for testing
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
             temp_file.write("This is a test file for integration testing")
             temp_file_path = temp_file.name
 
         try:
-            # Create a test record first
+            # Create a test record
             test_record = {"Name": "File Test Record", "Description": "Testing file operations"}
-
             record_id = integration_table.insert_record(test_record)
 
             try:
-                # Try to attach file (this might fail if table doesn't have file fields)
-                # We'll assume the file field is named "Document" - adjust as needed
+                # Attach file to the record
                 integration_table.attach_file_to_record(
                     record_id=record_id,
-                    field_name="Document",  # Adjust field name as needed
+                    field_name="Document",
                     file_path=temp_file_path,
                 )
 
-                # If we get here, file operations are supported
-                # Try to download the file
+                # Download the file
                 download_path = tempfile.mktemp(suffix=".txt")
                 integration_table.download_file_from_record(
                     record_id=record_id, field_name="Document", file_path=download_path
@@ -327,10 +321,6 @@ class TestIntegration:
 
                 # Clean up download
                 Path(download_path).unlink()
-
-            except NocoDBException as e:
-                # File operations might not be supported by this table
-                pytest.skip(f"File operations not supported: {e.message}")
 
             finally:
                 # Clean up test record
