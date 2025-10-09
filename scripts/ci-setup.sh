@@ -192,23 +192,6 @@ generate_token() {
     fi
 }
 
-    # Extract API token with error handling
-    if command -v jq &> /dev/null; then
-        API_TOKEN=$(echo "$api_token_response" | jq -r '.token // empty' 2>/dev/null)
-    else
-        API_TOKEN=$(echo "$api_token_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
-    fi
-
-    # Fallback to auth token if API token generation failed
-    if [ -z "$API_TOKEN" ] || [ "$API_TOKEN" = "null" ]; then
-        warning "API Token konnte nicht generiert werden, nutze Auth Token als Fallback"
-        warning "API Response war: $api_token_response"
-        API_TOKEN=$AUTH_TOKEN
-    else
-        log "✅ API Token generiert"
-    fi
-}
-
 # Save Credentials
 save_credentials() {
     log "💾 Speichere Credentials..."
