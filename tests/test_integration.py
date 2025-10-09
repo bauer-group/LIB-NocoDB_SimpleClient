@@ -4,16 +4,18 @@ Diese Tests erwarten einen extern verwalteten NocoDB-Container
 (z.B. via ci-setup.sh im CI/CD-Workflow).
 
 Container-Management erfolgt NICHT durch diese Tests!
+Tests erstellen eigene Test-Tabellen und räumen diese am Ende auf.
 """
 
 import json
 import os
 import tempfile
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
-from nocodb_simple_client import NocoDBClient, NocoDBException, NocoDBTable, RecordNotFoundException
+from nocodb_simple_client import NocoDBClient, NocoDBException, NocoDBMetaClient, NocoDBTable, RecordNotFoundException
 
 # Skip integration tests if environment variable is set
 SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1"
@@ -42,6 +44,9 @@ def load_config_from_file() -> dict:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
                         key, value = line.split("=", 1)
+                        # Handle export statements
+                        if key.startswith("export "):
+                            key = key[7:]
                         config[key.strip()] = value.strip().strip('"').strip("'")
                 print(f"✅ Konfiguration aus {env_test_file} geladen")
                 return config
@@ -67,7 +72,6 @@ class TestIntegration:
         config = {
             "base_url": os.getenv("NOCODB_URL") or os.getenv("NOCODB_TEST_BASE_URL") or file_config.get("base_url") or "http://localhost:8080",
             "api_token": os.getenv("NOCODB_API_TOKEN") or os.getenv("NOCODB_TEST_API_TOKEN") or file_config.get("api_token"),
-            "table_id": os.getenv("NOCODB_TEST_TABLE_ID") or file_config.get("table_id"),
         }
 
         if not config["api_token"]:
@@ -77,12 +81,6 @@ class TestIntegration:
                 "  - Environment: NOCODB_API_TOKEN or NOCODB_TEST_API_TOKEN\n"
                 "  - Config file: nocodb-config.json or .env.test\n"
                 "  - CI: Run './scripts/ci-setup.sh setup' first"
-            )
-
-        if not config["table_id"]:
-            pytest.skip(
-                "Integration tests require table ID.\n"
-                "Provide via NOCODB_TEST_TABLE_ID or in config file"
             )
 
         return config
@@ -98,9 +96,112 @@ class TestIntegration:
             yield client
 
     @pytest.fixture(scope="class")
-    def integration_table(self, integration_client, integration_config):
+    def meta_client(self, integration_config):
+        """Create a meta client for managing tables."""
+        with NocoDBMetaClient(
+            base_url=integration_config["base_url"],
+            db_auth_token=integration_config["api_token"],
+            timeout=30,
+        ) as client:
+            yield client
+
+    @pytest.fixture(scope="class")
+    def test_base_id(self, meta_client):
+        """Get or create a test base (project)."""
+        # List all bases
+        bases = meta_client.list_bases()
+
+        if not bases:
+            pytest.skip("No bases found. Please create a base in NocoDB first.")
+
+        # Use the first available base
+        base_id = bases[0].get("id")
+        print(f"Using base: {bases[0].get('title')} (ID: {base_id})")
+        return base_id
+
+    @pytest.fixture(scope="class")
+    def test_table_id(self, meta_client, test_base_id):
+        """Create a test table and clean it up after tests."""
+        # Generate unique table name
+        table_name = f"test_integration_{uuid4().hex[:8]}"
+
+        # Define table schema
+        table_data = {
+            "title": table_name,
+            "table_name": table_name,
+            "columns": [
+                {
+                    "title": "id",
+                    "column_name": "id",
+                    "uidt": "ID",
+                    "dt": "int",
+                    "pk": True,
+                    "ai": True,
+                    "rqd": True,
+                    "un": True
+                },
+                {
+                    "title": "Name",
+                    "column_name": "Name",
+                    "uidt": "SingleLineText",
+                    "dt": "varchar",
+                    "rqd": False
+                },
+                {
+                    "title": "Description",
+                    "column_name": "Description",
+                    "uidt": "LongText",
+                    "dt": "text",
+                    "rqd": False
+                },
+                {
+                    "title": "TestField",
+                    "column_name": "TestField",
+                    "uidt": "SingleLineText",
+                    "dt": "varchar",
+                    "rqd": False
+                },
+                {
+                    "title": "email",
+                    "column_name": "email",
+                    "uidt": "Email",
+                    "dt": "varchar",
+                    "rqd": False
+                },
+                {
+                    "title": "age",
+                    "column_name": "age",
+                    "uidt": "Number",
+                    "dt": "int",
+                    "rqd": False
+                },
+            ],
+        }
+
+        # Create table using library function
+        print(f"Creating test table: {table_name}")
+        table = meta_client.create_table(test_base_id, table_data)
+        table_id = table.get("id")
+
+        if not table_id:
+            pytest.skip("Failed to create test table")
+
+        print(f"✅ Test table created: {table_id}")
+
+        yield table_id
+
+        # Cleanup: Delete table after tests
+        try:
+            print(f"Cleaning up test table: {table_id}")
+            meta_client.delete_table(table_id)
+            print(f"✅ Test table deleted: {table_id}")
+        except Exception as e:
+            print(f"⚠️  Could not delete test table {table_id}: {e}")
+
+    @pytest.fixture(scope="class")
+    def integration_table(self, integration_client, test_table_id):
         """Create a table instance for integration testing."""
-        return NocoDBTable(integration_client, integration_config["table_id"])
+        return NocoDBTable(integration_client, test_table_id)
 
     def test_basic_crud_operations(self, integration_table):
         """Test basic CRUD operations against real NocoDB instance."""
@@ -219,7 +320,7 @@ class TestIntegration:
             # Clean up temporary file
             Path(temp_file_path).unlink()
 
-    def test_context_manager_with_real_client(self, integration_config):
+    def test_context_manager_with_real_client(self, integration_config, test_table_id):
         """Test context manager behavior with real client."""
         # Test that context manager works properly
         with NocoDBClient(
@@ -227,7 +328,7 @@ class TestIntegration:
             db_auth_token=integration_config["api_token"],
             timeout=30,
         ) as client:
-            table = NocoDBTable(client, integration_config["table_id"])
+            table = NocoDBTable(client, test_table_id)
             count = table.count_records()
             assert isinstance(count, int)
 
