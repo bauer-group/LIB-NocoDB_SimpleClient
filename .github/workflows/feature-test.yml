@@ -88,7 +88,7 @@ jobs:
         # Show config content (without sensitive data in logs)
         if [ -f nocodb-config.json ]; then
           echo "✅ nocodb-config.json created"
-          cat nocodb-config.json | jq 'del(.api_token)' || cat nocodb-config.json
+          cat nocodb-config.json | jq 'del(.NOCODB_TOKEN)' || cat nocodb-config.json
         fi
 
     - name: 🔗 Run integration tests

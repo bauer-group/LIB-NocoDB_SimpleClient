@@ -237,21 +237,17 @@ save_credentials() {
     # JSON config file (primary)
     cat > nocodb-config.json <<EOF
 {
-  "api_token": "$API_TOKEN",
-  "base_url": "$NOCODB_URL",
-  "base_id": "$BASE_ID",
-  "admin_email": "$NC_ADMIN_EMAIL",
-  "container_name": "$CONTAINER_NAME"
+  "NOCODB_TOKEN": "$API_TOKEN",
+  "NOCODB_BASE_URL": "$NOCODB_URL",
+  "NOCODB_PROJECT_ID": "$BASE_ID"
 }
 EOF
 
-    # Bash environment file for sourcing
+    # Bash environment file for sourcing (same variable names)
     cat > .env.test <<EOF
-export NOCODB_BASE_URL="$NOCODB_URL"
 export NOCODB_TOKEN="$API_TOKEN"
+export NOCODB_BASE_URL="$NOCODB_URL"
 export NOCODB_PROJECT_ID="$BASE_ID"
-export NC_ADMIN_EMAIL="$NC_ADMIN_EMAIL"
-export NC_ADMIN_PASSWORD="$NC_ADMIN_PASSWORD"
 EOF
 
     # GitHub Actions format

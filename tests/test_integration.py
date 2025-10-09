@@ -22,7 +22,13 @@ SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION", "1") == "1"
 
 
 def load_config_from_file() -> dict:
-    """Lädt Konfiguration aus nocodb-config.json oder .env.test falls vorhanden."""
+    """Lädt Konfiguration aus nocodb-config.json oder .env.test falls vorhanden.
+
+    Beide Dateien verwenden jetzt die gleichen Variablennamen:
+    - NOCODB_TOKEN
+    - NOCODB_BASE_URL
+    - NOCODB_PROJECT_ID
+    """
     # Priorität 1: nocodb-config.json
     config_file = Path("nocodb-config.json")
     if config_file.exists():
@@ -30,6 +36,7 @@ def load_config_from_file() -> dict:
             with open(config_file) as f:
                 config = json.load(f)
                 print(f"✅ Konfiguration aus {config_file} geladen")
+                # JSON verwendet direkt die Variablennamen
                 return config
         except Exception as e:
             print(f"⚠️  Konnte nocodb-config.json nicht laden: {e}")
@@ -39,7 +46,7 @@ def load_config_from_file() -> dict:
     if env_test_file.exists():
         try:
             with open(env_test_file) as f:
-                env_config = {}
+                config = {}
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -47,20 +54,8 @@ def load_config_from_file() -> dict:
                         # Handle export statements
                         if key.startswith("export "):
                             key = key[7:]
-                        env_config[key.strip()] = value.strip().strip('"').strip("'")
-
-                # Map env variable names to config keys
-                config = {}
-                if "NOCODB_TOKEN" in env_config:
-                    config["api_token"] = env_config["NOCODB_TOKEN"]
-                if "NOCODB_BASE_URL" in env_config:
-                    config["base_url"] = env_config["NOCODB_BASE_URL"]
-                if "NOCODB_PROJECT_ID" in env_config:
-                    config["base_id"] = env_config["NOCODB_PROJECT_ID"]
-                if "NC_ADMIN_EMAIL" in env_config:
-                    config["admin_email"] = env_config["NC_ADMIN_EMAIL"]
-                if "NC_ADMIN_PASSWORD" in env_config:
-                    config["admin_password"] = env_config["NC_ADMIN_PASSWORD"]
+                        # Direkt die Variablennamen als Keys verwenden
+                        config[key.strip()] = value.strip().strip('"').strip("'")
 
                 print(f"✅ Konfiguration aus {env_test_file} geladen")
                 return config
@@ -83,20 +78,15 @@ class TestIntegration:
         file_config = load_config_from_file()
 
         # Build configuration with priority: env vars > config file > defaults
-        # Support both new and old environment variable names
         config = {
             "base_url": (
                 os.getenv("NOCODB_BASE_URL") or
-                os.getenv("NOCODB_URL") or
-                os.getenv("NOCODB_TEST_BASE_URL") or
-                file_config.get("base_url") or
+                file_config.get("NOCODB_BASE_URL") or
                 "http://localhost:8080"
             ),
             "api_token": (
                 os.getenv("NOCODB_TOKEN") or
-                os.getenv("NOCODB_API_TOKEN") or
-                os.getenv("NOCODB_TEST_API_TOKEN") or
-                file_config.get("api_token")
+                file_config.get("NOCODB_TOKEN")
             ),
         }
 
