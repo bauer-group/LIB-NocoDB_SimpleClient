@@ -192,25 +192,21 @@ class NocoDBMetaClient(NocoDBClient):
     # BASE OPERATIONS (Meta API)
     # ========================================================================
 
-    def list_bases(self, workspace_id: str) -> list[dict[str, Any]]:
-        """List all bases in a workspace.
-
-        Args:
-            workspace_id: The workspace ID
+    def list_bases(self) -> list[dict[str, Any]]:
+        """List all bases.
 
         Returns:
             List of base metadata dictionaries
 
         Raises:
             NocoDBException: For API errors
-            ValidationException: If workspace_id is invalid
 
         Example:
-            >>> bases = meta_client.list_bases("ws_abc123")
+            >>> bases = meta_client.list_bases()
             >>> for base in bases:
             ...     print(base['id'], base['title'])
         """
-        response = self._get(f"api/v2/meta/workspaces/{workspace_id}/bases")
+        response = self._get("api/v2/meta/bases/")
         base_list = response.get("list", [])
         return base_list if isinstance(base_list, list) else []
 

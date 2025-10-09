@@ -273,33 +273,19 @@ class NocoDBTestSetup:
     def _discover_base(self) -> str:
         """Discover and return a usable base ID using Library methods.
 
-        Uses the nocodb_simple_client library's MetaClient methods:
-        1. list_workspaces() to get all workspaces
-        2. list_bases(workspace_id) to get bases in first workspace
+        Uses the nocodb_simple_client library's MetaClient method:
+        - list_bases() to get all available bases
 
         Returns:
             Base ID string
         """
-        # Step 1: List workspaces using Library
-        print("Fetching workspaces using meta_client.list_workspaces()...")
+        print("Fetching bases using meta_client.list_bases()...")
         try:
-            workspaces = self.meta_client.list_workspaces()
-
-            if not workspaces or len(workspaces) == 0:
-                raise RuntimeError("No workspaces found in NocoDB instance")
-
-            # Use first workspace
-            first_workspace = workspaces[0]
-            workspace_id = first_workspace.get("id")
-            workspace_title = first_workspace.get("title", "Unknown")
-            print(f"Using workspace: {workspace_title} (ID: {workspace_id})")
-
-            # Step 2: List bases in this workspace using Library
-            print(f"Fetching bases using meta_client.list_bases('{workspace_id}')...")
-            bases = self.meta_client.list_bases(workspace_id)
+            # Use Library API to list all bases
+            bases = self.meta_client.list_bases()
 
             if not bases or len(bases) == 0:
-                raise RuntimeError(f"No bases found in workspace {workspace_id}")
+                raise RuntimeError("No bases found in NocoDB instance")
 
             # Use first base
             first_base = bases[0]
@@ -676,14 +662,18 @@ class TestNocoDBMetaClientIntegration:
     """Integrationstests für NocoDBMetaClient."""
 
     def test_workspace_operations(self, nocodb_meta_client):
-        """Test workspace listing and retrieval."""
+        """Test workspace listing and retrieval.
+
+        Note: Workspace operations may not be available in all NocoDB deployments.
+        If the workspace endpoints are not available, this test will be skipped.
+        """
         try:
-            # List workspaces
+            # Use Library API method
             workspaces = nocodb_meta_client.list_workspaces()
             assert isinstance(workspaces, list)
             assert len(workspaces) > 0
 
-            # Get first workspace details
+            # Get first workspace details using Library API
             first_workspace = workspaces[0]
             workspace_id = first_workspace.get("id")
             assert workspace_id is not None
@@ -693,38 +683,30 @@ class TestNocoDBMetaClientIntegration:
             assert workspace.get("id") == workspace_id
 
         except Exception as e:
-            pytest.skip(f"Workspace operations test failed: {e}")
+            pytest.skip(f"Workspace operations not available: {e}")
 
     def test_base_operations(self, nocodb_meta_client):
-        """Test base listing and retrieval."""
-        try:
-            # First get a workspace
-            workspaces = nocodb_meta_client.list_workspaces()
-            assert len(workspaces) > 0
-            workspace_id = workspaces[0].get("id")
+        """Test base listing and retrieval using Library API."""
+        # Use Library API to list all bases
+        bases = nocodb_meta_client.list_bases()
+        assert isinstance(bases, list)
+        assert len(bases) > 0
 
-            # List bases in workspace
-            bases = nocodb_meta_client.list_bases(workspace_id)
-            assert isinstance(bases, list)
-            assert len(bases) > 0
+        # Get first base details using Library API
+        first_base = bases[0]
+        base_id = first_base.get("id")
+        assert base_id is not None
 
-            # Get first base details
-            first_base = bases[0]
-            base_id = first_base.get("id")
-            assert base_id is not None
-
-            base = nocodb_meta_client.get_base(base_id)
-            assert isinstance(base, dict)
-            assert base.get("id") == base_id
-
-        except Exception as e:
-            pytest.skip(f"Base operations test failed: {e}")
+        base = nocodb_meta_client.get_base(base_id)
+        assert isinstance(base, dict)
+        assert base.get("id") == base_id
 
     def test_table_info(self, nocodb_meta_client, nocodb_setup):
-        """Test getting table information."""
+        """Test getting table information using Library API."""
         table_id = nocodb_setup["table_id"]
 
         try:
+            # Use Library API method
             table_info = nocodb_meta_client.get_table_info(table_id)
             assert isinstance(table_info, dict)
             assert "title" in table_info
@@ -732,10 +714,11 @@ class TestNocoDBMetaClientIntegration:
             pytest.skip("Table info test requires specific API endpoint")
 
     def test_list_columns(self, nocodb_meta_client, nocodb_setup):
-        """Test listing table columns."""
+        """Test listing table columns using Library API."""
         table_id = nocodb_setup["table_id"]
 
         try:
+            # Use Library API method
             columns = nocodb_meta_client.list_columns(table_id)
             assert isinstance(columns, list)
             assert len(columns) > 0

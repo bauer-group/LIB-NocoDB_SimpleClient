@@ -257,16 +257,16 @@ class TestBaseOperations:
         expected_response = {"list": expected_bases}
         meta_client._get.return_value = expected_response
 
-        result = meta_client.list_bases("ws123")
+        result = meta_client.list_bases()
 
         assert result == expected_bases
-        meta_client._get.assert_called_once_with("api/v2/meta/workspaces/ws123/bases")
+        meta_client._get.assert_called_once_with("api/v2/meta/bases/")
 
     def test_list_bases_empty_response(self, meta_client):
         """Test list_bases with empty response."""
         meta_client._get.return_value = {"list": None}
 
-        result = meta_client.list_bases("ws123")
+        result = meta_client.list_bases()
 
         assert result == []
 
