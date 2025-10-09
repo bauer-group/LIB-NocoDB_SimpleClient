@@ -23,10 +23,12 @@ NOCODB_VERSION="${NOCODB_VERSION:-latest}"
 NOCODB_PORT="${NOCODB_PORT:-8080}"
 NOCODB_URL="${NOCODB_URL:-http://localhost:$NOCODB_PORT}"
 NC_ADMIN_EMAIL="${NC_ADMIN_EMAIL:-admin@test.local}"
-NC_ADMIN_PASSWORD="${NC_ADMIN_PASSWORD:-TestPassword123!}"
+NC_ADMIN_PASSWORD="${NC_ADMIN_PASSWORD:-TestPassword123}"
 CONTAINER_NAME="${CONTAINER_NAME:-nocodb-ci-test}"
-NETWORK_NAME="${NETWORK_NAME:-nocodb-test-net}"
+
 AUTH_TOKEN=""
+BASE_ID=""
+API_TOKEN=""
 
 # Farben für Output
 RED='\033[0;31m'
@@ -82,17 +84,13 @@ check_dependencies() {
 setup_docker() {
     log "🐳 Starte NocoDB Docker Container..."
 
-    # Erstelle Netzwerk falls nicht vorhanden
-    docker network create $NETWORK_NAME 2>/dev/null || true
-
     # Stoppe alten Container falls vorhanden
     docker stop $CONTAINER_NAME 2>/dev/null || true
     docker rm $CONTAINER_NAME 2>/dev/null || true
 
-    # Starte NocoDB Container
+    # Starte NocoDB Container (kein Network erforderlich)
     docker run -d \
         --name $CONTAINER_NAME \
-        --network $NETWORK_NAME \
         -p $NOCODB_PORT:8080 \
         -e NC_DISABLE_TELE="true" \
         -e NC_ADMIN_EMAIL="$NC_ADMIN_EMAIL" \
@@ -143,97 +141,125 @@ wait_for_nocodb() {
 generate_token() {
     log "🔑 Generiere API Token..."
 
-    # Step 0: Sign in to retrieve auth token (xc-token)
+    # Step 1: Sign in to retrieve auth token (xc-auth header)
     log "👤 Melde Admin-Benutzer an..."
 
-    local signin_response=$(curl -s -X POST "$NOCODB_URL/api/v2/auth/user/signin" \
+    local signin_response=$(curl -s -X POST "$NOCODB_URL/api/v1/auth/user/signin" \
         -H "Content-Type: application/json" \
+        -H "xc-gui: true" \
         -d "{\"email\":\"$NC_ADMIN_EMAIL\",\"password\":\"$NC_ADMIN_PASSWORD\"}")
 
     if command -v jq &> /dev/null; then
         AUTH_TOKEN=$(echo "$signin_response" | jq -r '.token // empty' 2>/dev/null)
     else
-        AUTH_TOKEN=$(echo "$signin_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//;s/"//')
+        AUTH_TOKEN=$(echo "$signin_response" | grep -o '"token":"[^"]*' | head -1 | sed 's/"token":"//;s/"//')
     fi
 
     if [ -z "$AUTH_TOKEN" ]; then
         error "Login fehlgeschlagen. Response: $signin_response"
     fi
 
-    local auth_header="xc-token: $AUTH_TOKEN"
+    log "✅ Erfolgreich angemeldet"
 
-    # Step 1: Get list of bases using xc-token
-    log "📋 Hole Base-Liste..."
+    # Step 2: Check if base exists (should be empty initially)
+    log "📋 Prüfe Base-Liste..."
 
-    local bases_response=$(curl -s -X GET "$NOCODB_URL/api/v2/meta/bases/" \
-        -H "$auth_header")
+    local bases_response=$(curl -s -X GET "$NOCODB_URL/api/v1/db/meta/projects/" \
+        -H "xc-auth: $AUTH_TOKEN" \
+        -H "xc-gui: true")
 
     # Debug output
-    if ! echo "$bases_response" | grep -q '^{'; then
+    if ! echo "$bases_response" | grep -q '"list"'; then
         error "Konnte Bases nicht abrufen. Response: $bases_response"
     fi
 
-    # Extract first base ID
-    local base_id=""
+    # Extract first base ID (if any)
     if command -v jq &> /dev/null; then
-        base_id=$(echo "$bases_response" | jq -r '.list[0].id // empty' 2>/dev/null)
+        BASE_ID=$(echo "$bases_response" | jq -r '.list[0].id // empty' 2>/dev/null)
     else
-        base_id=$(echo "$bases_response" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
+        BASE_ID=$(echo "$bases_response" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
     fi
 
-    if [ -z "$base_id" ]; then
-        log "ℹ️  Keine Base gefunden, erstelle Standard-Base..."
-        local create_response=$(curl -s -X POST "$NOCODB_URL/api/v2/meta/bases/" \
-            -H "$auth_header" \
+    # Step 3: Create base if none exists
+    if [ -z "$BASE_ID" ]; then
+        log "📦 Erstelle Test-Base..."
+        local create_response=$(curl -s -X POST "$NOCODB_URL/api/v1/db/meta/projects/" \
+            -H "xc-auth: $AUTH_TOKEN" \
+            -H "xc-gui: true" \
             -H "Content-Type: application/json" \
-            -d '{"title":"CI Test Base"}')
+            -d '{"title":"TestBase","meta":"{\"iconColor\":\"#FA8231\"}"}')
 
         if command -v jq &> /dev/null; then
-            base_id=$(echo "$create_response" | jq -r '.id // empty' 2>/dev/null)
+            BASE_ID=$(echo "$create_response" | jq -r '.id // empty' 2>/dev/null)
         else
-            base_id=$(echo "$create_response" | grep -o '"id":"[^"]*' | head -1 | sed 's/"id":"//;s/"//')
+            BASE_ID=$(echo "$create_response" | grep -o '"id":"[^"]*' | head -1 | sed 's/"id":"//;s/"//')
         fi
 
-        if [ -z "$base_id" ]; then
+        if [ -z "$BASE_ID" ]; then
             error "Base konnte nicht erstellt werden. Response: $create_response"
         fi
 
-        log "✅ Base erstellt: $base_id"
+        log "✅ Base erstellt: $BASE_ID"
     else
-        log "✅ Base gefunden: $base_id"
+        log "✅ Base gefunden: $BASE_ID"
     fi
 
-    # Step 2: Create API Token for this base
-    log "🔐 Erstelle API Token für Base..."
-    local token_response=$(curl -s -X POST "$NOCODB_URL/api/v2/meta/bases/$base_id/api-tokens" \
-        -H "$auth_header" \
+    # Step 4: Create API Token (global token, not base-specific)
+    log "🔐 Erstelle API Token..."
+    local token_response=$(curl -s -X POST "$NOCODB_URL/api/v1/tokens" \
+        -H "xc-auth: $AUTH_TOKEN" \
+        -H "xc-gui: true" \
         -H "Content-Type: application/json" \
-        -d '{"description":"CI/CD Integration Token"}')
+        -d '{"description":"CI/CD Tests"}')
 
     # Extract API token
     if command -v jq &> /dev/null; then
         API_TOKEN=$(echo "$token_response" | jq -r '.token // empty' 2>/dev/null)
     else
-        API_TOKEN=$(echo "$token_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//;s/"//')
+        API_TOKEN=$(echo "$token_response" | grep -o '"token":"[^"]*' | head -1 | sed 's/"token":"//;s/"//')
     fi
 
     if [ -z "$API_TOKEN" ]; then
         warning "API Token Erstellung fehlgeschlagen"
         warning "Response war: $token_response"
         error "Konnte keinen API Token generieren"
-    else
-        log "✅ API Token erfolgreich erstellt"
     fi
+
+    log "✅ API Token erfolgreich erstellt"
+    info "Base ID: $BASE_ID"
+    info "API Token: $API_TOKEN"
 }
 
 # Save Credentials
 save_credentials() {
     log "💾 Speichere Credentials..."
 
-    # Bash environment file
+    # .env file for tests directory
+    cat > tests/.env <<EOF
+# NocoDB Test Configuration
+# Auto-generated by ci-setup.sh on $(date)
+
+NOCODB_BASE_URL=$NOCODB_URL
+NOCODB_TOKEN=$API_TOKEN
+
+# Optional: Project Configuration
+NOCODB_PROJECT_ID=$BASE_ID
+
+# Test Data Configuration
+TEST_TABLE_PREFIX=test_
+CLEANUP_TEST_DATA=true
+
+# Test Settings
+RUN_INTEGRATION_TESTS=true
+SKIP_SLOW_TESTS=false
+TEST_TIMEOUT=30
+EOF
+
+    # Bash environment file for sourcing
     cat > .env.test <<EOF
-export NOCODB_API_TOKEN="$API_TOKEN"
-export NOCODB_URL="$NOCODB_URL"
+export NOCODB_BASE_URL="$NOCODB_URL"
+export NOCODB_TOKEN="$API_TOKEN"
+export NOCODB_PROJECT_ID="$BASE_ID"
 export NC_ADMIN_EMAIL="$NC_ADMIN_EMAIL"
 export NC_ADMIN_PASSWORD="$NC_ADMIN_PASSWORD"
 EOF
@@ -243,6 +269,7 @@ EOF
 {
   "api_token": "$API_TOKEN",
   "base_url": "$NOCODB_URL",
+  "base_id": "$BASE_ID",
   "admin_email": "$NC_ADMIN_EMAIL",
   "container_name": "$CONTAINER_NAME"
 }
@@ -250,17 +277,23 @@ EOF
 
     # GitHub Actions format
     if [ -n "$GITHUB_ENV" ]; then
-        echo "NOCODB_API_TOKEN=$API_TOKEN" >> $GITHUB_ENV
-        echo "NOCODB_URL=$NOCODB_URL" >> $GITHUB_ENV
+        echo "NOCODB_TOKEN=$API_TOKEN" >> $GITHUB_ENV
+        echo "NOCODB_BASE_URL=$NOCODB_URL" >> $GITHUB_ENV
+        echo "NOCODB_PROJECT_ID=$BASE_ID" >> $GITHUB_ENV
     fi
 
     # GitLab CI format
     if [ -n "$CI_PROJECT_DIR" ]; then
-        echo "NOCODB_API_TOKEN=$API_TOKEN" > nocodb.env
-        echo "NOCODB_URL=$NOCODB_URL" >> nocodb.env
+        echo "NOCODB_TOKEN=$API_TOKEN" > nocodb.env
+        echo "NOCODB_BASE_URL=$NOCODB_URL" >> nocodb.env
+        echo "NOCODB_PROJECT_ID=$BASE_ID" >> nocodb.env
     fi
 
     log "✅ Credentials gespeichert"
+    info "Dateien erstellt:"
+    echo "  - tests/.env (Python/pytest format)"
+    echo "  - .env.test (Bash source format)"
+    echo "  - nocodb-config.json (JSON format)"
 }
 
 # Test Connection
@@ -269,7 +302,7 @@ test_connection() {
 
     local response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
         -H "xc-token: $API_TOKEN" \
-        "$NOCODB_URL/api/v2/meta/bases/")
+        "$NOCODB_URL/api/v1/db/meta/projects/")
 
     local http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d: -f2)
     local body=$(echo "$response" | sed '$d')  # Remove last line (HTTP_STATUS)
@@ -279,7 +312,8 @@ test_connection() {
 
         # Pretty print if jq available and body is valid JSON
         if command -v jq &> /dev/null && echo "$body" | jq empty 2>/dev/null; then
-            echo "$body" | jq '.'
+            info "Verfügbare Bases:"
+            echo "$body" | jq '.list[] | {id: .id, title: .title}'
         else
             echo "$body"
         fi
@@ -297,11 +331,8 @@ cleanup() {
     docker stop $CONTAINER_NAME 2>/dev/null || true
     docker rm $CONTAINER_NAME 2>/dev/null || true
 
-    # Remove network
-    docker network rm $NETWORK_NAME 2>/dev/null || true
-
     # Remove files
-    rm -f .env.test nocodb-config.json nocodb.env
+    rm -f tests/.env .env.test nocodb-config.json nocodb.env
 
     log "✅ Cleanup abgeschlossen"
 }
@@ -320,16 +351,20 @@ setup() {
     echo ""
     log "✨ Setup erfolgreich abgeschlossen!"
     echo ""
+    info "Base ID: $BASE_ID"
     info "API Token: $API_TOKEN"
     info "URL: $NOCODB_URL"
     echo ""
     info "Credentials wurden gespeichert in:"
-    echo "  - .env.test (Bash format)"
-    echo "  - nocodb-config.json (JSON format)"
+    echo "  - tests/.env (für Python/pytest)"
+    echo "  - .env.test (für Bash)"
+    echo "  - nocodb-config.json (für JSON)"
     echo ""
     info "Führe jetzt deine Tests aus mit:"
-    echo "  source .env.test"
-    echo "  pytest tests/test_integration.py"
+    echo "  python -m pytest tests/"
+    echo ""
+    info "Für Cleanup:"
+    echo "  $0 cleanup"
     echo ""
 }
 
