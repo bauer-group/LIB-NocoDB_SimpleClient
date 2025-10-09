@@ -147,35 +147,41 @@ generate_token() {
         -H "Content-Type: application/json" \
         -d "{\"email\": \"$NC_ADMIN_EMAIL\", \"password\": \"$NC_ADMIN_PASSWORD\"}")
 
+    # Debug: Show response if it doesn't look like JSON
+    if ! echo "$auth_response" | grep -q '^{'; then
+        error "Login fehlgeschlagen - keine JSON-Response erhalten. Response: $auth_response"
+    fi
+
     # Extract token (works with and without jq)
     if command -v jq &> /dev/null; then
-        AUTH_TOKEN=$(echo "$auth_response" | jq -r '.token')
+        AUTH_TOKEN=$(echo "$auth_response" | jq -r '.token // empty' 2>/dev/null)
     else
         AUTH_TOKEN=$(echo "$auth_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
     fi
 
     if [ -z "$AUTH_TOKEN" ] || [ "$AUTH_TOKEN" = "null" ]; then
-        error "Login fehlgeschlagen. Response: $auth_response"
+        error "Login fehlgeschlagen - kein Token in Response. Response: $auth_response"
     fi
 
     log "✅ Authentifizierung erfolgreich"
 
-    # Try to create API Token
+    # Try to create API Token (Note: Use xc-auth header, not xc-token)
     local api_token_response=$(curl -s -X POST "$NOCODB_URL/api/v1/api-tokens" \
         -H "xc-auth: $AUTH_TOKEN" \
         -H "Content-Type: application/json" \
         -d '{"description": "CI/CD Test Token", "permissions": ["*"]}')
 
-    # Extract API token
+    # Extract API token with error handling
     if command -v jq &> /dev/null; then
-        API_TOKEN=$(echo "$api_token_response" | jq -r '.token')
+        API_TOKEN=$(echo "$api_token_response" | jq -r '.token // empty' 2>/dev/null)
     else
         API_TOKEN=$(echo "$api_token_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
     fi
 
     # Fallback to auth token if API token generation failed
     if [ -z "$API_TOKEN" ] || [ "$API_TOKEN" = "null" ]; then
-        warning "API Token konnte nicht generiert werden, nutze Auth Token"
+        warning "API Token konnte nicht generiert werden, nutze Auth Token als Fallback"
+        warning "API Response war: $api_token_response"
         API_TOKEN=$AUTH_TOKEN
     else
         log "✅ API Token generiert"
@@ -228,17 +234,20 @@ test_connection() {
         "$NOCODB_URL/api/v1/db/meta/projects")
 
     local http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d: -f2)
+    local body=$(echo "$response" | sed '$d')  # Remove last line (HTTP_STATUS)
 
     if [ "$http_status" = "200" ]; then
         log "✅ API Verbindung erfolgreich"
 
-        # Pretty print if jq available
-        if command -v jq &> /dev/null; then
-            echo "$response" | head -n -1 | jq '.'
+        # Pretty print if jq available and body is valid JSON
+        if command -v jq &> /dev/null && echo "$body" | jq empty 2>/dev/null; then
+            echo "$body" | jq '.'
+        else
+            echo "$body"
         fi
         return 0
     else
-        error "API Verbindung fehlgeschlagen (HTTP $http_status)"
+        error "API Verbindung fehlgeschlagen (HTTP $http_status). Body: $body"
     fi
 }
 
