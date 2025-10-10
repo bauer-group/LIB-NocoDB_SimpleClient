@@ -59,7 +59,7 @@ Or install directly from GitHub:
 pip install git+{{REPO_URL}}.git
 
 # Specific version/tag
-pip install git+{{REPO_URL}}.git@{{VERSION}}
+pip install git+{{REPO_URL}}.git@v{{VERSION}}
 
 # Specific branch
 pip install git+{{REPO_URL}}.git@main
