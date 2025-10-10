@@ -24,12 +24,18 @@ A simple and powerful Python client for interacting with [NocoDB](https://nocodb
 - **Bulk Operations**: High-performance bulk insert, update, and delete operations
 - **File Management**: Upload, download, and manage file attachments
 - **Advanced Querying**: Complex filtering, sorting, and pagination support with SQL-like query builder
+- **API Version Support**: Seamlessly switch between NocoDB API v2 and v3
+  - Default v2 support with full backward compatibility
+  - Optional v3 support with automatic parameter conversion
+  - Automatic base_id resolution for v3 API
+  - Transparent pagination, sorting, and operator conversion
 - **Meta API Support**: Full access to NocoDB Meta API for structure management
   - Workspace, Base, and Table operations
   - Column/Field management with type-specific helpers
   - View management (Grid, Gallery, Form, Kanban, Calendar)
   - Webhook automation (URL, Email, Slack, Teams)
   - Link/Relation management
+  - Full v2/v3 API version support
 - **Flexible Configuration**: Multiple configuration methods (environment variables, files, direct parameters)
 - **Type Hints**: Full type annotation support for better IDE experience
 - **Error Handling**: Comprehensive exception handling with specific error types
@@ -107,6 +113,44 @@ with NocoDBClient(
     # Client automatically closes when exiting the context
 ```
 
+### API Version Support (v2 & v3)
+
+The client supports both NocoDB API v2 (default) and v3 with automatic parameter conversion:
+
+```python
+from nocodb_simple_client import NocoDBClient
+
+# Using v2 API (default - fully backward compatible)
+client_v2 = NocoDBClient(
+    base_url="https://your-nocodb-instance.com",
+    db_auth_token="your-api-token"
+)
+
+# Using v3 API with automatic base_id resolution
+client_v3 = NocoDBClient(
+    base_url="https://your-nocodb-instance.com",
+    db_auth_token="your-api-token",
+    api_version="v3",
+    base_id="your-base-id"  # Optional, can be auto-resolved
+)
+
+# All methods work the same way - conversion is automatic!
+records = client_v3.get_records(
+    table_id="your-table-id",
+    limit=25,  # Automatically converts to page/pageSize for v3
+    sort="-CreatedAt",  # Automatically converts to JSON array for v3
+    where="(Status,ne,Inactive)"  # Operators converted automatically (ne -> neq)
+)
+```
+
+**Key Features:**
+- **Automatic Conversion**: Pagination (`offset/limit` ↔ `page/pageSize`), sort formats, and operators
+- **Base ID Resolution**: Automatic table_id to base_id mapping with caching for v3
+- **Full Compatibility**: All Data API and Meta API methods support both versions
+- **No Code Changes**: Existing v2 code works without modifications
+
+For detailed information, see the [API Version Guide](docs/API_VERSION_GUIDE.md) and [examples](examples/api_version_example.py).
+
 ## 📚 Documentation
 
 ### Client Configuration
@@ -117,6 +161,8 @@ The `NocoDBClient` supports various configuration options:
 client = NocoDBClient(
     base_url="https://your-nocodb-instance.com",
     db_auth_token="your-api-token",
+    api_version="v2",                                       # API version: "v2" (default) or "v3"
+    base_id="your-base-id",                                 # Base ID (optional, for v3 API)
     access_protection_auth="your-protection-token",        # Value for protection header
     access_protection_header="X-Custom-Auth",              # Custom header name (optional)
     max_redirects=3,                                        # Maximum number of redirects
@@ -465,10 +511,18 @@ The Meta API allows you to programmatically manage your NocoDB structure, includ
 ```python
 from nocodb_simple_client import NocoDBMetaClient, NocoDBConfig
 
-# Initialize Meta API client
+# Initialize Meta API client with v2 (default)
 meta_client = NocoDBMetaClient(
     base_url="https://app.nocodb.com",
     api_token="your-api-token"
+)
+
+# Initialize with v3 API
+meta_client_v3 = NocoDBMetaClient(
+    base_url="https://app.nocodb.com",
+    api_token="your-api-token",
+    api_version="v3",
+    base_id="your-base-id"  # Optional, can be auto-resolved
 )
 
 # Or with config
@@ -477,6 +531,7 @@ meta_client = NocoDBMetaClient(config)
 
 # Meta client inherits all data operations from NocoDBClient
 # So you can use it for both meta operations AND data operations
+# Both v2 and v3 are fully supported!
 records = meta_client.get_records("table_id")  # Data operation
 tables = meta_client.list_tables("base_id")     # Meta operation
 ```
@@ -951,6 +1006,8 @@ except Exception as e:
 Check out the [`examples/`](examples/) directory for comprehensive examples:
 
 - **[Basic Usage](examples/basic_usage.py)**: CRUD operations and fundamentals
+- **[API Version Support](examples/api_version_example.py)**: Using v2 and v3 APIs with automatic conversion
+- **[Meta API Version Support](examples/meta_api_version_example.py)**: Meta API operations with v2/v3
 - **[File Operations](examples/file_operations.py)**: File upload/download examples
 - **[Advanced Querying](examples/advanced_querying.py)**: Complex filtering and sorting with Query Builder
 - **[Context Manager Usage](examples/context_manager_usage.py)**: Proper resource management

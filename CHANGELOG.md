@@ -2,6 +2,39 @@
 
 <!-- version list -->
 
+## Unreleased
+
+### Features
+
+- **API Version Support**: Add seamless support for NocoDB API v2 and v3
+  - Implement `api_version` parameter for client initialization (default: "v2")
+  - Add automatic parameter conversion between v2 and v3 formats
+    - Pagination: `offset/limit` (v2) ↔ `page/pageSize` (v3)
+    - Sort: string format (v2) ↔ JSON array format (v3)
+    - Operators: automatic conversion (e.g., `ne` → `neq`)
+  - Implement `BaseIdResolver` with caching for v3 API base_id resolution
+  - Add v2/v3 support to all Data API methods (14 methods)
+  - Add v2/v3 support to all Meta API methods (29 methods)
+  - Update `NocoDBTable` wrapper to support `base_id` parameter
+  - Full backward compatibility maintained for existing v2 code
+
+### Documentation
+
+- Add comprehensive API Version Guide ([docs/API_VERSION_GUIDE.md](docs/API_VERSION_GUIDE.md))
+- Add Data API v2/v3 usage examples ([examples/api_version_example.py](examples/api_version_example.py))
+- Add Meta API v2/v3 usage examples ([examples/meta_api_version_example.py](examples/meta_api_version_example.py))
+- Update README.template.md with API version support documentation
+- Add OpenAPI v2 and v3 specification files to docs directory
+
+### Tests
+
+- Add 88 new unit tests for v2/v3 functionality
+  - 52 tests for PathBuilder and QueryParamAdapter
+  - 15 tests for BaseIdResolver
+  - 21 integration tests for version switching
+- Update existing tests for new `base_id` parameter
+- All 454 tests passing with full coverage
+
 ## v1.2.0 (2025-10-09)
 
 ### Bug Fixes
