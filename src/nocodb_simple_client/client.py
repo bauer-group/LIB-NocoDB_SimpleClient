@@ -25,7 +25,7 @@ SOFTWARE.
 
 import mimetypes
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
     from .config import NocoDBConfig
@@ -33,6 +33,8 @@ if TYPE_CHECKING:
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from .api_version import APIVersion, PathBuilder, QueryParamAdapter
+from .base_resolver import BaseIdResolver
 from .exceptions import NocoDBException, RecordNotFoundException, ValidationException
 
 
@@ -50,15 +52,27 @@ class NocoDBClient:
             (defaults to "X-BAUERGROUP-Auth")
         max_redirects (int, optional): Maximum number of redirects to follow
         timeout (int, optional): Request timeout in seconds
+        api_version (str, optional): API version to use ("v2" or "v3", defaults to "v2")
+        base_id (str, optional): Default base ID for v3 API operations
 
     Attributes:
         headers (Dict[str, str]): HTTP headers used for requests
+        api_version (APIVersion): The API version being used
+        base_id (str, optional): Default base ID for v3 operations
 
     Example:
-        >>> # Default usage
+        >>> # Default usage (v2 API)
         >>> client = NocoDBClient(
         ...     base_url="https://app.nocodb.com",
         ...     db_auth_token="your-api-token"
+        ... )
+        >>>
+        >>> # Using v3 API with base_id
+        >>> client = NocoDBClient(
+        ...     base_url="https://app.nocodb.com",
+        ...     db_auth_token="your-api-token",
+        ...     api_version="v3",
+        ...     base_id="base_abc123"
         ... )
         >>>
         >>> # With custom protection header
@@ -78,7 +92,9 @@ class NocoDBClient:
         access_protection_header: str = "X-BAUERGROUP-Auth",
         max_redirects: int | None = None,
         timeout: int | None = None,
-        config: Optional["NocoDBConfig"] = None,
+        config: "NocoDBConfig | None" = None,
+        api_version: str = "v2",
+        base_id: str | None = None,
     ) -> None:
         from .config import NocoDBConfig  # Import here to avoid circular import
 
@@ -134,6 +150,49 @@ class NocoDBClient:
 
         if max_redirects is not None:
             self._session.max_redirects = max_redirects
+
+        # API version support
+        self.api_version = APIVersion(api_version)
+        self.base_id = base_id
+        self._path_builder = PathBuilder(self.api_version)
+        self._param_adapter = QueryParamAdapter()
+
+        # Base ID resolver for v3 API (resolves table_id -> base_id)
+        self._base_resolver = BaseIdResolver(self) if self.api_version == APIVersion.V3 else None
+
+    def _resolve_base_id(self, table_id: str, base_id: str | None = None) -> str:
+        """Resolve base_id for API v3 operations.
+
+        Args:
+            table_id: The table ID
+            base_id: Optional base_id override
+
+        Returns:
+            The resolved base_id
+
+        Raises:
+            ValueError: If base_id cannot be resolved for v3 API
+        """
+        # If base_id provided explicitly, use it
+        if base_id:
+            return base_id
+
+        # Use client's default base_id if set
+        if self.base_id:
+            return self.base_id
+
+        # For v3, try to resolve from table_id
+        if self.api_version == APIVersion.V3 and self._base_resolver:
+            return self._base_resolver.get_base_id(table_id)
+
+        # For v2, base_id is not required
+        if self.api_version == APIVersion.V2:
+            raise ValueError("base_id should not be required for API v2")
+
+        raise ValueError(
+            f"base_id is required for API v3. Please provide it in the client constructor "
+            f"or as a parameter to the method call for table {table_id}"
+        )
 
     def _get(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Make a GET request to the API."""
@@ -236,6 +295,7 @@ class NocoDBClient:
     def get_records(
         self,
         table_id: str,
+        base_id: str | None = None,
         sort: str | None = None,
         where: str | None = None,
         fields: list[str] | None = None,
@@ -245,6 +305,7 @@ class NocoDBClient:
 
         Args:
             table_id: The ID of the table
+            base_id: Base ID (required for v3, optional for v2)
             sort: Sort criteria (e.g., "Id", "-CreatedAt")
             where: Filter condition (e.g., "(Name,eq,John)")
             fields: List of fields to retrieve
@@ -257,6 +318,14 @@ class NocoDBClient:
             RecordNotFoundException: If no records match the criteria
             NocoDBException: For other API errors
         """
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_list(table_id, resolved_base_id)
+
         records = []
         offset = 0
         remaining_limit = limit
@@ -270,7 +339,13 @@ class NocoDBClient:
             # Remove None values from params
             params = {k: v for k, v in params.items() if v is not None}
 
-            response = self._get(f"api/v2/tables/{table_id}/records", params=params)
+            # Convert query parameters for v3
+            if self.api_version == APIVersion.V3:
+                params = self._param_adapter.convert_pagination_to_v3(params)
+                if sort:
+                    params["sort"] = self._param_adapter.convert_sort_to_v3(sort)
+
+            response = self._get(endpoint, params=params)
 
             batch_records = response.get("list", [])
             records.extend(batch_records)
@@ -288,6 +363,7 @@ class NocoDBClient:
         self,
         table_id: str,
         record_id: int | str,
+        base_id: str | None = None,
         fields: list[str] | None = None,
     ) -> dict[str, Any]:
         """Get a single record by ID.
@@ -295,6 +371,7 @@ class NocoDBClient:
         Args:
             table_id: The ID of the table
             record_id: The ID of the record
+            base_id: Base ID (required for v3, optional for v2)
             fields: List of fields to retrieve
 
         Returns:
@@ -304,18 +381,29 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_get(table_id, str(record_id), resolved_base_id)
+
         params = {}
         if fields:
             params["fields"] = ",".join(fields)
 
-        return self._get(f"api/v2/tables/{table_id}/records/{record_id}", params=params)
+        return self._get(endpoint, params=params)
 
-    def insert_record(self, table_id: str, record: dict[str, Any]) -> int | str:
+    def insert_record(
+        self, table_id: str, record: dict[str, Any], base_id: str | None = None
+    ) -> int | str:
         """Insert a new record into a table.
 
         Args:
             table_id: The ID of the table
             record: Dictionary containing the record data
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the inserted record
@@ -323,7 +411,15 @@ class NocoDBClient:
         Raises:
             NocoDBException: For API errors
         """
-        response = self._post(f"api/v2/tables/{table_id}/records", data=record)
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_create(table_id, resolved_base_id)
+
+        response = self._post(endpoint, data=record)
         # API v2 returns a single object: {"Id": 123}
         if isinstance(response, dict):
             record_id = response.get("Id")
@@ -344,6 +440,7 @@ class NocoDBClient:
         table_id: str,
         record: dict[str, Any],
         record_id: int | str | None = None,
+        base_id: str | None = None,
     ) -> int | str:
         """Update an existing record.
 
@@ -351,6 +448,7 @@ class NocoDBClient:
             table_id: The ID of the table
             record: Dictionary containing the updated record data
             record_id: The ID of the record to update (optional if included in record)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the updated record
@@ -362,7 +460,15 @@ class NocoDBClient:
         if record_id is not None:
             record["Id"] = record_id
 
-        response = self._patch(f"api/v2/tables/{table_id}/records", data=record)
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_update(table_id, resolved_base_id)
+
+        response = self._patch(endpoint, data=record)
         if isinstance(response, dict):
             record_id = response.get("Id")
         else:
@@ -377,12 +483,15 @@ class NocoDBClient:
             )
         return record_id  # type: ignore[no-any-return]
 
-    def delete_record(self, table_id: str, record_id: int | str) -> int | str:
+    def delete_record(
+        self, table_id: str, record_id: int | str, base_id: str | None = None
+    ) -> int | str:
         """Delete a record from a table.
 
         Args:
             table_id: The ID of the table
             record_id: The ID of the record to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the deleted record
@@ -391,8 +500,15 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
 
-        response = self._delete(f"api/v2/tables/{table_id}/records", data={"Id": record_id})
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_delete(table_id, resolved_base_id)
+
+        response = self._delete(endpoint, data={"Id": record_id})
         if isinstance(response, dict):
             deleted_id = response.get("Id")
         else:
@@ -407,12 +523,15 @@ class NocoDBClient:
             )
         return deleted_id  # type: ignore[no-any-return]
 
-    def count_records(self, table_id: str, where: str | None = None) -> int:
+    def count_records(
+        self, table_id: str, where: str | None = None, base_id: str | None = None
+    ) -> int:
         """Count records in a table.
 
         Args:
             table_id: The ID of the table
             where: Filter condition (e.g., "(Name,eq,John)")
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Number of records matching the criteria
@@ -420,20 +539,31 @@ class NocoDBClient:
         Raises:
             NocoDBException: For API errors
         """
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_count(table_id, resolved_base_id)
+
         params = {}
         if where:
             params["where"] = where
 
-        response = self._get(f"api/v2/tables/{table_id}/records/count", params=params)
+        response = self._get(endpoint, params=params)
         count = response.get("count", 0)
         return int(count) if count is not None else 0
 
-    def bulk_insert_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+    def bulk_insert_records(
+        self, table_id: str, records: list[dict[str, Any]], base_id: str | None = None
+    ) -> list[int | str]:
         """Insert multiple records at once for better performance.
 
         Args:
             table_id: The ID of the table
             records: List of record dictionaries to insert
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of inserted record IDs
@@ -448,9 +578,17 @@ class NocoDBClient:
         if not isinstance(records, list):
             raise ValidationException("Records must be a list")
 
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_create(table_id, resolved_base_id)
+
         # NocoDB v2 API supports bulk insert via array payload
         try:
-            response = self._post(f"api/v2/tables/{table_id}/records", data=records)
+            response = self._post(endpoint, data=records)
 
             # Response should be list of record IDs
             if isinstance(response, list):
@@ -472,12 +610,15 @@ class NocoDBClient:
                 raise
             raise NocoDBException("BULK_INSERT_ERROR", f"Bulk insert failed: {str(e)}") from e
 
-    def bulk_update_records(self, table_id: str, records: list[dict[str, Any]]) -> list[int | str]:
+    def bulk_update_records(
+        self, table_id: str, records: list[dict[str, Any]], base_id: str | None = None
+    ) -> list[int | str]:
         """Update multiple records at once for better performance.
 
         Args:
             table_id: The ID of the table
             records: List of record dictionaries to update (must include Id field)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of updated record IDs
@@ -499,8 +640,16 @@ class NocoDBClient:
             if "Id" not in record:
                 raise ValidationException(f"Record at index {i} missing required 'Id' field")
 
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_update(table_id, resolved_base_id)
+
         try:
-            response = self._patch(f"api/v2/tables/{table_id}/records", data=records)
+            response = self._patch(endpoint, data=records)
 
             # Response should be list of record IDs
             if isinstance(response, list):
@@ -522,12 +671,15 @@ class NocoDBClient:
                 raise
             raise NocoDBException("BULK_UPDATE_ERROR", f"Bulk update failed: {str(e)}") from e
 
-    def bulk_delete_records(self, table_id: str, record_ids: list[int | str]) -> list[int | str]:
+    def bulk_delete_records(
+        self, table_id: str, record_ids: list[int | str], base_id: str | None = None
+    ) -> list[int | str]:
         """Delete multiple records at once for better performance.
 
         Args:
             table_id: The ID of the table
             record_ids: List of record IDs to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of deleted record IDs
@@ -542,11 +694,19 @@ class NocoDBClient:
         if not isinstance(record_ids, list):
             raise ValidationException("Record IDs must be a list")
 
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build path using PathBuilder
+        endpoint = self._path_builder.records_delete(table_id, resolved_base_id)
+
         # Convert to list of dictionaries with Id field
         records_to_delete = [{"Id": record_id} for record_id in record_ids]
 
         try:
-            response = self._delete(f"api/v2/tables/{table_id}/records", data=records_to_delete)
+            response = self._delete(endpoint, data=records_to_delete)
 
             # Response should be list of record IDs
             if isinstance(response, list):
@@ -585,12 +745,13 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _upload_file(self, table_id: str, file_path: str | Path) -> Any:
+    def _upload_file(self, table_id: str, file_path: str | Path, base_id: str | None = None) -> Any:
         """Upload a file to NocoDB storage.
 
         Args:
             table_id: The ID of the table
             file_path: Path to the file to upload
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Upload response with file information
@@ -608,10 +769,18 @@ class NocoDBClient:
         if mime_type is None:
             mime_type = "application/octet-stream"
 
+        # Resolve base_id for v3
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        # Build upload endpoint
+        endpoint = self._path_builder.file_upload(table_id, resolved_base_id)
+
         with file_path.open("rb") as f:
             files = {"file": (filename, f, mime_type)}
             path = f"files/{table_id}"
-            return self._multipart_post("api/v2/storage/upload", files, fields={"path": path})
+            return self._multipart_post(endpoint, files, fields={"path": path})
 
     def attach_file_to_record(
         self,
@@ -619,6 +788,7 @@ class NocoDBClient:
         record_id: int | str,
         field_name: str,
         file_path: str | Path,
+        base_id: str | None = None,
     ) -> int | str:
         """Attach a file to a record without overwriting existing files.
 
@@ -627,6 +797,7 @@ class NocoDBClient:
             record_id: The ID of the record
             field_name: The name of the attachment field
             file_path: Path to the file to attach
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the updated record
@@ -635,7 +806,7 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        return self.attach_files_to_record(table_id, record_id, field_name, [file_path])
+        return self.attach_files_to_record(table_id, record_id, field_name, [file_path], base_id)
 
     def attach_files_to_record(
         self,
@@ -643,6 +814,7 @@ class NocoDBClient:
         record_id: int | str,
         field_name: str,
         file_paths: list[str | Path],
+        base_id: str | None = None,
     ) -> int | str:
         """Attach multiple files to a record without overwriting existing files.
 
@@ -651,6 +823,7 @@ class NocoDBClient:
             record_id: The ID of the record
             field_name: The name of the attachment field
             file_paths: List of file paths to attach
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the updated record
@@ -659,11 +832,11 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        existing_record = self.get_record(table_id, record_id, fields=[field_name])
+        existing_record = self.get_record(table_id, record_id, base_id=base_id, fields=[field_name])
         existing_files = existing_record.get(field_name, []) or []
 
         for file_path in file_paths:
-            upload_response = self._upload_file(table_id, file_path)
+            upload_response = self._upload_file(table_id, file_path, base_id)
             # NocoDB upload returns an array of file objects
             if isinstance(upload_response, list):
                 existing_files.extend(upload_response)
@@ -673,13 +846,14 @@ class NocoDBClient:
                 raise NocoDBException("INVALID_RESPONSE", "Invalid upload response format")
 
         record_update = {field_name: existing_files}
-        return self.update_record(table_id, record_update, record_id)
+        return self.update_record(table_id, record_update, record_id, base_id)
 
     def delete_file_from_record(
         self,
         table_id: str,
         record_id: int | str,
         field_name: str,
+        base_id: str | None = None,
     ) -> int | str:
         """Delete all files from a record field.
 
@@ -687,6 +861,7 @@ class NocoDBClient:
             table_id: The ID of the table
             record_id: The ID of the record
             field_name: The name of the attachment field
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the updated record
@@ -696,7 +871,7 @@ class NocoDBClient:
             NocoDBException: For other API errors
         """
         record = {field_name: "[]"}
-        return self.update_record(table_id, record, record_id)
+        return self.update_record(table_id, record, record_id, base_id)
 
     def _download_single_file(self, file_info: dict[str, Any], file_path: Path) -> None:
         """Helper method to download a single file.
@@ -734,6 +909,7 @@ class NocoDBClient:
         record_id: int | str,
         field_name: str,
         file_path: str | Path,
+        base_id: str | None = None,
     ) -> None:
         """Download the first file from a record field.
 
@@ -742,12 +918,13 @@ class NocoDBClient:
             record_id: The ID of the record
             field_name: The name of the attachment field
             file_path: Path where the file should be saved
+            base_id: Base ID (required for v3, optional for v2)
 
         Raises:
             RecordNotFoundException: If the record is not found
             NocoDBException: If no files are found or download fails
         """
-        record = self.get_record(table_id, record_id, fields=[field_name])
+        record = self.get_record(table_id, record_id, base_id=base_id, fields=[field_name])
 
         if field_name not in record or not record[field_name]:
             raise NocoDBException("FILE_NOT_FOUND", "No file found in the specified field.")
@@ -761,6 +938,7 @@ class NocoDBClient:
         record_id: int | str,
         field_name: str,
         directory: str | Path,
+        base_id: str | None = None,
     ) -> None:
         """Download all files from a record field.
 
@@ -769,12 +947,13 @@ class NocoDBClient:
             record_id: The ID of the record
             field_name: The name of the attachment field
             directory: Directory where files should be saved
+            base_id: Base ID (required for v3, optional for v2)
 
         Raises:
             RecordNotFoundException: If the record is not found
             NocoDBException: If no files are found or download fails
         """
-        record = self.get_record(table_id, record_id, fields=[field_name])
+        record = self.get_record(table_id, record_id, base_id=base_id, fields=[field_name])
 
         if field_name not in record or not record[field_name]:
             raise NocoDBException("FILE_NOT_FOUND", "No files found in the specified field.")

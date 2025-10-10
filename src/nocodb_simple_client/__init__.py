@@ -26,6 +26,8 @@ SOFTWARE.
 # Async support (optional)
 from typing import TYPE_CHECKING
 
+from .api_version import APIVersion, PathBuilder, QueryParamAdapter
+from .base_resolver import BaseIdResolver
 from .cache import CacheManager
 from .client import NocoDBClient
 from .columns import NocoDBColumns, TableColumns
@@ -88,6 +90,11 @@ __all__ = [
     "NocoDBClient",
     "NocoDBTable",
     "NocoDBMetaClient",
+    # API Version support
+    "APIVersion",
+    "PathBuilder",
+    "QueryParamAdapter",
+    "BaseIdResolver",
     # Exceptions
     "NocoDBException",
     "RecordNotFoundException",

@@ -280,7 +280,7 @@ class TestNocoDBClient:
             result = client.attach_file_to_record("test-table", 123, "Document", "/path/file.txt")
 
             assert result == 123
-            mock_upload.assert_called_once_with("test-table", "/path/file.txt")
+            mock_upload.assert_called_once_with("test-table", "/path/file.txt", None)
 
     def test_download_file_from_record(self, client, mock_session):
         """Test downloading file from record."""
