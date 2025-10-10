@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/README.template.MD instead. -->
-<!-- Generated on 2025-10-10 13:32:49 UTC -->
+<!-- Generated on 2025-10-10 13:33:55 UTC -->
 
 # BAUER GROUP - NocoDB Simple Client
 
@@ -62,7 +62,7 @@ Or install directly from GitHub:
 pip install git+https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git
 
 # Specific version/tag
-pip install git+https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git@1.3.0
+pip install git+https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git@v1.3.0
 
 # Specific branch
 pip install git+https://github.com/bauer-group/LIB-NocoDB_SimpleClient.git@main
@@ -1233,4 +1233,4 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
 ---
 
-*Generated on 2025-10-10 13:32:49 UTC from [docs/README.template.MD](docs/README.template.MD)*
+*Generated on 2025-10-10 13:33:55 UTC from [docs/README.template.MD](docs/README.template.MD)*
