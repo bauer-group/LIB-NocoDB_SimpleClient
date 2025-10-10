@@ -2,6 +2,56 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-10-10)
+
+### Chores
+
+- Add examples for bulk operations, configuration, link management, meta operations, and webhook
+  automation
+  ([`68a5fea`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/68a5fead697d1e302c16f2040176ff4b52df8049))
+
+- Add scripts for comprehensive API comparison and schema analysis between NocoDB v2 and v3
+  ([`dadf3a2`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/dadf3a214ccba58f74330e25fa4293ec7899b43c))
+
+- Update AI issue summary workflow configuration
+  ([`0cb801c`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/0cb801cfdc9a85c5c234009c851dae3e500c2a38))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`904dfb7`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/904dfb79379020021a81398a353387d40b3305f5))
+
+- Update README.MD [automated]
+  ([`e8c28fb`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/e8c28fb87093b28fef4136506944b1e6754dfc82))
+
+- Update README.MD [automated]
+  ([`a37417c`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/a37417c5339e1fb384680a5808897d47a74ae610))
+
+- Update SECURITY.MD [automated]
+  ([`53ed8f0`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/53ed8f06657e355d7c8e3388907abe26e0a791e9))
+
+- V3 OpenAPI Specifications
+  ([`6059be4`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/6059be4bd37c4932265acca91ed02ad5435e971a))
+
+### Features
+
+- Add support for benchmark tests in run-all script and quick-test script
+  ([`956b93f`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/956b93fe9dfd96e22db9808ebab67fbae25cca36))
+
+- Enhance Client to support both API v2 and v3
+  ([`9356b08`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/9356b084464d75fcd34d1ff0d73dacbf8ac9095f))
+
+- Implement comprehensive support for NocoDB API v2 and v3, including automatic parameter conversion
+  and backward compatibility
+  ([`d7c359f`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/d7c359fc19aac96d6515baad0cbdd7fa6ab97d5e))
+
+- Refactor parameter handling and type annotations in API client and resolver classes
+  ([`9e1317d`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/9e1317d203a264b2632766d0a8ffd5d4f38c2a22))
+
+- Update file upload paths for API v2 to use new endpoint structure
+  ([`f0dea7c`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/f0dea7cf9bb8cf2d862bba1c50a9857be9f97d25))
+
+
 ## Unreleased
 
 ### Features
