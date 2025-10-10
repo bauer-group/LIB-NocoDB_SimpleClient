@@ -6,6 +6,31 @@ import pytest
 from nocodb_simple_client.meta_client import NocoDBMetaClient
 from nocodb_simple_client.client import NocoDBClient
 from nocodb_simple_client.config import NocoDBConfig
+from nocodb_simple_client.api_version import APIVersion, PathBuilder
+
+
+def setup_meta_client_mock(client_mock):
+    """Setup mock client with PathBuilder and API version for v2."""
+    # Mock API version
+    client_mock.api_version = APIVersion.V2
+
+    # Mock PathBuilder
+    path_builder_mock = Mock(spec=PathBuilder)
+    client_mock._path_builder = path_builder_mock
+
+    # Setup PathBuilder methods to return v2 endpoints
+    path_builder_mock.bases_list.return_value = "api/v2/meta/bases"
+    path_builder_mock.base_get.side_effect = lambda base_id: f"api/v2/meta/bases/{base_id}"
+    path_builder_mock.tables_list_meta.side_effect = lambda base_id: f"api/v2/meta/bases/{base_id}/tables"
+    path_builder_mock.table_get_meta.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}"
+    path_builder_mock.columns_create.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/columns"
+    path_builder_mock.column_get.side_effect = lambda column_id, base_id=None: f"api/v2/meta/columns/{column_id}"
+    path_builder_mock.views_list.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/views"
+    path_builder_mock.view_get.side_effect = lambda view_id, base_id=None: f"api/v2/meta/views/{view_id}"
+    path_builder_mock.webhooks_list.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/hooks"
+    path_builder_mock.webhook_get.side_effect = lambda hook_id, base_id=None: f"api/v2/meta/hooks/{hook_id}"
+
+    return client_mock
 
 
 class TestMetaClientInheritance:
@@ -48,6 +73,7 @@ class TestTableOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         # Make sure it has the required methods
         client.list_tables = NocoDBMetaClient.list_tables.__get__(client)
         client.get_table_info = NocoDBMetaClient.get_table_info.__get__(client)
@@ -155,6 +181,7 @@ class TestWorkspaceOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_workspaces = NocoDBMetaClient.list_workspaces.__get__(client)
         client.get_workspace = NocoDBMetaClient.get_workspace.__get__(client)
         client.create_workspace = NocoDBMetaClient.create_workspace.__get__(client)
@@ -241,6 +268,7 @@ class TestBaseOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_bases = NocoDBMetaClient.list_bases.__get__(client)
         client.get_base = NocoDBMetaClient.get_base.__get__(client)
         client.create_base = NocoDBMetaClient.create_base.__get__(client)
@@ -260,7 +288,7 @@ class TestBaseOperations:
         result = meta_client.list_bases()
 
         assert result == expected_bases
-        meta_client._get.assert_called_once_with("api/v2/meta/bases/")
+        meta_client._get.assert_called_once_with("api/v2/meta/bases")
 
     def test_list_bases_empty_response(self, meta_client):
         """Test list_bases with empty response."""
@@ -327,6 +355,7 @@ class TestColumnOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_columns = NocoDBMetaClient.list_columns.__get__(client)
         client.create_column = NocoDBMetaClient.create_column.__get__(client)
         client.update_column = NocoDBMetaClient.update_column.__get__(client)
@@ -400,6 +429,7 @@ class TestViewOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_views = NocoDBMetaClient.list_views.__get__(client)
         client.get_view = NocoDBMetaClient.get_view.__get__(client)
         client.create_view = NocoDBMetaClient.create_view.__get__(client)
@@ -487,6 +517,7 @@ class TestWebhookOperations:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_webhooks = NocoDBMetaClient.list_webhooks.__get__(client)
         client.get_webhook = NocoDBMetaClient.get_webhook.__get__(client)
         client.create_webhook = NocoDBMetaClient.create_webhook.__get__(client)
@@ -599,6 +630,7 @@ class TestMetaClientEndpoints:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_tables = NocoDBMetaClient.list_tables.__get__(client)
         client.get_table_info = NocoDBMetaClient.get_table_info.__get__(client)
         client.create_table = NocoDBMetaClient.create_table.__get__(client)
@@ -628,6 +660,7 @@ class TestMetaClientErrorHandling:
     def meta_client(self):
         """Create meta client with mocked HTTP methods."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_tables = NocoDBMetaClient.list_tables.__get__(client)
         return client
 
@@ -655,6 +688,7 @@ class TestMetaClientIntegration:
     def meta_client(self):
         """Create meta client for integration testing."""
         client = Mock(spec=NocoDBMetaClient)
+        setup_meta_client_mock(client)
         client.list_tables = NocoDBMetaClient.list_tables.__get__(client)
         client.create_table = NocoDBMetaClient.create_table.__get__(client)
         client.delete_table = NocoDBMetaClient.delete_table.__get__(client)

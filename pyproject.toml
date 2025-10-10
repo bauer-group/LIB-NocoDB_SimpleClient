@@ -171,6 +171,7 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "performance: Performance tests",
     "benchmark: Benchmark tests",
     "asyncio: Asynchronous tests",
 ]

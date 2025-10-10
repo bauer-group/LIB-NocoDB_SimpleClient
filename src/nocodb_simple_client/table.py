@@ -60,6 +60,7 @@ class NocoDBTable:
         where: str | None = None,
         fields: list[str] | None = None,
         limit: int = 25,
+        base_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """Get multiple records from the table.
 
@@ -68,6 +69,7 @@ class NocoDBTable:
             where: Filter condition (e.g., "(Name,eq,John)")
             fields: List of fields to retrieve
             limit: Maximum number of records to retrieve
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of record dictionaries
@@ -76,18 +78,22 @@ class NocoDBTable:
             RecordNotFoundException: If no records match the criteria
             NocoDBException: For other API errors
         """
-        return self.client.get_records(self.table_id, sort, where, fields, limit)
+        return self.client.get_records(
+            self.table_id, base_id=base_id, sort=sort, where=where, fields=fields, limit=limit
+        )
 
     def get_record(
         self,
         record_id: int | str,
         fields: list[str] | None = None,
+        base_id: str | None = None,
     ) -> dict[str, Any]:
         """Get a single record by ID.
 
         Args:
             record_id: The ID of the record
             fields: List of fields to retrieve
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Record dictionary
@@ -96,13 +102,18 @@ class NocoDBTable:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        return self.client.get_record(self.table_id, record_id, fields)
+        return self.client.get_record(self.table_id, record_id, base_id=base_id, fields=fields)
 
-    def insert_record(self, record: dict[str, Any]) -> int | str:
+    def insert_record(
+        self,
+        record: dict[str, Any],
+        base_id: str | None = None,
+    ) -> int | str:
         """Insert a new record into the table.
 
         Args:
             record: Dictionary containing the record data
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the inserted record
@@ -110,18 +121,20 @@ class NocoDBTable:
         Raises:
             NocoDBException: For API errors
         """
-        return self.client.insert_record(self.table_id, record)
+        return self.client.insert_record(self.table_id, record, base_id=base_id)
 
     def update_record(
         self,
         record: dict[str, Any],
         record_id: int | str | None = None,
+        base_id: str | None = None,
     ) -> int | str:
         """Update an existing record.
 
         Args:
             record: Dictionary containing the updated record data
             record_id: The ID of the record to update (optional if included in record)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the updated record
@@ -130,13 +143,18 @@ class NocoDBTable:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        return self.client.update_record(self.table_id, record, record_id)
+        return self.client.update_record(self.table_id, record, record_id, base_id=base_id)
 
-    def delete_record(self, record_id: int | str) -> int | str:
+    def delete_record(
+        self,
+        record_id: int | str,
+        base_id: str | None = None,
+    ) -> int | str:
         """Delete a record from the table.
 
         Args:
             record_id: The ID of the record to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             The ID of the deleted record
@@ -145,13 +163,18 @@ class NocoDBTable:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        return self.client.delete_record(self.table_id, record_id)
+        return self.client.delete_record(self.table_id, record_id, base_id=base_id)
 
-    def count_records(self, where: str | None = None) -> int:
+    def count_records(
+        self,
+        where: str | None = None,
+        base_id: str | None = None,
+    ) -> int:
         """Count records in the table.
 
         Args:
             where: Filter condition (e.g., "(Name,eq,John)")
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Number of records matching the criteria
@@ -159,13 +182,18 @@ class NocoDBTable:
         Raises:
             NocoDBException: For API errors
         """
-        return self.client.count_records(self.table_id, where)
+        return self.client.count_records(self.table_id, where, base_id=base_id)
 
-    def bulk_insert_records(self, records: list[dict[str, Any]]) -> list[int | str]:
+    def bulk_insert_records(
+        self,
+        records: list[dict[str, Any]],
+        base_id: str | None = None,
+    ) -> list[int | str]:
         """Insert multiple records at once for better performance.
 
         Args:
             records: List of record dictionaries to insert
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of inserted record IDs
@@ -174,13 +202,18 @@ class NocoDBTable:
             NocoDBException: For API errors
             ValidationException: If records data is invalid
         """
-        return self.client.bulk_insert_records(self.table_id, records)
+        return self.client.bulk_insert_records(self.table_id, records, base_id=base_id)
 
-    def bulk_update_records(self, records: list[dict[str, Any]]) -> list[int | str]:
+    def bulk_update_records(
+        self,
+        records: list[dict[str, Any]],
+        base_id: str | None = None,
+    ) -> list[int | str]:
         """Update multiple records at once for better performance.
 
         Args:
             records: List of record dictionaries to update (must include Id field)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of updated record IDs
@@ -189,13 +222,18 @@ class NocoDBTable:
             NocoDBException: For API errors
             ValidationException: If records data is invalid
         """
-        return self.client.bulk_update_records(self.table_id, records)
+        return self.client.bulk_update_records(self.table_id, records, base_id=base_id)
 
-    def bulk_delete_records(self, record_ids: list[int | str]) -> list[int | str]:
+    def bulk_delete_records(
+        self,
+        record_ids: list[int | str],
+        base_id: str | None = None,
+    ) -> list[int | str]:
         """Delete multiple records at once for better performance.
 
         Args:
             record_ids: List of record IDs to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of deleted record IDs
@@ -204,7 +242,7 @@ class NocoDBTable:
             NocoDBException: For API errors
             ValidationException: If record_ids is invalid
         """
-        return self.client.bulk_delete_records(self.table_id, record_ids)
+        return self.client.bulk_delete_records(self.table_id, record_ids, base_id=base_id)
 
     def query(self) -> QueryBuilder:
         """Create a new QueryBuilder for this table.

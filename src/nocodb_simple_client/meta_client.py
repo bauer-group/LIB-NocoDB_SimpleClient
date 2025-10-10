@@ -86,6 +86,8 @@ class NocoDBMetaClient(NocoDBClient):
     def list_workspaces(self) -> list[dict[str, Any]]:
         """List all workspaces accessible to the authenticated user.
 
+        Supports both API v2 and v3.
+
         Returns:
             List of workspace metadata dictionaries
 
@@ -97,12 +99,16 @@ class NocoDBMetaClient(NocoDBClient):
             >>> for workspace in workspaces:
             ...     print(workspace['id'], workspace['title'])
         """
-        response = self._get("api/v2/meta/workspaces")
+        # Workspace endpoints are same for v2 and v3
+        endpoint = f"api/{self.api_version}/meta/workspaces"
+        response = self._get(endpoint)
         workspace_list = response.get("list", [])
         return workspace_list if isinstance(workspace_list, list) else []
 
     def get_workspace(self, workspace_id: str) -> dict[str, Any]:
         """Get detailed information about a specific workspace.
+
+        Supports both API v2 and v3.
 
         Args:
             workspace_id: The workspace ID
@@ -118,11 +124,14 @@ class NocoDBMetaClient(NocoDBClient):
             >>> workspace = meta_client.get_workspace("ws_abc123")
             >>> print(workspace['title'], workspace['created_at'])
         """
-        result = self._get(f"api/v2/meta/workspaces/{workspace_id}")
+        endpoint = f"api/{self.api_version}/meta/workspaces/{workspace_id}"
+        result = self._get(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     def create_workspace(self, workspace_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new workspace.
+
+        Supports both API v2 and v3.
 
         Args:
             workspace_data: Workspace creation data (title, description, etc.)
@@ -141,11 +150,14 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> workspace = meta_client.create_workspace(workspace_data)
         """
-        result = self._post("api/v2/meta/workspaces", data=workspace_data)
+        endpoint = f"api/{self.api_version}/meta/workspaces"
+        result = self._post(endpoint, data=workspace_data)
         return result if isinstance(result, dict) else {"data": result}
 
     def update_workspace(self, workspace_id: str, workspace_data: dict[str, Any]) -> dict[str, Any]:
         """Update workspace metadata.
+
+        Supports both API v2 and v3.
 
         Args:
             workspace_id: The workspace ID to update
@@ -164,13 +176,16 @@ class NocoDBMetaClient(NocoDBClient):
             ...     {"title": "Updated Workspace Name"}
             ... )
         """
-        result = self._patch(f"api/v2/meta/workspaces/{workspace_id}", data=workspace_data)
+        endpoint = f"api/{self.api_version}/meta/workspaces/{workspace_id}"
+        result = self._patch(endpoint, data=workspace_data)
         return result if isinstance(result, dict) else {"data": result}
 
     def delete_workspace(self, workspace_id: str) -> dict[str, Any]:
         """Delete a workspace.
 
         Warning: This will delete all bases and data within the workspace.
+
+        Supports both API v2 and v3.
 
         Args:
             workspace_id: The workspace ID to delete
@@ -185,7 +200,8 @@ class NocoDBMetaClient(NocoDBClient):
         Example:
             >>> result = meta_client.delete_workspace("ws_abc123")
         """
-        result = self._delete(f"api/v2/meta/workspaces/{workspace_id}")
+        endpoint = f"api/{self.api_version}/meta/workspaces/{workspace_id}"
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     # ========================================================================
@@ -194,6 +210,8 @@ class NocoDBMetaClient(NocoDBClient):
 
     def list_bases(self) -> list[dict[str, Any]]:
         """List all bases.
+
+        Supports both API v2 and v3.
 
         Returns:
             List of base metadata dictionaries
@@ -206,12 +224,15 @@ class NocoDBMetaClient(NocoDBClient):
             >>> for base in bases:
             ...     print(base['id'], base['title'])
         """
-        response = self._get("api/v2/meta/bases/")
+        endpoint = self._path_builder.bases_list()
+        response = self._get(endpoint)
         base_list = response.get("list", [])
         return base_list if isinstance(base_list, list) else []
 
     def get_base(self, base_id: str) -> dict[str, Any]:
         """Get detailed information about a specific base.
+
+        Supports both API v2 and v3.
 
         Args:
             base_id: The base ID
@@ -227,11 +248,14 @@ class NocoDBMetaClient(NocoDBClient):
             >>> base = meta_client.get_base("p_abc123")
             >>> print(base['title'], base['status'])
         """
-        result = self._get(f"api/v2/meta/bases/{base_id}")
+        endpoint = self._path_builder.base_get(base_id)
+        result = self._get(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     def create_base(self, workspace_id: str, base_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new base in a workspace.
+
+        Supports both API v2 and v3.
 
         Args:
             workspace_id: The workspace ID where base will be created
@@ -251,11 +275,14 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> base = meta_client.create_base("ws_abc123", base_data)
         """
-        result = self._post(f"api/v2/meta/workspaces/{workspace_id}/bases", data=base_data)
+        endpoint = f"api/{self.api_version}/meta/workspaces/{workspace_id}/bases"
+        result = self._post(endpoint, data=base_data)
         return result if isinstance(result, dict) else {"data": result}
 
     def update_base(self, base_id: str, base_data: dict[str, Any]) -> dict[str, Any]:
         """Update base metadata.
+
+        Supports both API v2 and v3.
 
         Args:
             base_id: The base ID to update
@@ -274,13 +301,16 @@ class NocoDBMetaClient(NocoDBClient):
             ...     {"title": "Updated Project Name"}
             ... )
         """
-        result = self._patch(f"api/v2/meta/bases/{base_id}", data=base_data)
+        endpoint = self._path_builder.base_get(base_id)
+        result = self._patch(endpoint, data=base_data)
         return result if isinstance(result, dict) else {"data": result}
 
     def delete_base(self, base_id: str) -> dict[str, Any]:
         """Delete a base.
 
         Warning: This will delete all tables and data within the base.
+
+        Supports both API v2 and v3.
 
         Args:
             base_id: The base ID to delete
@@ -295,7 +325,8 @@ class NocoDBMetaClient(NocoDBClient):
         Example:
             >>> result = meta_client.delete_base("p_abc123")
         """
-        result = self._delete(f"api/v2/meta/bases/{base_id}")
+        endpoint = self._path_builder.base_get(base_id)
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     # ========================================================================
@@ -304,6 +335,8 @@ class NocoDBMetaClient(NocoDBClient):
 
     def list_tables(self, base_id: str) -> list[dict[str, Any]]:
         """List all tables in a base.
+
+        Supports both API v2 and v3.
 
         Args:
             base_id: The base ID
@@ -315,15 +348,19 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             ValidationException: If base_id is invalid
         """
-        response = self._get(f"api/v2/meta/bases/{base_id}/tables")
+        endpoint = self._path_builder.tables_list_meta(base_id)
+        response = self._get(endpoint)
         table_list = response.get("list", [])
         return table_list if isinstance(table_list, list) else []
 
-    def get_table_info(self, table_id: str) -> dict[str, Any]:
+    def get_table_info(self, table_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Get table metadata information.
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Table metadata dictionary containing schema, columns, relationships
@@ -332,11 +369,21 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        result = self._get(f"api/v2/meta/tables/{table_id}")
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.table_get_meta(table_id, resolved_base_id)
+        result = self._get(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     def create_table(self, base_id: str, table_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new table in a base.
+
+        Supports both API v2 and v3.
 
         Args:
             base_id: The base ID where table will be created
@@ -359,15 +406,21 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> table = meta_client.create_table("base123", table_data)
         """
-        result = self._post(f"api/v2/meta/bases/{base_id}/tables", data=table_data)
+        endpoint = self._path_builder.tables_list_meta(base_id)
+        result = self._post(endpoint, data=table_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def update_table(self, table_id: str, table_data: dict[str, Any]) -> dict[str, Any]:
+    def update_table(
+        self, table_id: str, table_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Update table metadata (title, description, etc.).
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID to update
             table_data: Updated table data
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Updated table metadata
@@ -376,16 +429,27 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        result = self._patch(f"api/v2/meta/tables/{table_id}", data=table_data)
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.table_get_meta(table_id, resolved_base_id)
+        result = self._patch(endpoint, data=table_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def delete_table(self, table_id: str) -> dict[str, Any]:
+    def delete_table(self, table_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Delete a table and all its data.
 
         WARNING: This operation cannot be undone. All data in the table will be lost.
 
+        Supports both API v2 and v3.
+
         Args:
             table_id: The table ID to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Deletion confirmation response
@@ -394,18 +458,29 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        result = self._delete(f"api/v2/meta/tables/{table_id}")
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.table_get_meta(table_id, resolved_base_id)
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     # ========================================================================
     # COLUMN OPERATIONS (Meta API)
     # ========================================================================
 
-    def list_columns(self, table_id: str) -> list[dict[str, Any]]:
+    def list_columns(self, table_id: str, base_id: str | None = None) -> list[dict[str, Any]]:
         """List all columns in a table.
+
+        Supports both API v2 and v3. Note: In v3, columns are called 'fields'.
 
         Args:
             table_id: The table ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of column metadata including types, constraints, relationships
@@ -414,16 +489,29 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        response = self._get(f"api/v2/meta/tables/{table_id}/columns")
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.columns_create(table_id, resolved_base_id)
+        response = self._get(endpoint)
         column_list = response.get("list", [])
         return column_list if isinstance(column_list, list) else []
 
-    def create_column(self, table_id: str, column_data: dict[str, Any]) -> dict[str, Any]:
+    def create_column(
+        self, table_id: str, column_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Create a new column in a table.
+
+        Supports both API v2 and v3. Note: In v3, columns are called 'fields'.
 
         Args:
             table_id: The table ID where column will be created
             column_data: Column definition (title, type, constraints, etc.)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Created column metadata
@@ -441,15 +529,28 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> column = meta_client.create_column("table123", column_data)
         """
-        result = self._post(f"api/v2/meta/tables/{table_id}/columns", data=column_data)
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.columns_create(table_id, resolved_base_id)
+        result = self._post(endpoint, data=column_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def update_column(self, column_id: str, column_data: dict[str, Any]) -> dict[str, Any]:
+    def update_column(
+        self, column_id: str, column_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Update an existing column's properties.
+
+        Supports both API v2 and v3. Note: In v3, columns are called 'fields'.
 
         Args:
             column_id: The column ID to update
             column_data: Updated column data (title, constraints, etc.)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Updated column metadata
@@ -458,16 +559,29 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             ValidationException: If column_data is invalid
         """
-        result = self._patch(f"api/v2/meta/columns/{column_id}", data=column_data)
+        # Resolve base_id for v3 (column_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 column operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.column_get(column_id, resolved_base_id)
+        result = self._patch(endpoint, data=column_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def delete_column(self, column_id: str) -> dict[str, Any]:
+    def delete_column(self, column_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Delete a column from a table.
 
         WARNING: This will permanently delete the column and all its data.
 
+        Supports both API v2 and v3. Note: In v3, columns are called 'fields'.
+
         Args:
             column_id: The column ID to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Deletion confirmation response
@@ -475,18 +589,31 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._delete(f"api/v2/meta/columns/{column_id}")
+        # Resolve base_id for v3 (column_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 column operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.column_get(column_id, resolved_base_id)
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     # ========================================================================
     # VIEW OPERATIONS (Meta API)
     # ========================================================================
 
-    def list_views(self, table_id: str) -> list[dict[str, Any]]:
+    def list_views(self, table_id: str, base_id: str | None = None) -> list[dict[str, Any]]:
         """List all views for a table.
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of view metadata (grid, gallery, form, kanban, calendar views)
@@ -495,15 +622,26 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        response = self._get(f"api/v2/meta/tables/{table_id}/views")
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.views_list(table_id, resolved_base_id)
+        response = self._get(endpoint)
         view_list = response.get("list", [])
         return view_list if isinstance(view_list, list) else []
 
-    def get_view(self, view_id: str) -> dict[str, Any]:
+    def get_view(self, view_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Get detailed view metadata.
+
+        Supports both API v2 and v3.
 
         Args:
             view_id: The view ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             View metadata including filters, sorts, column configuration
@@ -511,14 +649,29 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        return self._get(f"api/v2/meta/views/{view_id}")
+        # Resolve base_id for v3 (view_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
 
-    def create_view(self, table_id: str, view_data: dict[str, Any]) -> dict[str, Any]:
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 view operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.view_get(view_id, resolved_base_id)
+        return self._get(endpoint)
+
+    def create_view(
+        self, table_id: str, view_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Create a new view for a table.
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID where view will be created
             view_data: View configuration (title, type, filters, sorts)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Created view metadata
@@ -535,15 +688,28 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> view = meta_client.create_view("table123", view_data)
         """
-        result = self._post(f"api/v2/meta/tables/{table_id}/views", data=view_data)
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.views_list(table_id, resolved_base_id)
+        result = self._post(endpoint, data=view_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def update_view(self, view_id: str, view_data: dict[str, Any]) -> dict[str, Any]:
+    def update_view(
+        self, view_id: str, view_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Update view properties (title, filters, sorts, etc.).
+
+        Supports both API v2 and v3.
 
         Args:
             view_id: The view ID to update
             view_data: Updated view configuration
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Updated view metadata
@@ -551,14 +717,27 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._patch(f"api/v2/meta/views/{view_id}", data=view_data)
+        # Resolve base_id for v3 (view_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 view operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.view_get(view_id, resolved_base_id)
+        result = self._patch(endpoint, data=view_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def delete_view(self, view_id: str) -> dict[str, Any]:
+    def delete_view(self, view_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Delete a view.
+
+        Supports both API v2 and v3.
 
         Args:
             view_id: The view ID to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Deletion confirmation response
@@ -566,18 +745,31 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._delete(f"api/v2/meta/views/{view_id}")
+        # Resolve base_id for v3 (view_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 view operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.view_get(view_id, resolved_base_id)
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
     # ========================================================================
     # WEBHOOK OPERATIONS (Meta API)
     # ========================================================================
 
-    def list_webhooks(self, table_id: str) -> list[dict[str, Any]]:
+    def list_webhooks(self, table_id: str, base_id: str | None = None) -> list[dict[str, Any]]:
         """List all webhooks configured for a table.
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             List of webhook configurations
@@ -586,15 +778,26 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        response = self._get(f"api/v2/meta/tables/{table_id}/hooks")
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.webhooks_list(table_id, resolved_base_id)
+        response = self._get(endpoint)
         webhook_list = response.get("list", [])
         return webhook_list if isinstance(webhook_list, list) else []
 
-    def get_webhook(self, hook_id: str) -> dict[str, Any]:
+    def get_webhook(self, hook_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Get webhook configuration details.
+
+        Supports both API v2 and v3.
 
         Args:
             hook_id: The webhook ID
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Webhook configuration including URL, events, conditions
@@ -602,14 +805,29 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        return self._get(f"api/v2/meta/hooks/{hook_id}")
+        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
 
-    def create_webhook(self, table_id: str, webhook_data: dict[str, Any]) -> dict[str, Any]:
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 webhook operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        return self._get(endpoint)
+
+    def create_webhook(
+        self, table_id: str, webhook_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Create a new webhook for table events.
+
+        Supports both API v2 and v3.
 
         Args:
             table_id: The table ID where webhook will be created
             webhook_data: Webhook configuration (URL, events, conditions)
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Created webhook configuration
@@ -635,15 +853,28 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> webhook = meta_client.create_webhook("table123", webhook_data)
         """
-        result = self._post(f"api/v2/meta/tables/{table_id}/hooks", data=webhook_data)
+        # Resolve base_id for v3
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            resolved_base_id = self._resolve_base_id(table_id, base_id)
+
+        endpoint = self._path_builder.webhooks_list(table_id, resolved_base_id)
+        result = self._post(endpoint, data=webhook_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def update_webhook(self, hook_id: str, webhook_data: dict[str, Any]) -> dict[str, Any]:
+    def update_webhook(
+        self, hook_id: str, webhook_data: dict[str, Any], base_id: str | None = None
+    ) -> dict[str, Any]:
         """Update webhook configuration.
+
+        Supports both API v2 and v3.
 
         Args:
             hook_id: The webhook ID to update
             webhook_data: Updated webhook configuration
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Updated webhook configuration
@@ -651,14 +882,27 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._patch(f"api/v2/meta/hooks/{hook_id}", data=webhook_data)
+        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 webhook operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        result = self._patch(endpoint, data=webhook_data)
         return result if isinstance(result, dict) else {"data": result}
 
-    def delete_webhook(self, hook_id: str) -> dict[str, Any]:
+    def delete_webhook(self, hook_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Delete a webhook.
+
+        Supports both API v2 and v3.
 
         Args:
             hook_id: The webhook ID to delete
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Deletion confirmation response
@@ -666,14 +910,27 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._delete(f"api/v2/meta/hooks/{hook_id}")
+        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 webhook operations")
+            resolved_base_id = base_id or self.base_id
+
+        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 
-    def test_webhook(self, hook_id: str) -> dict[str, Any]:
+    def test_webhook(self, hook_id: str, base_id: str | None = None) -> dict[str, Any]:
         """Test a webhook by triggering it manually.
+
+        Supports both API v2 and v3.
 
         Args:
             hook_id: The webhook ID to test
+            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
             Test execution results including HTTP response details
@@ -681,5 +938,16 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        result = self._post(f"api/v2/meta/hooks/{hook_id}/test", data={})
+        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
+        from .api_version import APIVersion
+
+        resolved_base_id = None
+        if self.api_version == APIVersion.V3:
+            if not base_id and not self.base_id:
+                raise ValueError("base_id is required for API v3 webhook operations")
+            resolved_base_id = base_id or self.base_id
+
+        # Build endpoint for webhook test
+        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id) + "/test"
+        result = self._post(endpoint, data={})
         return result if isinstance(result, dict) else {"data": result}

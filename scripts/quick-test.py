@@ -86,9 +86,17 @@ def main():
         ),
         # Type checking (most important files only)
         (["python", "-m", "mypy", "src/nocodb_simple_client/__init__.py"], "Quick type check"),
-        # Fast tests only
+        # Fast tests only (exclude slow, integration, performance, and benchmark tests)
         (
-            ["python", "-m", "pytest", "-m", "not slow and not integration", "-x", "--tb=short"],
+            [
+                "python",
+                "-m",
+                "pytest",
+                "-m",
+                "not slow and not integration and not performance and not benchmark",
+                "-x",
+                "--tb=short",
+            ],
             "Fast unit tests",
         ),
         # Basic import test

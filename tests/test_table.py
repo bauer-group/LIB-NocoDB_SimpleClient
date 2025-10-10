@@ -37,7 +37,7 @@ class TestNocoDBTable:
 
         assert result == expected_records
         mock_client.get_records.assert_called_once_with(
-            "test_table_123", None, "(Status,eq,active)", None, 10
+            "test_table_123", base_id=None, sort=None, where="(Status,eq,active)", fields=None, limit=10
         )
 
     def test_get_record(self, table, mock_client):
@@ -48,7 +48,7 @@ class TestNocoDBTable:
         result = table.get_record("record_123")
 
         assert result == expected_record
-        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", None)
+        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", base_id=None, fields=None)
 
     def test_insert_record(self, table, mock_client):
         """Test insert_record delegation to client."""
@@ -58,7 +58,7 @@ class TestNocoDBTable:
         result = table.insert_record(record_data)
 
         assert result == "new_record_123"
-        mock_client.insert_record.assert_called_once_with("test_table_123", record_data)
+        mock_client.insert_record.assert_called_once_with("test_table_123", record_data, base_id=None)
 
     def test_update_record(self, table, mock_client):
         """Test update_record delegation to client."""
@@ -69,7 +69,7 @@ class TestNocoDBTable:
 
         assert result == "record_123"
         mock_client.update_record.assert_called_once_with(
-            "test_table_123", update_data, "record_123"
+            "test_table_123", update_data, "record_123", base_id=None
         )
 
     def test_delete_record(self, table, mock_client):
@@ -79,7 +79,7 @@ class TestNocoDBTable:
         result = table.delete_record("record_123")
 
         assert result == "record_123"
-        mock_client.delete_record.assert_called_once_with("test_table_123", "record_123")
+        mock_client.delete_record.assert_called_once_with("test_table_123", "record_123", base_id=None)
 
     def test_count_records(self, table, mock_client):
         """Test count_records delegation to client."""
@@ -89,7 +89,7 @@ class TestNocoDBTable:
 
         assert result == 42
         mock_client.count_records.assert_called_once_with(
-            "test_table_123", "(Status,eq,active)"
+            "test_table_123", "(Status,eq,active)", base_id=None
         )
 
     def test_bulk_insert_records(self, table, mock_client):
@@ -100,7 +100,7 @@ class TestNocoDBTable:
         result = table.bulk_insert_records(records)
 
         assert result == ["rec1", "rec2"]
-        mock_client.bulk_insert_records.assert_called_once_with("test_table_123", records)
+        mock_client.bulk_insert_records.assert_called_once_with("test_table_123", records, base_id=None)
 
     def test_bulk_update_records(self, table, mock_client):
         """Test bulk_update_records delegation to client."""
@@ -110,7 +110,7 @@ class TestNocoDBTable:
         result = table.bulk_update_records(records)
 
         assert result == ["rec1"]
-        mock_client.bulk_update_records.assert_called_once_with("test_table_123", records)
+        mock_client.bulk_update_records.assert_called_once_with("test_table_123", records, base_id=None)
 
     def test_bulk_delete_records(self, table, mock_client):
         """Test bulk_delete_records delegation to client."""
@@ -120,7 +120,7 @@ class TestNocoDBTable:
         result = table.bulk_delete_records(record_ids)
 
         assert result == ["rec1", "rec2", "rec3"]
-        mock_client.bulk_delete_records.assert_called_once_with("test_table_123", record_ids)
+        mock_client.bulk_delete_records.assert_called_once_with("test_table_123", record_ids, base_id=None)
 
     def test_attach_file_to_record(self, table, mock_client):
         """Test file attachment delegation to client."""
