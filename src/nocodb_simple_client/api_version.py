@@ -172,9 +172,9 @@ class QueryParamAdapter:
         # Deep copy to avoid modifying original
         import json
 
-        result = json.loads(json.dumps(where))
+        result: dict[str, Any] = json.loads(json.dumps(where))
 
-        def replace_ne(obj: Any) -> Any:
+        def replace_ne(obj: Any) -> None:
             if isinstance(obj, dict):
                 # Replace 'ne' with 'neq'
                 if "ne" in obj:
@@ -185,9 +185,9 @@ class QueryParamAdapter:
             elif isinstance(obj, list):
                 for item in obj:
                     replace_ne(item)
-            return obj
 
-        return replace_ne(result)
+        replace_ne(result)
+        return result
 
     @staticmethod
     def convert_where_operators_to_v2(where: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -207,9 +207,9 @@ class QueryParamAdapter:
         # Deep copy to avoid modifying original
         import json
 
-        result = json.loads(json.dumps(where))
+        result: dict[str, Any] = json.loads(json.dumps(where))
 
-        def replace_neq(obj: Any) -> Any:
+        def replace_neq(obj: Any) -> None:
             if isinstance(obj, dict):
                 # Replace 'neq' with 'ne'
                 if "neq" in obj:
@@ -220,9 +220,9 @@ class QueryParamAdapter:
             elif isinstance(obj, list):
                 for item in obj:
                     replace_neq(item)
-            return obj
 
-        return replace_neq(result)
+        replace_neq(result)
+        return result
 
 
 class PathBuilder:

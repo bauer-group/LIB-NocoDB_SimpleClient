@@ -332,7 +332,12 @@ class NocoDBClient:
 
         while remaining_limit > 0:
             batch_limit = min(remaining_limit, 100)  # NocoDB max limit per request
-            params = {"sort": sort, "where": where, "limit": batch_limit, "offset": offset}
+            params: dict[str, Any] = {
+                "sort": sort,
+                "where": where,
+                "limit": batch_limit,
+                "offset": offset,
+            }
             if fields:
                 params["fields"] = ",".join(fields)
 

@@ -75,20 +75,21 @@ class BaseIdResolver:
         # This uses the v2 endpoint which doesn't require base_id
         table_info = self._client._get(f"api/v2/meta/tables/{table_id}")
 
+        base_id: str
         if not table_info or "base_id" not in table_info:
             # Try alternative response structure
             if "source_id" in table_info:
                 # In some NocoDB versions, it's called source_id
-                base_id = table_info["source_id"]
+                base_id = str(table_info["source_id"])
             elif "project_id" in table_info:
                 # Or project_id in older versions
-                base_id = table_info["project_id"]
+                base_id = str(table_info["project_id"])
             else:
                 # If we can't find it, try to extract from fk_model_id or similar
                 # As a fallback, we might need to list all bases and find the table
                 base_id = self._find_base_id_from_list(table_id)
         else:
-            base_id = table_info["base_id"]
+            base_id = str(table_info["base_id"])
 
         # Cache the result
         self._cache[table_id] = base_id

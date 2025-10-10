@@ -102,7 +102,7 @@ class NocoDBTable:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
-        return self.client.get_record(self.table_id, record_id, fields, base_id=base_id)
+        return self.client.get_record(self.table_id, record_id, base_id=base_id, fields=fields)
 
     def insert_record(
         self,

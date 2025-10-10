@@ -48,7 +48,7 @@ class TestNocoDBTable:
         result = table.get_record("record_123")
 
         assert result == expected_record
-        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", None, base_id=None)
+        mock_client.get_record.assert_called_once_with("test_table_123", "record_123", base_id=None, fields=None)
 
     def test_insert_record(self, table, mock_client):
         """Test insert_record delegation to client."""
