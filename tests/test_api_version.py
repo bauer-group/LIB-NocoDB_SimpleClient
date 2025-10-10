@@ -253,7 +253,7 @@ class TestPathBuilderDataAPI:
         builder = PathBuilder(APIVersion.V2)
         path = builder.file_upload("table_123")
 
-        assert path == "api/v2/tables/table_123/attachments"
+        assert path == "api/v2/storage/upload"
 
     def test_file_upload_v3(self):
         """Test file upload path for v3."""

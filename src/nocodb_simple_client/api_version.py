@@ -466,7 +466,7 @@ class PathBuilder:
             API endpoint path
         """
         if self.api_version == APIVersion.V2:
-            return f"api/v2/tables/{table_id}/attachments"
+            return "api/v2/storage/upload"
         else:  # V3
             if not base_id:
                 raise ValueError("base_id is required for API v3")

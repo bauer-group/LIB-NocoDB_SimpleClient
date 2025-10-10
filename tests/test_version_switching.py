@@ -340,8 +340,8 @@ class TestCrossFunctionalityBetweenVersions:
         v2_path = client_v2._path_builder.file_upload("table_123")
         v3_path = client_v3._path_builder.file_upload("table_123", "base_abc")
 
-        assert "api/v2/tables/table_123/attachments" in v2_path
-        assert "api/v3/data/base_abc/table_123/attachments" in v3_path
+        assert v2_path == "api/v2/storage/upload"
+        assert v3_path == "api/v3/data/base_abc/table_123/attachments"
 
     def test_both_data_and_meta_operations(self, mock_session):
         """Test client can perform both data and meta operations."""
