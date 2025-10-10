@@ -7,7 +7,8 @@ Usage:
     python scripts/run-all.py                    # Default: unit tests only
     python scripts/run-all.py --integration      # Include integration tests
     python scripts/run-all.py --performance      # Include performance tests
-    python scripts/run-all.py --all-tests        # Include all tests
+    python scripts/run-all.py --benchmark        # Include benchmark tests
+    python scripts/run-all.py --all-tests        # Include all test types
     python scripts/run-all.py --ci               # CI mode: unit tests only, no cleanup prompts
     python scripts/run-all.py --help             # Show help
 """
@@ -37,13 +38,20 @@ except ImportError:
 class LocalRunner:
     """Local development test runner with cleanup."""
 
-    def __init__(self, include_integration=False, include_performance=False, ci_mode=False):
+    def __init__(
+        self,
+        include_integration=False,
+        include_performance=False,
+        include_benchmark=False,
+        ci_mode=False,
+    ):
         self.project_root = Path(__file__).parent.parent
         self.config = ProjectConfig(self.project_root)
         self.temp_files = []
         self.start_time = time.time()
         self.include_integration = include_integration
         self.include_performance = include_performance
+        self.include_benchmark = include_benchmark
         self.ci_mode = ci_mode
 
     def print_header(self):
@@ -61,6 +69,8 @@ class LocalRunner:
             test_modes.append("Integration")
         if self.include_performance:
             test_modes.append("Performance")
+        if self.include_benchmark:
+            test_modes.append("Benchmark")
         if not test_modes:
             test_modes.append("Unit")
 
@@ -207,7 +217,7 @@ class LocalRunner:
         )
 
         # Coverage (only for unit tests to avoid NocoDB dependency in CI)
-        if not self.include_integration:
+        if not self.include_integration and not self.include_benchmark:
             checks.append(
                 (
                     [
@@ -218,7 +228,7 @@ class LocalRunner:
                         "--cov-report=term-missing",
                         "--cov-report=html",
                         "-m",
-                        "not integration and not performance",
+                        "not integration and not performance and not benchmark",
                     ],
                     "Test coverage (unit tests)",
                     True,
@@ -248,9 +258,13 @@ class LocalRunner:
         """Build pytest marker expression based on selected test modes."""
         markers = []
 
-        if not self.include_integration and not self.include_performance:
+        if (
+            not self.include_integration
+            and not self.include_performance
+            and not self.include_benchmark
+        ):
             # Default: only unit tests
-            markers.append("not integration and not performance")
+            markers.append("not integration and not performance and not benchmark")
         else:
             # Build inclusion list
             included = []
@@ -258,27 +272,35 @@ class LocalRunner:
                 included.append("integration")
             if self.include_performance:
                 included.append("performance")
+            if self.include_benchmark:
+                included.append("benchmark")
 
             # Always include unit tests (tests without markers)
             if included:
                 markers.append(
-                    f"({' or '.join(included)}) or (not integration and not performance)"
+                    f"({' or '.join(included)}) or (not integration and not performance and not benchmark)"
                 )
             else:
-                markers.append("not integration and not performance")
+                markers.append("not integration and not performance and not benchmark")
 
         return " and ".join(markers) if len(markers) > 1 else markers[0]
 
     def _get_test_description(self) -> str:
         """Get description of which tests are being run."""
-        if self.include_integration and self.include_performance:
-            return "All tests"
-        elif self.include_integration:
-            return "Unit + Integration tests"
-        elif self.include_performance:
-            return "Unit + Performance tests"
-        else:
+        test_types = []
+        if self.include_integration:
+            test_types.append("Integration")
+        if self.include_performance:
+            test_types.append("Performance")
+        if self.include_benchmark:
+            test_types.append("Benchmark")
+
+        if not test_types:
             return "Unit tests only"
+        elif len(test_types) == 3:
+            return "All test types"
+        else:
+            return f"Unit + {' + '.join(test_types)} tests"
 
     def _execute_checks(self, checks: list) -> bool:
         """Execute all checks and return success status."""
@@ -391,6 +413,7 @@ Examples:
   python scripts/run-all.py                    # Unit tests only (CI safe)
   python scripts/run-all.py --integration      # Include integration tests
   python scripts/run-all.py --performance      # Include performance tests
+  python scripts/run-all.py --benchmark        # Include benchmark tests
   python scripts/run-all.py --all-tests        # Run all test types
   python scripts/run-all.py --ci               # CI mode (unit tests, minimal output)
         """.strip(),
@@ -406,10 +429,12 @@ Examples:
         "--performance", action="store_true", help="Include performance tests (slow)"
     )
 
+    parser.add_argument("--benchmark", action="store_true", help="Include benchmark tests (slow)")
+
     parser.add_argument(
         "--all-tests",
         action="store_true",
-        help="Run all test types (unit, integration, performance)",
+        help="Run all test types (unit, integration, performance, benchmark)",
     )
 
     parser.add_argument(
@@ -432,16 +457,19 @@ def main():
     # Determine test modes
     include_integration = args.integration or args.all_tests
     include_performance = args.performance or args.all_tests
+    include_benchmark = args.benchmark or args.all_tests
     ci_mode = args.ci
 
     # CI mode overrides - only unit tests in CI
     if ci_mode:
         include_integration = False
         include_performance = False
+        include_benchmark = False
 
     runner = LocalRunner(
         include_integration=include_integration,
         include_performance=include_performance,
+        include_benchmark=include_benchmark,
         ci_mode=ci_mode,
     )
 
