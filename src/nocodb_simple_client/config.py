@@ -140,12 +140,19 @@ class NocoDBConfig:
                 raise ValueError("PyYAML is required to load YAML configuration files") from e
         elif suffix == ".toml":
             try:
-                import tomli
+                # Use tomllib (stdlib) for Python 3.11+, otherwise tomli
+                try:
+                    import tomllib
+                except ImportError:
+                    import tomli as tomllib  # type: ignore[no-redef]
 
                 with open(config_path, "rb") as f:
-                    data = tomli.load(f)
+                    data = tomllib.load(f)
             except ImportError as e:
-                raise ValueError("tomli is required to load TOML configuration files") from e
+                raise ValueError(
+                    "tomli is required to load TOML configuration files "
+                    "(pre-installed in Python 3.11+)"
+                ) from e
         else:
             raise ValueError(f"Unsupported configuration file format: {suffix}")
 

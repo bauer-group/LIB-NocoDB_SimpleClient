@@ -48,6 +48,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Runtime optional features
+cli = [
+    # Command-line interface dependencies
+    "click>=8.0.0",
+    "rich>=13.0.0",
+]
+async = [
+    # Async client dependencies
+    "aiohttp>=3.8.0",
+    "aiofiles>=0.8.0",
+]
+config = [
+    # Configuration file format support (YAML/TOML)
+    "PyYAML>=6.0.0",
+    "tomli>=2.0.0; python_version<'3.11'",
+]
+dotenv = [
+    # .env file support for configuration
+    "python-dotenv>=1.0.0",
+]
+
+# Development dependencies
 dev = [
     # Testing
     "pytest>=7.0.0",
@@ -73,22 +95,13 @@ dev = [
     # Development Tools
     "pre-commit>=2.20.0",
     "tox>=4.0.0",
-    "tomli>=2.0.0; python_version<'3.11'",
     "types-requests>=2.31.0",
     "types-PyYAML>=6.0.0",
     "types-aiofiles>=0.8.0",
-    "python-dotenv>=1.0.0",
-    "aiohttp>=3.8.0",
-    "aiofiles>=0.8.0",
 
     # Integration Testing
     "docker>=6.0.0",
     "pillow>=10.0.0",
-]
-cli = [
-    # Command-line interface dependencies
-    "click>=8.0.0",
-    "rich>=13.0.0",
 ]
 docs = [
     "mkdocs>=1.4.0",
