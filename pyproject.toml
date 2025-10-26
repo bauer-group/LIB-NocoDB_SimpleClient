@@ -98,6 +98,7 @@ dev = [
     "types-requests>=2.31.0",
     "types-PyYAML>=6.0.0",
     "types-aiofiles>=0.8.0",
+    "python-dotenv>=1.0.0",
 
     # Integration Testing
     "docker>=6.0.0",
