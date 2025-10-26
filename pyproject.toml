@@ -85,12 +85,20 @@ dev = [
     "docker>=6.0.0",
     "pillow>=10.0.0",
 ]
+cli = [
+    # Command-line interface dependencies
+    "click>=8.0.0",
+    "rich>=13.0.0",
+]
 docs = [
     "mkdocs>=1.4.0",
     "mkdocs-material>=8.5.0",
     "mkdocs-autorefs>=0.4.1",
     "mkdocstrings[python]>=0.19.0",
 ]
+
+[project.scripts]
+nocodb = "nocodb_simple_client.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/bauer-group/LIB-NocoDB_SimpleClient"
