@@ -48,11 +48,76 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}/src
 
+  # 📦 Validate optional dependencies installation
+  validate-extras:
+    name: 📦 Validate Optional Dependencies
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        extra: ["cli", "async", "config", "dotenv", "dev"]
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: 📦 Install base package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: 📦 Install optional extra [${{ matrix.extra }}]
+      run: |
+        pip install -e ".[${{ matrix.extra }}]"
+
+    - name: ✅ Verify installation
+      run: |
+        echo "=== Installed packages ==="
+        pip list | grep -E "(nocodb|click|rich|aiohttp|aiofiles|pyyaml|tomli|python-dotenv)" || true
+
+        echo "=== Testing imports ==="
+        python -c "from nocodb_simple_client import NocoDBClient; print('✓ Base client imports')"
+
+        # Test extra-specific imports
+        case "${{ matrix.extra }}" in
+          cli)
+            python -c "import click; import rich; print('✓ CLI dependencies available')"
+            python -c "from nocodb_simple_client.cli import main; print('✓ CLI module imports')"
+            ;;
+          async)
+            python -c "import aiohttp; import aiofiles; print('✓ Async dependencies available')"
+            python -c "from nocodb_simple_client.async_client import AsyncNocoDBClient; print('✓ Async client imports')"
+            ;;
+          config)
+            python -c "import yaml; print('✓ PyYAML available')"
+            if [ "${{ matrix.python-version }}" != "3.11" ] && [ "${{ matrix.python-version }}" != "3.12" ] && [ "${{ matrix.python-version }}" != "3.13" ]; then
+              python -c "import tomli; print('✓ tomli available')"
+            else
+              python -c "import tomllib; print('✓ tomllib available (stdlib)')"
+            fi
+            python -c "from nocodb_simple_client.config import NocoDBConfig; from pathlib import Path; print('✓ Config module imports')"
+            ;;
+          dotenv)
+            python -c "import dotenv; print('✓ python-dotenv available')"
+            ;;
+          dev)
+            python -c "import pytest; import ruff; import mypy; print('✓ Dev dependencies available')"
+            ;;
+        esac
+
+        echo "✅ Extra '${{ matrix.extra }}' validated successfully!"
+
   # 🔗 Integration tests with Python-managed NocoDB instance
   integration-test:
     name: 🔗 Integration Tests (Python-Managed)
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: validate-extras
 
     steps:
     - name: 📥 Checkout code
