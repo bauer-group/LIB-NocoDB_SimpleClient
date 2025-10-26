@@ -44,13 +44,23 @@ Optional environment variables:
 
 ### File-based Configuration
 
+**Required Dependencies:**
+
+```bash
+# Install with configuration file support (YAML/TOML)
+pip install "nocodb-simple-client[config]"
+
+# For .env file support
+pip install "nocodb-simple-client[dotenv]"
+```
+
 Load configuration from JSON, YAML, or TOML files:
 
 ```python
 from pathlib import Path
 from nocodb_simple_client.config import load_config
 
-# Load from file
+# Load from file (supports .json, .yaml, .yml, .toml)
 config = load_config(config_path=Path("config.yaml"))
 ```
 
@@ -92,6 +102,13 @@ config.setup_logging()
 ```
 
 ## Async Support
+
+**Required Dependencies:**
+
+```bash
+# Install with async dependencies
+pip install "nocodb-simple-client[async]"
+```
 
 For high-performance applications, use the async client:
 

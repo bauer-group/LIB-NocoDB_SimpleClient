@@ -46,6 +46,8 @@ A simple and powerful Python client for interacting with [NocoDB](https://nocodb
 
 ### Installation
 
+#### Basic Installation
+
 Install from PyPI using pip:
 
 ```bash
@@ -64,6 +66,39 @@ pip install git+{{REPO_URL}}.git@v{{VERSION}}
 # Specific branch
 pip install git+{{REPO_URL}}.git@main
 ```
+
+#### Optional Features
+
+Install with optional features based on your needs:
+
+```bash
+# Command-line interface support
+pip install "nocodb-simple-client[cli]"
+
+# Async client support
+pip install "nocodb-simple-client[async]"
+
+# Configuration file support (YAML/TOML)
+pip install "nocodb-simple-client[config]"
+
+# .env file support
+pip install "nocodb-simple-client[dotenv]"
+
+# Multiple features
+pip install "nocodb-simple-client[cli,async,config]"
+
+# All features for development
+pip install "nocodb-simple-client[dev]"
+```
+
+**Available extras:**
+
+- `cli` - Command-line interface with rich output (requires `click`, `rich`)
+- `async` - Async client support (requires `aiohttp`, `aiofiles`)
+- `config` - YAML/TOML configuration file support (requires `PyYAML`, `tomli` for Python <3.11)
+- `dotenv` - .env file support for configuration (requires `python-dotenv`)
+- `dev` - All development dependencies (testing, linting, etc.)
+- `docs` - Documentation generation dependencies
 
 ### Basic Usage
 
