@@ -26,7 +26,7 @@ SOFTWARE.
 # Async support (optional)
 from typing import TYPE_CHECKING
 
-from .api_version import APIVersion, PathBuilder, QueryParamAdapter
+from .api_version import APIVersion, PathBuilder, QueryParamAdapter, RequestAdapter, ResponseAdapter
 from .base_resolver import BaseIdResolver
 from .cache import CacheManager
 from .client import NocoDBClient
@@ -94,6 +94,8 @@ __all__ = [
     "APIVersion",
     "PathBuilder",
     "QueryParamAdapter",
+    "ResponseAdapter",
+    "RequestAdapter",
     "BaseIdResolver",
     # Exceptions
     "NocoDBException",

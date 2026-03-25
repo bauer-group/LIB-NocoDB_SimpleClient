@@ -7,7 +7,13 @@ Copyright (c) BAUER GROUP
 
 import pytest
 
-from nocodb_simple_client.api_version import APIVersion, PathBuilder, QueryParamAdapter
+from nocodb_simple_client.api_version import (
+    APIVersion,
+    PathBuilder,
+    QueryParamAdapter,
+    RequestAdapter,
+    ResponseAdapter,
+)
 
 
 class TestAPIVersion:
@@ -405,3 +411,142 @@ class TestPathBuilderMetaAPI:
         path = builder.webhooks_list("table_123", "base_abc")
 
         assert path == "api/v3/meta/bases/base_abc/tables/table_123/hooks"
+
+
+class TestResponseAdapter:
+    """Test ResponseAdapter for normalizing API responses."""
+
+    def test_normalize_record_v2_passthrough(self):
+        """Test v2 records pass through unchanged."""
+        record = {"Id": 1, "Name": "Test"}
+        result = ResponseAdapter.normalize_record(record, APIVersion.V2)
+        assert result == {"Id": 1, "Name": "Test"}
+
+    def test_normalize_record_v3_with_fields(self):
+        """Test v3 record with fields wrapper is flattened."""
+        record = {"id": 1, "fields": {"Name": "Test", "Email": "a@b.com"}}
+        result = ResponseAdapter.normalize_record(record, APIVersion.V3)
+        assert result == {"Id": 1, "Name": "Test", "Email": "a@b.com"}
+
+    def test_normalize_record_v3_without_fields(self):
+        """Test v3 record without fields wrapper (fallback)."""
+        record = {"id": 1, "Name": "Test"}
+        result = ResponseAdapter.normalize_record(record, APIVersion.V3)
+        assert result == {"Id": 1, "Name": "Test"}
+
+    def test_normalize_records_list_v2(self):
+        """Test v2 records list parsing."""
+        response = {
+            "list": [{"Id": 1}, {"Id": 2}],
+            "pageInfo": {"isLastPage": True},
+        }
+        records, page_info = ResponseAdapter.normalize_records_list(response, APIVersion.V2)
+        assert len(records) == 2
+        assert records[0]["Id"] == 1
+        assert page_info["isLastPage"] is True
+
+    def test_normalize_records_list_v3(self):
+        """Test v3 records list parsing with normalization."""
+        response = {
+            "records": [
+                {"id": 1, "fields": {"Name": "A"}},
+                {"id": 2, "fields": {"Name": "B"}},
+            ],
+            "next": "https://example.com/page2",
+        }
+        records, page_info = ResponseAdapter.normalize_records_list(response, APIVersion.V3)
+        assert len(records) == 2
+        assert records[0]["Id"] == 1
+        assert records[0]["Name"] == "A"
+        assert page_info["isLastPage"] is False
+
+    def test_normalize_records_list_v3_last_page(self):
+        """Test v3 records list with no next page."""
+        response = {"records": [{"id": 1, "fields": {"Name": "A"}}], "next": None}
+        records, page_info = ResponseAdapter.normalize_records_list(response, APIVersion.V3)
+        assert page_info["isLastPage"] is True
+
+    def test_extract_record_id_v2(self):
+        """Test extracting record ID from v2 response."""
+        assert ResponseAdapter.extract_record_id({"Id": 42}, APIVersion.V2) == 42
+
+    def test_extract_record_id_v3_direct(self):
+        """Test extracting record ID from v3 direct response."""
+        response = {"id": 42, "fields": {"Name": "Test"}}
+        assert ResponseAdapter.extract_record_id(response, APIVersion.V3) == 42
+
+    def test_extract_record_id_v3_records_wrapper(self):
+        """Test extracting record ID from v3 records wrapper."""
+        response = {"records": [{"id": 99, "fields": {"Name": "Test"}}]}
+        assert ResponseAdapter.extract_record_id(response, APIVersion.V3) == 99
+
+    def test_extract_record_ids_v2_list(self):
+        """Test extracting IDs from v2 list response."""
+        response = [{"Id": 1}, {"Id": 2}, {"Id": 3}]
+        result = ResponseAdapter.extract_record_ids(response, APIVersion.V2)
+        assert result == [1, 2, 3]
+
+    def test_extract_record_ids_v3_records_wrapper(self):
+        """Test extracting IDs from v3 records wrapper."""
+        response = {"records": [{"id": 10}, {"id": 20}]}
+        result = ResponseAdapter.extract_record_ids(response, APIVersion.V3)
+        assert result == [10, 20]
+
+
+class TestRequestAdapter:
+    """Test RequestAdapter for formatting API requests."""
+
+    def test_format_record_v2_passthrough(self):
+        """Test v2 records pass through unchanged."""
+        record = {"Name": "Test", "Email": "a@b.com"}
+        result = RequestAdapter.format_record(record, APIVersion.V2)
+        assert result == {"Name": "Test", "Email": "a@b.com"}
+
+    def test_format_record_v3_wraps_fields(self):
+        """Test v3 wraps fields and uses lowercase id."""
+        record = {"Name": "Test", "Email": "a@b.com"}
+        result = RequestAdapter.format_record(record, APIVersion.V3)
+        assert result == {"fields": {"Name": "Test", "Email": "a@b.com"}}
+
+    def test_format_record_v3_with_id(self):
+        """Test v3 separates Id from fields."""
+        record = {"Id": 42, "Name": "Test"}
+        result = RequestAdapter.format_record(record, APIVersion.V3)
+        assert result == {"id": 42, "fields": {"Name": "Test"}}
+
+    def test_format_records_v2_passthrough(self):
+        """Test v2 bulk records pass through unchanged."""
+        records = [{"Name": "A"}, {"Name": "B"}]
+        result = RequestAdapter.format_records(records, APIVersion.V2)
+        assert result == [{"Name": "A"}, {"Name": "B"}]
+
+    def test_format_records_v3_wraps_in_records(self):
+        """Test v3 wraps in records array with fields."""
+        records = [{"Name": "A"}, {"Name": "B"}]
+        result = RequestAdapter.format_records(records, APIVersion.V3)
+        assert result == {
+            "records": [
+                {"fields": {"Name": "A"}},
+                {"fields": {"Name": "B"}},
+            ]
+        }
+
+    def test_format_delete_v2(self):
+        """Test v2 delete format."""
+        result = RequestAdapter.format_delete(42, APIVersion.V2)
+        assert result == {"Id": 42}
+
+    def test_format_delete_v3(self):
+        """Test v3 delete format with lowercase id."""
+        result = RequestAdapter.format_delete(42, APIVersion.V3)
+        assert result == {"id": 42}
+
+    def test_format_bulk_delete_v2(self):
+        """Test v2 bulk delete format."""
+        result = RequestAdapter.format_bulk_delete([1, 2, 3], APIVersion.V2)
+        assert result == [{"Id": 1}, {"Id": 2}, {"Id": 3}]
+
+    def test_format_bulk_delete_v3(self):
+        """Test v3 bulk delete format."""
+        result = RequestAdapter.format_bulk_delete([1, 2, 3], APIVersion.V3)
+        assert result == {"records": [{"id": 1}, {"id": 2}, {"id": 3}]}
