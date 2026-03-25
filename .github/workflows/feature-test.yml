@@ -2,9 +2,9 @@ name: 🧪 Feature Integration Tests
 
 on:
   push:
-    branches: [ feature-* ]
+    branches: [ feature/* ]
   pull_request:
-    branches: [ feature-* ]
+    branches: [ feature/* ]
 
   workflow_dispatch:
 
