@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from .api_version import APIVersion, PathBuilder, QueryParamAdapter
+from .api_version import APIVersion, PathBuilder, QueryParamAdapter, RequestAdapter, ResponseAdapter
 from .base_resolver import BaseIdResolver
 from .exceptions import NocoDBException, RecordNotFoundException, ValidationException
 
@@ -156,6 +156,8 @@ class NocoDBClient:
         self.base_id = base_id
         self._path_builder = PathBuilder(self.api_version)
         self._param_adapter = QueryParamAdapter()
+        self._response_adapter = ResponseAdapter()
+        self._request_adapter = RequestAdapter()
 
         # Base ID resolver for v3 API (resolves table_id -> base_id)
         self._base_resolver = BaseIdResolver(self) if self.api_version == APIVersion.V3 else None
@@ -352,10 +354,11 @@ class NocoDBClient:
 
             response = self._get(endpoint, params=params)
 
-            batch_records = response.get("list", [])
+            batch_records, page_info = self._response_adapter.normalize_records_list(
+                response, self.api_version
+            )
             records.extend(batch_records)
 
-            page_info = response.get("pageInfo", {})
             offset += len(batch_records)
             remaining_limit -= len(batch_records)
 
@@ -398,7 +401,8 @@ class NocoDBClient:
         if fields:
             params["fields"] = ",".join(fields)
 
-        return self._get(endpoint, params=params)
+        response = self._get(endpoint, params=params)
+        return self._response_adapter.normalize_record(response, self.api_version)
 
     def insert_record(
         self, table_id: str, record: dict[str, Any], base_id: str | None = None
@@ -424,10 +428,12 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_create(table_id, resolved_base_id)
 
-        response = self._post(endpoint, data=record)
-        # API v2 returns a single object: {"Id": 123}
+        # Format request for API version
+        formatted_record = self._request_adapter.format_record(record, self.api_version)
+
+        response = self._post(endpoint, data=formatted_record)
         if isinstance(response, dict):
-            record_id = response.get("Id")
+            record_id = self._response_adapter.extract_record_id(response, self.api_version)
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
@@ -473,9 +479,12 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_update(table_id, resolved_base_id)
 
-        response = self._patch(endpoint, data=record)
+        # Format request for API version
+        formatted_record = self._request_adapter.format_record(record, self.api_version)
+
+        response = self._patch(endpoint, data=formatted_record)
         if isinstance(response, dict):
-            record_id = response.get("Id")
+            record_id = self._response_adapter.extract_record_id(response, self.api_version)
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
@@ -513,9 +522,12 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_delete(table_id, resolved_base_id)
 
-        response = self._delete(endpoint, data={"Id": record_id})
+        # Format request for API version
+        delete_data = self._request_adapter.format_delete(record_id, self.api_version)
+
+        response = self._delete(endpoint, data=delete_data)
         if isinstance(response, dict):
-            deleted_id = response.get("Id")
+            deleted_id = self._response_adapter.extract_record_id(response, self.api_version)
         else:
             raise NocoDBException(
                 "INVALID_RESPONSE",
@@ -591,24 +603,18 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_create(table_id, resolved_base_id)
 
-        # NocoDB v2 API supports bulk insert via array payload
-        try:
-            response = self._post(endpoint, data=records)
+        # Format request for API version
+        formatted_data = self._request_adapter.format_records(records, self.api_version)
 
-            # Response should be list of record IDs
-            if isinstance(response, list):
-                record_ids = []
-                for record in response:
-                    if isinstance(record, dict) and record.get("Id") is not None:
-                        record_ids.append(record["Id"])
+        try:
+            response = self._post(endpoint, data=formatted_data)
+
+            # Extract record IDs using version-aware adapter
+            record_ids = self._response_adapter.extract_record_ids(response, self.api_version)
+            if record_ids:
                 return record_ids
-            elif isinstance(response, dict) and "Id" in response:
-                # Single record response (fallback)
-                return [response["Id"]]
-            else:
-                raise NocoDBException(
-                    "INVALID_RESPONSE", "Unexpected response format from bulk insert"
-                )
+
+            raise NocoDBException("INVALID_RESPONSE", "Unexpected response format from bulk insert")
 
         except Exception as e:
             if isinstance(e, NocoDBException):
@@ -653,23 +659,18 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_update(table_id, resolved_base_id)
 
-        try:
-            response = self._patch(endpoint, data=records)
+        # Format request for API version
+        formatted_data = self._request_adapter.format_records(records, self.api_version)
 
-            # Response should be list of record IDs
-            if isinstance(response, list):
-                record_ids = []
-                for record in response:
-                    if isinstance(record, dict) and record.get("Id") is not None:
-                        record_ids.append(record["Id"])
+        try:
+            response = self._patch(endpoint, data=formatted_data)
+
+            # Extract record IDs using version-aware adapter
+            record_ids = self._response_adapter.extract_record_ids(response, self.api_version)
+            if record_ids:
                 return record_ids
-            elif isinstance(response, dict) and "Id" in response:
-                # Single record response (fallback)
-                return [response["Id"]]
-            else:
-                raise NocoDBException(
-                    "INVALID_RESPONSE", "Unexpected response format from bulk update"
-                )
+
+            raise NocoDBException("INVALID_RESPONSE", "Unexpected response format from bulk update")
 
         except Exception as e:
             if isinstance(e, NocoDBException):
@@ -707,26 +708,18 @@ class NocoDBClient:
         # Build path using PathBuilder
         endpoint = self._path_builder.records_delete(table_id, resolved_base_id)
 
-        # Convert to list of dictionaries with Id field
-        records_to_delete = [{"Id": record_id} for record_id in record_ids]
+        # Format request for API version
+        delete_data = self._request_adapter.format_bulk_delete(record_ids, self.api_version)
 
         try:
-            response = self._delete(endpoint, data=records_to_delete)
+            response = self._delete(endpoint, data=delete_data)
 
-            # Response should be list of record IDs
-            if isinstance(response, list):
-                record_ids = []
-                for record in response:
-                    if isinstance(record, dict) and record.get("Id") is not None:
-                        record_ids.append(record["Id"])
-                return record_ids
-            elif isinstance(response, dict) and "Id" in response:
-                # Single record response (fallback)
-                return [response["Id"]]
-            else:
-                raise NocoDBException(
-                    "INVALID_RESPONSE", "Unexpected response format from bulk delete"
-                )
+            # Extract record IDs using version-aware adapter
+            deleted_ids = self._response_adapter.extract_record_ids(response, self.api_version)
+            if deleted_ids:
+                return deleted_ids
+
+            raise NocoDBException("INVALID_RESPONSE", "Unexpected response format from bulk delete")
 
         except Exception as e:
             if isinstance(e, NocoDBException):

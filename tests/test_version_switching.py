@@ -79,7 +79,7 @@ class TestClientVersionSwitching:
         assert "api/v2/tables/table_123/records" in call_args[0][0]
 
     def test_get_records_v3_endpoint(self, mock_session):
-        """Test get_records uses v3 endpoint."""
+        """Test get_records uses v3 endpoint and parses v3 response format."""
         client = NocoDBClient(
             base_url="https://test.com",
             db_auth_token="token",
@@ -87,14 +87,26 @@ class TestClientVersionSwitching:
             base_id="base_abc",
         )
 
-        mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
+        # v3 uses "records" key with nested "fields" and lowercase "id"
+        mock_session.get.return_value.json.return_value = {
+            "records": [
+                {"id": 1, "fields": {"Name": "Record 1"}},
+                {"id": 2, "fields": {"Name": "Record 2"}},
+            ],
+            "next": None,
+        }
         mock_session.get.return_value.status_code = 200
 
-        client.get_records("table_123", limit=10)
+        result = client.get_records("table_123", limit=10)
 
         # Check that v3 endpoint was called
         call_args = mock_session.get.call_args
         assert "api/v3/data/base_abc/table_123/records" in call_args[0][0]
+
+        # Check that v3 response was normalized to v2-compatible format
+        assert len(result) == 2
+        assert result[0]["Id"] == 1
+        assert result[0]["Name"] == "Record 1"
 
     def test_v2_pagination_params(self, mock_session):
         """Test v2 uses offset/limit parameters."""
@@ -125,7 +137,7 @@ class TestClientVersionSwitching:
             base_id="base_abc",
         )
 
-        mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
+        mock_session.get.return_value.json.return_value = {"records": [], "next": None}
         mock_session.get.return_value.status_code = 200
 
         client.get_records("table_123", limit=25)
@@ -167,7 +179,7 @@ class TestClientVersionSwitching:
             base_id="base_abc",
         )
 
-        mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
+        mock_session.get.return_value.json.return_value = {"records": [], "next": None}
         mock_session.get.return_value.status_code = 200
 
         client.get_records("table_123", sort="name,-age")
@@ -362,7 +374,137 @@ class TestCrossFunctionalityBetweenVersions:
         assert "api/v3/meta/bases/base_abc/tables" in meta_call
 
         # Data operation (inherited from NocoDBClient)
-        mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
+        mock_session.get.return_value.json.return_value = {"records": [], "next": None}
         meta_client.get_records("table_123")
         data_call = mock_session.get.call_args[0][0]
         assert "api/v3/data/base_abc/table_123/records" in data_call
+
+
+class TestV3ResponseFormatHandling:
+    """Test that v3 API response formats are correctly parsed."""
+
+    @pytest.fixture
+    def mock_session(self):
+        """Create a mock session."""
+        with patch("nocodb_simple_client.client.requests.Session") as mock:
+            yield mock.return_value
+
+    @pytest.fixture
+    def v3_client(self, mock_session):
+        """Create v3 client for testing."""
+        return NocoDBClient(
+            base_url="https://test.com",
+            db_auth_token="token",
+            api_version="v3",
+            base_id="base_abc",
+        )
+
+    def test_get_record_v3_normalizes_fields(self, v3_client, mock_session):
+        """Test get_record normalizes v3 {id, fields} to flat format."""
+        mock_session.get.return_value.json.return_value = {
+            "id": 42,
+            "fields": {"Name": "Test", "Email": "test@example.com"},
+        }
+        mock_session.get.return_value.status_code = 200
+
+        result = v3_client.get_record("table_123", 42)
+
+        assert result["Id"] == 42
+        assert result["Name"] == "Test"
+        assert result["Email"] == "test@example.com"
+
+    def test_insert_record_v3_formats_request_and_response(self, v3_client, mock_session):
+        """Test insert_record wraps data in fields and parses v3 response."""
+        mock_session.post.return_value.json.return_value = {
+            "records": [{"id": 99, "fields": {"Name": "New"}}]
+        }
+        mock_session.post.return_value.status_code = 200
+
+        result = v3_client.insert_record("table_123", {"Name": "New"})
+
+        assert result == 99
+
+        # Verify request was formatted for v3
+        call_args = mock_session.post.call_args
+        request_data = call_args[1]["json"]
+        assert "fields" in request_data
+        assert request_data["fields"]["Name"] == "New"
+
+    def test_update_record_v3_formats_request_and_response(self, v3_client, mock_session):
+        """Test update_record wraps data in fields and parses v3 response."""
+        mock_session.patch.return_value.json.return_value = {
+            "records": [{"id": 42, "fields": {"Name": "Updated"}}]
+        }
+        mock_session.patch.return_value.status_code = 200
+
+        result = v3_client.update_record("table_123", {"Name": "Updated"}, record_id=42)
+
+        assert result == 42
+
+        # Verify request was formatted for v3
+        call_args = mock_session.patch.call_args
+        request_data = call_args[1]["json"]
+        assert "fields" in request_data
+        assert request_data["id"] == 42
+
+    def test_delete_record_v3_formats_request_and_response(self, v3_client, mock_session):
+        """Test delete_record uses lowercase 'id' for v3."""
+        mock_session.delete.return_value.json.return_value = {
+            "records": [{"id": 42, "deleted": True}]
+        }
+        mock_session.delete.return_value.status_code = 200
+
+        result = v3_client.delete_record("table_123", 42)
+
+        assert result == 42
+
+        # Verify request was formatted for v3
+        call_args = mock_session.delete.call_args
+        request_data = call_args[1]["json"]
+        assert "id" in request_data
+        assert request_data["id"] == 42
+
+    def test_get_records_v3_pagination_with_next(self, v3_client, mock_session):
+        """Test get_records handles v3 cursor-based pagination."""
+        # First call returns records with next token
+        mock_session.get.return_value.json.return_value = {
+            "records": [
+                {"id": 1, "fields": {"Name": "A"}},
+                {"id": 2, "fields": {"Name": "B"}},
+            ],
+            "next": "https://test.com/api/v3/data/base_abc/table_123/records?page=2",
+        }
+        mock_session.get.return_value.status_code = 200
+
+        result = v3_client.get_records("table_123", limit=2)
+
+        assert len(result) == 2
+        assert result[0]["Id"] == 1
+        assert result[1]["Name"] == "B"
+
+    def test_bulk_insert_v3_formats_records(self, v3_client, mock_session):
+        """Test bulk_insert formats records for v3 with records wrapper."""
+        mock_session.post.return_value.json.return_value = {
+            "records": [
+                {"id": 10, "fields": {"Name": "A"}},
+                {"id": 11, "fields": {"Name": "B"}},
+            ]
+        }
+        mock_session.post.return_value.status_code = 200
+
+        result = v3_client.bulk_insert_records(
+            "table_123", [{"Name": "A"}, {"Name": "B"}]
+        )
+
+        assert result == [10, 11]
+
+    def test_bulk_delete_v3_formats_ids(self, v3_client, mock_session):
+        """Test bulk_delete formats IDs for v3."""
+        mock_session.delete.return_value.json.return_value = {
+            "records": [{"id": 1, "deleted": True}, {"id": 2, "deleted": True}]
+        }
+        mock_session.delete.return_value.status_code = 200
+
+        result = v3_client.bulk_delete_records("table_123", [1, 2])
+
+        assert result == [1, 2]

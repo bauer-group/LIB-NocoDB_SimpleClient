@@ -37,6 +37,197 @@ class APIVersion(str, Enum):
         return self.value
 
 
+class ResponseAdapter:
+    """Adapter for normalizing API responses between v2 and v3 formats.
+
+    v2 returns flat records with 'Id' key and 'list' wrapper.
+    v3 returns records with 'id' key, 'fields' wrapper, and 'records' wrapper.
+    This adapter normalizes v3 responses to v2-compatible flat format.
+    """
+
+    @staticmethod
+    def normalize_record(record: dict[str, Any], api_version: "APIVersion") -> dict[str, Any]:
+        """Normalize a single record response to flat format.
+
+        v2 format: {"Id": 1, "Name": "John", ...}
+        v3 format: {"id": 1, "fields": {"Name": "John", ...}}
+
+        Returns flat format with "Id" key for consistency.
+        """
+        if api_version == APIVersion.V2:
+            return record
+
+        # v3: extract fields and normalize id
+        result: dict[str, Any] = {}
+        if "id" in record:
+            result["Id"] = record["id"]
+        if "fields" in record:
+            result.update(record["fields"])
+        else:
+            # Fallback: if no fields wrapper, copy all except 'id'
+            for k, v in record.items():
+                if k == "id":
+                    result["Id"] = v
+                elif k != "deleted":
+                    result[k] = v
+        return result
+
+    @staticmethod
+    def normalize_records_list(
+        response: dict[str, Any], api_version: "APIVersion"
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """Normalize a records list response.
+
+        v2: {"list": [...], "pageInfo": {"isLastPage": true, ...}}
+        v3: {"records": [...], "next": "...", "prev": null}
+
+        Returns (records_list, page_info) where page_info uses v2-compatible format.
+        """
+        if api_version == APIVersion.V2:
+            records = response.get("list", [])
+            page_info = response.get("pageInfo", {})
+            return records, page_info
+
+        # v3: extract from "records" key
+        raw_records = response.get("records", [])
+        records = [ResponseAdapter.normalize_record(r, api_version) for r in raw_records]
+
+        # Convert v3 pagination to v2-compatible pageInfo
+        has_next = response.get("next") is not None
+        page_info = {
+            "isLastPage": not has_next,
+            "next": response.get("next"),
+            "prev": response.get("prev"),
+        }
+
+        return records, page_info
+
+    @staticmethod
+    def extract_record_id(response: dict[str, Any], api_version: "APIVersion") -> Any:
+        """Extract record ID from a create/update/delete response.
+
+        v2: {"Id": 123}
+        v3: {"id": 123, "fields": {...}} or {"records": [{"id": 123, ...}]}
+        """
+        if api_version == APIVersion.V2:
+            return response.get("Id")
+
+        # v3: try direct id first
+        if "id" in response:
+            return response["id"]
+
+        # v3: try records wrapper (bulk responses)
+        records = response.get("records", [])
+        if records and isinstance(records, list) and len(records) > 0:
+            return records[0].get("id")
+
+        # Fallback: try "Id" (in case of mixed format)
+        return response.get("Id")
+
+    @staticmethod
+    def extract_record_ids(
+        response: dict[str, Any] | list[dict[str, Any]], api_version: "APIVersion"
+    ) -> list[Any]:
+        """Extract multiple record IDs from bulk operation responses.
+
+        v2: [{"Id": 1}, {"Id": 2}]
+        v3: {"records": [{"id": 1, ...}, {"id": 2, ...}]}
+        """
+        if api_version == APIVersion.V2:
+            if isinstance(response, list):
+                return [
+                    r.get("Id") for r in response if isinstance(r, dict) and r.get("Id") is not None
+                ]
+            elif isinstance(response, dict) and "Id" in response:
+                return [response["Id"]]
+            return []
+
+        # v3: records wrapper
+        if isinstance(response, dict):
+            records = response.get("records", [])
+            if records:
+                return [
+                    r.get("id") for r in records if isinstance(r, dict) and r.get("id") is not None
+                ]
+            # Fallback: direct id
+            if "id" in response:
+                return [response["id"]]
+        elif isinstance(response, list):
+            return [
+                r.get("id") for r in response if isinstance(r, dict) and r.get("id") is not None
+            ]
+
+        return []
+
+
+class RequestAdapter:
+    """Adapter for formatting API requests between v2 and v3 formats.
+
+    v2 sends flat record data: {"Name": "John", "Email": "john@example.com"}
+    v3 wraps field data: {"fields": {"Name": "John", "Email": "john@example.com"}}
+    """
+
+    @staticmethod
+    def format_record(record: dict[str, Any], api_version: "APIVersion") -> dict[str, Any]:
+        """Format a record for create/update requests.
+
+        v2: {"Name": "John", "Email": "john@example.com"}
+        v3: {"fields": {"Name": "John", "Email": "john@example.com"}}
+        """
+        if api_version == APIVersion.V2:
+            return record
+
+        # v3: wrap in fields, keeping Id/id separate
+        fields = {}
+        result: dict[str, Any] = {}
+        for k, v in record.items():
+            if k in ("Id", "id"):
+                result["id"] = v
+            else:
+                fields[k] = v
+        result["fields"] = fields
+        return result
+
+    @staticmethod
+    def format_records(
+        records: list[dict[str, Any]], api_version: "APIVersion"
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """Format multiple records for bulk create/update requests.
+
+        v2: [{"Name": "John"}, {"Name": "Jane"}]
+        v3: {"records": [{"fields": {"Name": "John"}}, {"fields": {"Name": "Jane"}}]}
+        """
+        if api_version == APIVersion.V2:
+            return records
+
+        # v3: wrap in records array with fields
+        return {"records": [RequestAdapter.format_record(r, api_version) for r in records]}
+
+    @staticmethod
+    def format_delete(record_id: int | str, api_version: "APIVersion") -> dict[str, Any]:
+        """Format a delete request body.
+
+        v2: {"Id": 123}
+        v3: {"id": 123}
+        """
+        if api_version == APIVersion.V2:
+            return {"Id": record_id}
+        return {"id": record_id}
+
+    @staticmethod
+    def format_bulk_delete(
+        record_ids: list[int | str], api_version: "APIVersion"
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """Format bulk delete request body.
+
+        v2: [{"Id": 1}, {"Id": 2}]
+        v3: {"records": [{"id": 1}, {"id": 2}]}
+        """
+        if api_version == APIVersion.V2:
+            return [{"Id": rid} for rid in record_ids]
+        return {"records": [{"id": rid} for rid in record_ids]}
+
+
 class QueryParamAdapter:
     """Adapter for converting query parameters between API versions."""
 
