@@ -2,6 +2,36 @@
 
 <!-- version list -->
 
+## v1.3.2 (2026-03-25)
+
+### Bug Fixes
+
+- Add proper NocoDB API v3 response/request format handling (#13)
+  ([#14](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/pull/14),
+  [`158d141`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/158d141e2ce5ad388cbd3322cdfb9b20cc7d98d5))
+
+- **workflows**: Fixed feature branch pattern matching
+  ([`d5f878d`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/d5f878d8934d94c6e53949a7f651fc324459d66a))
+
+### Chores
+
+- **deps**: Bump actions/checkout from 4 to 6
+  ([#12](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/pull/12),
+  [`88951b2`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/88951b2a9a76fb728a83ef8ca9f4e78d4251dd92))
+
+- **deps**: Bump actions/setup-python from 4 to 6
+  ([#11](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/pull/11),
+  [`3505303`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/3505303bd49c24027126014be576db3ab89a9335))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`db643d3`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/db643d39d7a26e4d2075f4de73d59c32810eec6a))
+
+- Update SECURITY.MD [automated]
+  ([`5a95c2a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/5a95c2ab7714102d30211aaa9210ac11039f400b))
+
+
 ## v1.3.1 (2026-01-28)
 
 ### Bug Fixes
