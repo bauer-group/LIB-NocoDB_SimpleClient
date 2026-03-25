@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED FILE. DO NOT EDIT. Edit docs/SECURITY.template.MD instead. -->
-<!-- Generated on 2026-01-28 20:00:35 UTC -->
+<!-- Generated on 2026-03-25 08:54:10 UTC -->
 
 # Security Policy
 
@@ -49,11 +49,11 @@ We are committed to responding promptly to security reports:
 
 | Version | Support Status | Security Updates |
 |---------|---------------|------------------|
-| v1.3.1 (current) | ✅ Full Support | ✅ Yes |
+| v1.3.2 (current) | ✅ Full Support | ✅ Yes |
+| v1.3.1 | ❌ End of Life | ❌ No |
 | v1.3.0 | ❌ End of Life | ❌ No |
 | v1.2.0 | ❌ End of Life | ❌ No |
 | v1.1.1 | ❌ End of Life | ❌ No |
-| v1.1.0 | ❌ End of Life | ❌ No |
 
 We provide security updates for supported versions only. Please upgrade to a supported version if you're using an older release.
 
@@ -186,9 +186,9 @@ We appreciate the security research community and all individuals who responsibl
 
 ---
 
-**Current Version**: v1.3.1
-**Last Updated**: 2026-01-28 20:00:35 UTC
-**Next Review**: January 2027
+**Current Version**: v1.3.2
+**Last Updated**: 2026-03-25 08:54:10 UTC
+**Next Review**: March 2027
 **Policy Version**: 1.0.0
 
 ---
