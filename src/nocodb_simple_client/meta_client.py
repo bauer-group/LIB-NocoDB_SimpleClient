@@ -208,10 +208,28 @@ class NocoDBMetaClient(NocoDBClient):
     # BASE OPERATIONS (Meta API)
     # ========================================================================
 
-    def list_bases(self) -> list[dict[str, Any]]:
-        """List all bases.
+    def list_bases(self, workspace_id: str | None = None) -> list[dict[str, Any]]:
+        """List bases.
 
-        Supports both API v2 and v3.
+        API differences (verified live against releaseVersion 2026.05.2):
+
+        * **v2** exposes a flat ``GET /api/v2/meta/bases`` listing all bases.
+        * **v3** has NO flat bases listing (``/api/v3/meta/bases`` returns 404);
+          bases are workspace-scoped at
+          ``GET /api/v3/meta/workspaces/{workspaceId}/bases``.
+
+        Behavior:
+
+        * If ``workspace_id`` is given, list bases for that workspace
+          (workspace-scoped endpoint, available on both versions).
+        * If omitted:
+            - v2 -> the flat ``/meta/bases`` listing.
+            - v3 -> aggregate across all workspaces (one extra request per
+              workspace; pass ``workspace_id`` to avoid the N+1 cost when the
+              workspace is known).
+
+        Args:
+            workspace_id: Optional workspace to scope the listing to.
 
         Returns:
             List of base metadata dictionaries
@@ -224,10 +242,32 @@ class NocoDBMetaClient(NocoDBClient):
             >>> for base in bases:
             ...     print(base['id'], base['title'])
         """
-        endpoint = self._path_builder.bases_list()
-        response = self._get(endpoint)
-        base_list = response.get("list", [])
-        return base_list if isinstance(base_list, list) else []
+        from .api_version import APIVersion
+
+        def _bases(payload: Any) -> list[dict[str, Any]]:
+            if isinstance(payload, dict):
+                items = payload.get("list", payload.get("bases", []))
+                return items if isinstance(items, list) else []
+            return payload if isinstance(payload, list) else []
+
+        # Explicit workspace scope (works for both versions).
+        if workspace_id:
+            endpoint = f"api/{self.api_version}/meta/workspaces/{workspace_id}/bases"
+            return _bases(self._get(endpoint))
+
+        # v2: flat listing of all bases.
+        if self.api_version == APIVersion.V2:
+            return _bases(self._get(self._path_builder.bases_list()))
+
+        # v3: no flat listing -> aggregate across every workspace.
+        bases: list[dict[str, Any]] = []
+        for workspace in self.list_workspaces():
+            ws_id = workspace.get("id")
+            if not ws_id:
+                continue
+            endpoint = f"api/{self.api_version}/meta/workspaces/{ws_id}/bases"
+            bases.extend(_bases(self._get(endpoint)))
+        return bases
 
     def get_base(self, base_id: str) -> dict[str, Any]:
         """Get detailed information about a specific base.

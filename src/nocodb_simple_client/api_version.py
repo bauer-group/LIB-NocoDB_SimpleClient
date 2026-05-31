@@ -192,17 +192,25 @@ class RequestAdapter:
     @staticmethod
     def format_records(
         records: list[dict[str, Any]], api_version: "APIVersion"
-    ) -> list[dict[str, Any]] | dict[str, Any]:
+    ) -> list[dict[str, Any]]:
         """Format multiple records for bulk create/update requests.
 
         v2: [{"Name": "John"}, {"Name": "Jane"}]
-        v3: {"records": [{"fields": {"Name": "John"}}, {"fields": {"Name": "Jane"}}]}
+        v3: [{"fields": {"Name": "John"}}, {"fields": {"Name": "Jane"}}]
+
+        Both versions send a BARE ARRAY of record objects, NOT a
+        {"records": [...]} wrapper. Verified live against NocoDB
+        releaseVersion 2026.05.2: the wrapped form silently misbehaves
+        (bulk insert ignores it, bulk update returns 404), and it matches the
+        spec where the records POST/PATCH body is
+        ``oneOf: [DataInsertRequestV3, array<DataInsertRequestV3>]``. The
+        *response* is still wrapped as {"records": [...]} (see ResponseAdapter).
         """
         if api_version == APIVersion.V2:
             return records
 
-        # v3: wrap in records array with fields
-        return {"records": [RequestAdapter.format_record(r, api_version) for r in records]}
+        # v3: bare array of {"fields": {...}} objects
+        return [RequestAdapter.format_record(r, api_version) for r in records]
 
     @staticmethod
     def format_delete(record_id: int | str, api_version: "APIVersion") -> dict[str, Any]:
@@ -218,15 +226,23 @@ class RequestAdapter:
     @staticmethod
     def format_bulk_delete(
         record_ids: list[int | str], api_version: "APIVersion"
-    ) -> list[dict[str, Any]] | dict[str, Any]:
+    ) -> list[dict[str, Any]]:
         """Format bulk delete request body.
 
         v2: [{"Id": 1}, {"Id": 2}]
-        v3: {"records": [{"id": 1}, {"id": 2}]}
+        v3: [{"id": 1}, {"id": 2}]
+
+        Both versions send a BARE ARRAY of id objects, NOT a
+        {"records": [...]} wrapper. Verified live against NocoDB
+        releaseVersion 2026.05.2: the wrapped form returns HTTP 422
+        ("Field 'Id' is required"), the bare array works, and it matches the
+        spec (DELETE body is ``oneOf: [DataDeleteRequestV3, array<...>]``).
+        Each element must be an object with the ``id`` key (a bare list of raw
+        ids is rejected).
         """
         if api_version == APIVersion.V2:
             return [{"Id": rid} for rid in record_ids]
-        return {"records": [{"id": rid} for rid in record_ids]}
+        return [{"id": rid} for rid in record_ids]
 
 
 class QueryParamAdapter:
@@ -727,15 +743,26 @@ class PathBuilder:
     # ========================================================================
 
     def bases_list(self) -> str:
-        """Build path for listing bases.
+        """Build path for the flat bases listing (v2 only).
+
+        v3 has no flat bases endpoint (``/api/v3/meta/bases`` returns 404);
+        bases are workspace-scoped there. Use
+        ``NocoDBMetaClient.list_bases([workspace_id])`` which handles both
+        versions (aggregating across workspaces for v3).
 
         Returns:
-            API endpoint path
+            API endpoint path (v2)
+
+        Raises:
+            ValueError: If called for API v3.
         """
         if self.api_version == APIVersion.V2:
             return "api/v2/meta/bases"
-        else:  # V3
-            return "api/v3/meta/bases"
+        raise ValueError(
+            "API v3 has no flat bases endpoint; bases are workspace-scoped. "
+            "Use NocoDBMetaClient.list_bases() (it aggregates across workspaces) "
+            "or the workspace-scoped path api/v3/meta/workspaces/{id}/bases."
+        )
 
     def base_get(self, base_id: str) -> str:
         """Build path for getting base information.

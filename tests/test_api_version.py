@@ -526,16 +526,20 @@ class TestRequestAdapter:
         result = RequestAdapter.format_records(records, APIVersion.V2)
         assert result == [{"Name": "A"}, {"Name": "B"}]
 
-    def test_format_records_v3_wraps_in_records(self):
-        """Test v3 wraps in records array with fields."""
+    def test_format_records_v3_bare_array_of_fields(self):
+        """v3 bulk create/update body is a BARE ARRAY of {"fields": {...}}.
+
+        Verified live (releaseVersion 2026.05.2): the {"records": [...]} wrapper
+        silently misbehaves (bulk insert ignored, bulk update 404); the bare
+        array works and matches the spec's oneOf body. The *response* stays
+        wrapped as {"records": [...]} (handled by ResponseAdapter).
+        """
         records = [{"Name": "A"}, {"Name": "B"}]
         result = RequestAdapter.format_records(records, APIVersion.V3)
-        assert result == {
-            "records": [
-                {"fields": {"Name": "A"}},
-                {"fields": {"Name": "B"}},
-            ]
-        }
+        assert result == [
+            {"fields": {"Name": "A"}},
+            {"fields": {"Name": "B"}},
+        ]
 
     def test_format_delete_v2(self):
         """Test v2 delete format."""
@@ -553,6 +557,11 @@ class TestRequestAdapter:
         assert result == [{"Id": 1}, {"Id": 2}, {"Id": 3}]
 
     def test_format_bulk_delete_v3(self):
-        """Test v3 bulk delete format."""
+        """v3 bulk delete body is a BARE ARRAY of {"id": ...} objects.
+
+        Verified live (releaseVersion 2026.05.2): the {"records": [...]} wrapper
+        and a bare list of raw ids both return HTTP 422 ("Field 'Id' is
+        required"); a bare array of {"id": ...} objects works.
+        """
         result = RequestAdapter.format_bulk_delete([1, 2, 3], APIVersion.V3)
-        assert result == {"records": [{"id": 1}, {"id": 2}, {"id": 3}]}
+        assert result == [{"id": 1}, {"id": 2}, {"id": 3}]

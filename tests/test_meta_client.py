@@ -21,14 +21,30 @@ def setup_meta_client_mock(client_mock):
     # Setup PathBuilder methods to return v2 endpoints
     path_builder_mock.bases_list.return_value = "api/v2/meta/bases"
     path_builder_mock.base_get.side_effect = lambda base_id: f"api/v2/meta/bases/{base_id}"
-    path_builder_mock.tables_list_meta.side_effect = lambda base_id: f"api/v2/meta/bases/{base_id}/tables"
-    path_builder_mock.table_get_meta.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}"
-    path_builder_mock.columns_create.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/columns"
-    path_builder_mock.column_get.side_effect = lambda column_id, base_id=None: f"api/v2/meta/columns/{column_id}"
-    path_builder_mock.views_list.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/views"
-    path_builder_mock.view_get.side_effect = lambda view_id, base_id=None: f"api/v2/meta/views/{view_id}"
-    path_builder_mock.webhooks_list.side_effect = lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/hooks"
-    path_builder_mock.webhook_get.side_effect = lambda hook_id, base_id=None: f"api/v2/meta/hooks/{hook_id}"
+    path_builder_mock.tables_list_meta.side_effect = (
+        lambda base_id: f"api/v2/meta/bases/{base_id}/tables"
+    )
+    path_builder_mock.table_get_meta.side_effect = (
+        lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}"
+    )
+    path_builder_mock.columns_create.side_effect = (
+        lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/columns"
+    )
+    path_builder_mock.column_get.side_effect = (
+        lambda column_id, base_id=None: f"api/v2/meta/columns/{column_id}"
+    )
+    path_builder_mock.views_list.side_effect = (
+        lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/views"
+    )
+    path_builder_mock.view_get.side_effect = (
+        lambda view_id, base_id=None: f"api/v2/meta/views/{view_id}"
+    )
+    path_builder_mock.webhooks_list.side_effect = (
+        lambda table_id, base_id=None: f"api/v2/meta/tables/{table_id}/hooks"
+    )
+    path_builder_mock.webhook_get.side_effect = (
+        lambda hook_id, base_id=None: f"api/v2/meta/hooks/{hook_id}"
+    )
 
     return client_mock
 
@@ -44,12 +60,12 @@ class TestMetaClientInheritance:
     def test_meta_client_has_http_methods(self):
         """Test that meta client inherits HTTP methods."""
         # This tests the class structure, not actual instantiation
-        assert hasattr(NocoDBMetaClient, '_get')
-        assert hasattr(NocoDBMetaClient, '_post')
-        assert hasattr(NocoDBMetaClient, '_patch')
-        assert hasattr(NocoDBMetaClient, '_delete')
+        assert hasattr(NocoDBMetaClient, "_get")
+        assert hasattr(NocoDBMetaClient, "_post")
+        assert hasattr(NocoDBMetaClient, "_patch")
+        assert hasattr(NocoDBMetaClient, "_delete")
 
-    @patch('nocodb_simple_client.meta_client.NocoDBConfig')
+    @patch("nocodb_simple_client.meta_client.NocoDBConfig")
     def test_meta_client_initialization_with_config(self, mock_config_class):
         """Test meta client initialization with config object."""
         # Mock config object
@@ -59,11 +75,11 @@ class TestMetaClientInheritance:
         mock_config_class.return_value = mock_config
 
         # Test should not raise errors with proper mocking
-        with patch.object(NocoDBClient, '__init__', return_value=None):
+        with patch.object(NocoDBClient, "__init__", return_value=None):
             meta_client = NocoDBMetaClient(mock_config)
             # Verify the config was used
-            assert hasattr(meta_client, 'list_tables')
-            assert hasattr(meta_client, 'create_table')
+            assert hasattr(meta_client, "list_tables")
+            assert hasattr(meta_client, "create_table")
 
 
 class TestTableOperations:
@@ -86,7 +102,7 @@ class TestTableOperations:
         """Test list_tables method."""
         expected_tables = [
             {"id": "table1", "title": "Users", "type": "table"},
-            {"id": "table2", "title": "Orders", "type": "table"}
+            {"id": "table2", "title": "Orders", "type": "table"},
         ]
         expected_response = {"list": expected_tables}
         meta_client._get.return_value = expected_response
@@ -109,7 +125,7 @@ class TestTableOperations:
         expected_info = {
             "id": "table123",
             "title": "Users",
-            "columns": [{"title": "Name", "uidt": "SingleLineText"}]
+            "columns": [{"title": "Name", "uidt": "SingleLineText"}],
         }
         meta_client._get.return_value = expected_info
 
@@ -132,8 +148,8 @@ class TestTableOperations:
             "title": "New Table",
             "columns": [
                 {"title": "Name", "uidt": "SingleLineText"},
-                {"title": "Email", "uidt": "Email"}
-            ]
+                {"title": "Email", "uidt": "Email"},
+            ],
         }
         expected_response = {"id": "new_table_123", "title": "New Table"}
         meta_client._post.return_value = expected_response
@@ -141,7 +157,9 @@ class TestTableOperations:
         result = meta_client.create_table("base123", table_data)
 
         assert result == expected_response
-        meta_client._post.assert_called_once_with("api/v2/meta/bases/base123/tables", data=table_data)
+        meta_client._post.assert_called_once_with(
+            "api/v2/meta/bases/base123/tables", data=table_data
+        )
 
     def test_create_table_non_dict_response(self, meta_client):
         """Test create_table with non-dict response."""
@@ -193,7 +211,7 @@ class TestWorkspaceOperations:
         """Test list_workspaces method."""
         expected_workspaces = [
             {"id": "ws1", "title": "Default Workspace"},
-            {"id": "ws2", "title": "Team Workspace"}
+            {"id": "ws2", "title": "Team Workspace"},
         ]
         expected_response = {"list": expected_workspaces}
         meta_client._get.return_value = expected_response
@@ -213,11 +231,7 @@ class TestWorkspaceOperations:
 
     def test_get_workspace(self, meta_client):
         """Test get_workspace method."""
-        expected_workspace = {
-            "id": "ws123",
-            "title": "My Workspace",
-            "created_at": "2025-01-01"
-        }
+        expected_workspace = {"id": "ws123", "title": "My Workspace", "created_at": "2025-01-01"}
         meta_client._get.return_value = expected_workspace
 
         result = meta_client.get_workspace("ws123")
@@ -227,10 +241,7 @@ class TestWorkspaceOperations:
 
     def test_create_workspace(self, meta_client):
         """Test create_workspace method."""
-        workspace_data = {
-            "title": "New Workspace",
-            "description": "Team collaboration space"
-        }
+        workspace_data = {"title": "New Workspace", "description": "Team collaboration space"}
         expected_response = {"id": "ws_new", "title": "New Workspace"}
         meta_client._post.return_value = expected_response
 
@@ -280,7 +291,7 @@ class TestBaseOperations:
         """Test list_bases method."""
         expected_bases = [
             {"id": "base1", "title": "Project A", "status": "active"},
-            {"id": "base2", "title": "Project B", "status": "active"}
+            {"id": "base2", "title": "Project B", "status": "active"},
         ]
         expected_response = {"list": expected_bases}
         meta_client._get.return_value = expected_response
@@ -300,11 +311,7 @@ class TestBaseOperations:
 
     def test_get_base(self, meta_client):
         """Test get_base method."""
-        expected_base = {
-            "id": "base123",
-            "title": "My Project",
-            "status": "active"
-        }
+        expected_base = {"id": "base123", "title": "My Project", "status": "active"}
         meta_client._get.return_value = expected_base
 
         result = meta_client.get_base("base123")
@@ -314,17 +321,16 @@ class TestBaseOperations:
 
     def test_create_base(self, meta_client):
         """Test create_base method."""
-        base_data = {
-            "title": "New Project",
-            "description": "Project database"
-        }
+        base_data = {"title": "New Project", "description": "Project database"}
         expected_response = {"id": "base_new", "title": "New Project"}
         meta_client._post.return_value = expected_response
 
         result = meta_client.create_base("ws123", base_data)
 
         assert result == expected_response
-        meta_client._post.assert_called_once_with("api/v2/meta/workspaces/ws123/bases", data=base_data)
+        meta_client._post.assert_called_once_with(
+            "api/v2/meta/workspaces/ws123/bases", data=base_data
+        )
 
     def test_update_base(self, meta_client):
         """Test update_base method."""
@@ -366,7 +372,7 @@ class TestColumnOperations:
         """Test list_columns method."""
         expected_columns = [
             {"id": "col1", "title": "Name", "uidt": "SingleLineText"},
-            {"id": "col2", "title": "Email", "uidt": "Email"}
+            {"id": "col2", "title": "Email", "uidt": "Email"},
         ]
         expected_response = {"list": expected_columns}
         meta_client._get.return_value = expected_response
@@ -386,19 +392,16 @@ class TestColumnOperations:
 
     def test_create_column(self, meta_client):
         """Test create_column method."""
-        column_data = {
-            "title": "Age",
-            "uidt": "Number",
-            "dtxp": "3",
-            "dtxs": "0"
-        }
+        column_data = {"title": "Age", "uidt": "Number", "dtxp": "3", "dtxs": "0"}
         expected_response = {"id": "col_new", "title": "Age", "uidt": "Number"}
         meta_client._post.return_value = expected_response
 
         result = meta_client.create_column("table123", column_data)
 
         assert result == expected_response
-        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/columns", data=column_data)
+        meta_client._post.assert_called_once_with(
+            "api/v2/meta/tables/table123/columns", data=column_data
+        )
 
     def test_update_column(self, meta_client):
         """Test update_column method."""
@@ -441,7 +444,7 @@ class TestViewOperations:
         """Test list_views method."""
         expected_views = [
             {"id": "view1", "title": "Grid View", "type": "Grid"},
-            {"id": "view2", "title": "Gallery View", "type": "Gallery"}
+            {"id": "view2", "title": "Gallery View", "type": "Gallery"},
         ]
         expected_response = {"list": expected_views}
         meta_client._get.return_value = expected_response
@@ -461,11 +464,7 @@ class TestViewOperations:
 
     def test_get_view(self, meta_client):
         """Test get_view method."""
-        expected_view = {
-            "id": "view123",
-            "title": "Active Users",
-            "type": "Grid"
-        }
+        expected_view = {"id": "view123", "title": "Active Users", "type": "Grid"}
         meta_client._get.return_value = expected_view
 
         result = meta_client.get_view("view123")
@@ -475,18 +474,16 @@ class TestViewOperations:
 
     def test_create_view(self, meta_client):
         """Test create_view method."""
-        view_data = {
-            "title": "New View",
-            "type": "Grid",
-            "show_system_fields": False
-        }
+        view_data = {"title": "New View", "type": "Grid", "show_system_fields": False}
         expected_response = {"id": "view_new", "title": "New View"}
         meta_client._post.return_value = expected_response
 
         result = meta_client.create_view("table123", view_data)
 
         assert result == expected_response
-        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/views", data=view_data)
+        meta_client._post.assert_called_once_with(
+            "api/v2/meta/tables/table123/views", data=view_data
+        )
 
     def test_update_view(self, meta_client):
         """Test update_view method."""
@@ -530,7 +527,7 @@ class TestWebhookOperations:
         """Test list_webhooks method."""
         expected_webhooks = [
             {"id": "hook1", "title": "Slack Notification", "event": "after"},
-            {"id": "hook2", "title": "Email Alert", "event": "before"}
+            {"id": "hook2", "title": "Email Alert", "event": "before"},
         ]
         expected_response = {"list": expected_webhooks}
         meta_client._get.return_value = expected_response
@@ -554,7 +551,7 @@ class TestWebhookOperations:
             "id": "hook123",
             "title": "Slack Notification",
             "event": "after",
-            "operation": "insert"
+            "operation": "insert",
         }
         meta_client._get.return_value = expected_webhook
 
@@ -574,10 +571,10 @@ class TestWebhookOperations:
                 "payload": {
                     "method": "POST",
                     "url": "https://hooks.slack.com/...",
-                    "body": "New record: {{title}}"
-                }
+                    "body": "New record: {{title}}",
+                },
             },
-            "active": True
+            "active": True,
         }
         expected_response = {"id": "hook_new", "title": "Slack Notification"}
         meta_client._post.return_value = expected_response
@@ -585,7 +582,9 @@ class TestWebhookOperations:
         result = meta_client.create_webhook("table123", webhook_data)
 
         assert result == expected_response
-        meta_client._post.assert_called_once_with("api/v2/meta/tables/table123/hooks", data=webhook_data)
+        meta_client._post.assert_called_once_with(
+            "api/v2/meta/tables/table123/hooks", data=webhook_data
+        )
 
     def test_update_webhook(self, meta_client):
         """Test update_webhook method."""
@@ -610,11 +609,7 @@ class TestWebhookOperations:
 
     def test_test_webhook(self, meta_client):
         """Test test_webhook method."""
-        expected_response = {
-            "success": True,
-            "status_code": 200,
-            "response": "OK"
-        }
+        expected_response = {"success": True, "status_code": 200, "response": "OK"}
         meta_client._post.return_value = expected_response
 
         result = meta_client.test_webhook("hook123")
@@ -647,10 +642,15 @@ class TestMetaClientEndpoints:
         meta_client.create_table("base123", {"title": "Test"})
 
         # Verify endpoints follow Meta API pattern
-        calls = [call[0][0] for call in meta_client._get.call_args_list + meta_client._post.call_args_list]
+        calls = [
+            call[0][0]
+            for call in meta_client._get.call_args_list + meta_client._post.call_args_list
+        ]
 
         for call in calls:
-            assert call.startswith("api/v2/meta/"), f"Endpoint {call} doesn't follow Meta API pattern"
+            assert call.startswith(
+                "api/v2/meta/"
+            ), f"Endpoint {call} doesn't follow Meta API pattern"
 
 
 class TestMetaClientErrorHandling:
@@ -706,7 +706,10 @@ class TestMetaClientIntegration:
         meta_client._delete.return_value = delete_response
 
         # Create table
-        table_data = {"title": "Test Table", "columns": [{"title": "Name", "uidt": "SingleLineText"}]}
+        table_data = {
+            "title": "Test Table",
+            "columns": [{"title": "Name", "uidt": "SingleLineText"}],
+        }
         created = meta_client.create_table("base123", table_data)
         assert created["title"] == "Test Table"
 
