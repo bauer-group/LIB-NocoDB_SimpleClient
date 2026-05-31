@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.3.6 (2026-05-31)
+
+### Bug Fixes
+
+- **api**: Removed duplicated __all__ entries in package __init__
+  ([`d7cd2a4`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/d7cd2a4c03c14e5e80901bd2e3a4f661588b2b98))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`1c82f84`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/1c82f847166ab1934a1b8cb3185d995c1b2184c0))
+
+- Update SECURITY.MD [automated]
+  ([`59f1e11`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/59f1e11fc35782b6cb4483df28c4574090b4c0e7))
+
+### Testing
+
+- Guarded the suite to run against in-repo src, not an installed copy
+  ([`fcbb10a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/fcbb10aab4f5bd3cea128076e51063718e873d47))
+
+
 ## v1.3.5 (2026-05-31)
 
 ### Bug Fixes
