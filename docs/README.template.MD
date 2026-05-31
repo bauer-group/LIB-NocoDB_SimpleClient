@@ -1064,9 +1064,10 @@ These examples demonstrate the optional dependency groups:
 
 ## 📋 Requirements
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - `requests >= 2.25.0`
 - `requests-toolbelt >= 0.9.1`
+- `pydantic >= 1.8.0`
 
 ## 🔧 Development
 
