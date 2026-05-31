@@ -84,11 +84,23 @@ print(f"Default Base ID: {client_v3.base_id}")
 records_v3 = client_v3.get_records(
     table_id="tbl_abc123",
     limit=10,
-    where="(Status,eq,Active)",
-    sort="-CreatedAt",  # Still uses v2 string format, converted internally
+    where="(Status,ne,Inactive)",  # 'ne' is normalized to 'neq' for the server
+    sort="-CreatedAt",  # v2 string in; client sends v3's JSON-array sort format
 )
 
 print(f"Found {len(records_v3)} records")
+
+# ----------------------------------------------------------------------------
+# Verified v3 specifics (the client handles these for you; noted for clarity)
+# ----------------------------------------------------------------------------
+# - sort: v2 string is converted to v3's JSON array of {field, direction}.
+# - where: the not-equal operator 'ne' is normalized to 'neq' (both versions).
+# - pagination: offset/limit is converted to page/pageSize.
+# - bulk_*: v3 sends a bare array body (no {"records": [...]} wrapper).
+# - list_bases(): v3 has no flat listing; pass workspace_id, or it aggregates
+#   across all workspaces. v2 keeps the flat listing.
+# - attachments: v3 uploads per-cell (base64 JSON); v2 uses storage upload.
+# - webhooks: v3 has no hook API, so the v2 meta hook endpoints are used.
 
 # You can also override the base_id for specific calls
 records_v3_alt = client_v3.get_records(
