@@ -33,6 +33,18 @@ def test_all_entries_resolve():
     assert not missing, f"__all__ lists names not importable from the package: {missing}"
 
 
+def test_all_has_no_duplicates():
+    """__all__ must not list the same name twice.
+
+    The 1.3.5 automated release once appended a duplicate block to __all__;
+    this guards against that recurring.
+    """
+    import collections
+
+    dupes = [name for name, count in collections.Counter(nsc.__all__).items() if count > 1]
+    assert not dupes, f"__all__ contains duplicate entries: {dupes}"
+
+
 def test_star_import_does_not_raise():
     """`from nocodb_simple_client import *` must succeed."""
     ns: dict = {}
