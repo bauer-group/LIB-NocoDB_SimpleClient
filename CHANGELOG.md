@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.3.5 (2026-05-31)
+
+### Bug Fixes
+
+- **api**: Exposed NocoDBConfig at top level and fixed __all__
+  ([`bb6eaf5`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/bb6eaf5287b112ff6947bb4ca4e1844da628a9bc))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`24bf642`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/24bf642100af1cd6c03c83c8df3321ddc55d89de))
+
+- Update SECURITY.MD [automated]
+  ([`6b427d2`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/6b427d224ce39c263a63d98627b5d63ce5bd9ff1))
+
+- **examples**: Documented verified v3 specifics in api_version_example
+  ([`94f339a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/94f339a25c0d2a2032ca27208dc08e4d98f12b3e))
+
+
 ## v1.3.4 (2026-05-31)
 
 ### Bug Fixes
