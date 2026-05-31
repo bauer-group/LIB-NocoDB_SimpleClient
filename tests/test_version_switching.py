@@ -34,9 +34,7 @@ class TestClientVersionSwitching:
 
     def test_client_explicit_v2(self, mock_session):
         """Test client with explicit v2."""
-        client = NocoDBClient(
-            base_url="https://test.com", db_auth_token="token", api_version="v2"
-        )
+        client = NocoDBClient(base_url="https://test.com", db_auth_token="token", api_version="v2")
 
         assert client.api_version == APIVersion.V2
 
@@ -55,9 +53,7 @@ class TestClientVersionSwitching:
 
     def test_client_v3_without_base_id(self, mock_session):
         """Test v3 client can be created without base_id."""
-        client = NocoDBClient(
-            base_url="https://test.com", db_auth_token="token", api_version="v3"
-        )
+        client = NocoDBClient(base_url="https://test.com", db_auth_token="token", api_version="v3")
 
         assert client.api_version == APIVersion.V3
         assert client.base_id is None
@@ -65,9 +61,7 @@ class TestClientVersionSwitching:
 
     def test_get_records_v2_endpoint(self, mock_session):
         """Test get_records uses v2 endpoint."""
-        client = NocoDBClient(
-            base_url="https://test.com", db_auth_token="token", api_version="v2"
-        )
+        client = NocoDBClient(base_url="https://test.com", db_auth_token="token", api_version="v2")
 
         mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
         mock_session.get.return_value.status_code = 200
@@ -110,9 +104,7 @@ class TestClientVersionSwitching:
 
     def test_v2_pagination_params(self, mock_session):
         """Test v2 uses offset/limit parameters."""
-        client = NocoDBClient(
-            base_url="https://test.com", db_auth_token="token", api_version="v2"
-        )
+        client = NocoDBClient(base_url="https://test.com", db_auth_token="token", api_version="v2")
 
         mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
         mock_session.get.return_value.status_code = 200
@@ -155,9 +147,7 @@ class TestClientVersionSwitching:
 
     def test_v2_sort_string_format(self, mock_session):
         """Test v2 uses string sort format."""
-        client = NocoDBClient(
-            base_url="https://test.com", db_auth_token="token", api_version="v2"
-        )
+        client = NocoDBClient(base_url="https://test.com", db_auth_token="token", api_version="v2")
 
         mock_session.get.return_value.json.return_value = {"list": [], "pageInfo": {}}
         mock_session.get.return_value.status_code = 200
@@ -170,8 +160,15 @@ class TestClientVersionSwitching:
 
         assert params["sort"] == "name,-age"
 
-    def test_v3_sort_json_format(self, mock_session):
-        """Test v3 converts sort to JSON format."""
+    def test_v3_sort_json_array_format(self, mock_session):
+        """v3 sends sort as a JSON-encoded array of {field, direction}.
+
+        Verified against a live NocoDB instance (releaseVersion 2026.05.2): v3
+        rejects the plain "name,-age" string with HTTP 422 and accepts the JSON
+        object-array, so the client JSON-encodes the converted sort spec.
+        """
+        import json
+
         client = NocoDBClient(
             base_url="https://test.com",
             db_auth_token="token",
@@ -188,10 +185,11 @@ class TestClientVersionSwitching:
         call_args = mock_session.get.call_args
         params = call_args[1]["params"]
 
-        assert isinstance(params["sort"], list)
-        assert len(params["sort"]) == 2
-        assert params["sort"][0] == {"field": "name", "direction": "asc"}
-        assert params["sort"][1] == {"field": "age", "direction": "desc"}
+        assert isinstance(params["sort"], str)
+        assert json.loads(params["sort"]) == [
+            {"field": "name", "direction": "asc"},
+            {"field": "age", "direction": "desc"},
+        ]
 
 
 class TestMetaClientVersionSwitching:
@@ -350,10 +348,12 @@ class TestCrossFunctionalityBetweenVersions:
 
         # Check path construction
         v2_path = client_v2._path_builder.file_upload("table_123")
-        v3_path = client_v3._path_builder.file_upload("table_123", "base_abc")
+        v3_path = client_v3._path_builder.file_upload(
+            "table_123", "base_abc", record_id="rec_1", field_id="fld_9"
+        )
 
         assert v2_path == "api/v2/storage/upload"
-        assert v3_path == "api/v3/data/base_abc/table_123/attachments"
+        assert v3_path == "api/v3/data/base_abc/table_123/records/rec_1/fields/fld_9/upload"
 
     def test_both_data_and_meta_operations(self, mock_session):
         """Test client can perform both data and meta operations."""
@@ -492,9 +492,7 @@ class TestV3ResponseFormatHandling:
         }
         mock_session.post.return_value.status_code = 200
 
-        result = v3_client.bulk_insert_records(
-            "table_123", [{"Name": "A"}, {"Name": "B"}]
-        )
+        result = v3_client.bulk_insert_records("table_123", [{"Name": "A"}, {"Name": "B"}])
 
         assert result == [10, 11]
 

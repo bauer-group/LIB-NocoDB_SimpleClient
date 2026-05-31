@@ -778,14 +778,10 @@ class NocoDBMetaClient(NocoDBClient):
             NocoDBException: For API errors
             TableNotFoundException: If table is not found
         """
-        # Resolve base_id for v3
-        from .api_version import APIVersion
-
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            resolved_base_id = self._resolve_base_id(table_id, base_id)
-
-        endpoint = self._path_builder.webhooks_list(table_id, resolved_base_id)
+        # Webhooks use the v2 meta endpoints for both versions (v3 has no hook
+        # API), so no base_id resolution is required. base_id is accepted for
+        # backward compatibility but ignored.
+        endpoint = self._path_builder.webhooks_list(table_id)
         response = self._get(endpoint)
         webhook_list = response.get("list", [])
         return webhook_list if isinstance(webhook_list, list) else []
@@ -805,16 +801,10 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
-        from .api_version import APIVersion
-
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            if not base_id and not self.base_id:
-                raise ValueError("base_id is required for API v3 webhook operations")
-            resolved_base_id = base_id or self.base_id
-
-        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        # Webhooks use the v2 meta endpoints for both versions (v3 has no hook
+        # API), so no base_id is required. base_id is accepted for backward
+        # compatibility but ignored.
+        endpoint = self._path_builder.webhook_get(hook_id)
         return self._get(endpoint)
 
     def create_webhook(
@@ -853,14 +843,10 @@ class NocoDBMetaClient(NocoDBClient):
             ... }
             >>> webhook = meta_client.create_webhook("table123", webhook_data)
         """
-        # Resolve base_id for v3
-        from .api_version import APIVersion
-
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            resolved_base_id = self._resolve_base_id(table_id, base_id)
-
-        endpoint = self._path_builder.webhooks_list(table_id, resolved_base_id)
+        # Webhooks use the v2 meta endpoints for both versions (v3 has no hook
+        # API), so no base_id resolution is required. base_id is accepted for
+        # backward compatibility but ignored.
+        endpoint = self._path_builder.webhooks_list(table_id)
         result = self._post(endpoint, data=webhook_data)
         return result if isinstance(result, dict) else {"data": result}
 
@@ -882,16 +868,10 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
-        from .api_version import APIVersion
-
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            if not base_id and not self.base_id:
-                raise ValueError("base_id is required for API v3 webhook operations")
-            resolved_base_id = base_id or self.base_id
-
-        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        # Webhooks use the v2 meta endpoints for both versions (v3 has no hook
+        # API), so no base_id is required. base_id is accepted for backward
+        # compatibility but ignored.
+        endpoint = self._path_builder.webhook_get(hook_id)
         result = self._patch(endpoint, data=webhook_data)
         return result if isinstance(result, dict) else {"data": result}
 
@@ -910,16 +890,10 @@ class NocoDBMetaClient(NocoDBClient):
         Raises:
             NocoDBException: For API errors
         """
-        # Resolve base_id for v3 (hook_id doesn't directly resolve, so base_id must be provided)
-        from .api_version import APIVersion
-
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            if not base_id and not self.base_id:
-                raise ValueError("base_id is required for API v3 webhook operations")
-            resolved_base_id = base_id or self.base_id
-
-        endpoint = self._path_builder.webhook_get(hook_id, resolved_base_id)
+        # Webhooks use the v2 meta endpoints for both versions (v3 has no hook
+        # API), so no base_id is required. base_id is accepted for backward
+        # compatibility but ignored.
+        endpoint = self._path_builder.webhook_get(hook_id)
         result = self._delete(endpoint)
         return result if isinstance(result, dict) else {"data": result}
 

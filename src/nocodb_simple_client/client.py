@@ -23,6 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import base64
+import json
 import mimetypes
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
@@ -254,6 +256,7 @@ class NocoDBClient:
                 from .exceptions import (
                     AuthenticationException,
                     AuthorizationException,
+                    RateLimitException,
                     ServerErrorException,
                     ValidationException,
                 )
@@ -274,6 +277,10 @@ class NocoDBClient:
                         raise NocoDBException(error_code, message, response.status_code, error_info)
                 elif response.status_code == 400:
                     raise ValidationException(message)
+                elif response.status_code == 429:
+                    # NocoDB enforces ~5 req/s per user; surface Retry-After so
+                    # callers can back off instead of getting a generic error.
+                    raise RateLimitException(message, retry_after=self._parse_retry_after(response))
                 elif response.status_code >= 500:
                     raise ServerErrorException(message, response.status_code)
                 else:
@@ -281,18 +288,30 @@ class NocoDBClient:
 
             except ValueError as e:
                 # If response is not JSON, create generic error
+                from .exceptions import AuthenticationException as _AuthExc
+                from .exceptions import AuthorizationException as _AuthzExc
+                from .exceptions import RateLimitException as _RateExc
+
                 if response.status_code == 401:
-                    raise AuthenticationException(
-                        f"Authentication failed (HTTP {response.status_code})"
-                    ) from e
+                    raise _AuthExc(f"Authentication failed (HTTP {response.status_code})") from e
                 elif response.status_code == 403:
-                    raise AuthorizationException(
-                        f"Access denied (HTTP {response.status_code})"
+                    raise _AuthzExc(f"Access denied (HTTP {response.status_code})") from e
+                elif response.status_code == 429:
+                    raise _RateExc(
+                        "Rate limit exceeded", retry_after=self._parse_retry_after(response)
                     ) from e
                 else:
                     raise NocoDBException(
                         "HTTP_ERROR", f"HTTP {response.status_code} error", response.status_code
                     ) from e
+
+    @staticmethod
+    def _parse_retry_after(response: requests.Response) -> int | None:
+        """Extract the Retry-After header (seconds) from a 429 response, if present."""
+        retry_after = response.headers.get("Retry-After")
+        if retry_after and retry_after.isdigit():
+            return int(retry_after)
+        return None
 
     def get_records(
         self,
@@ -346,11 +365,24 @@ class NocoDBClient:
             # Remove None values from params
             params = {k: v for k, v in params.items() if v is not None}
 
-            # Convert query parameters for v3
+            # Normalize the not-equal operator: current NocoDB rejects "ne" on
+            # BOTH v2 and v3 ("ne is not supported" / "not a recognized
+            # operator") and requires "neq" (verified live, releaseVersion
+            # 2026.05.2). Applied for both versions so the documented "ne"
+            # filter keeps working.
+            if where:
+                params["where"] = self._param_adapter.normalize_where_operators(where)
+
+            # v3-only query differences (verified live):
+            #  * pagination: offset/limit -> page/pageSize
+            #  * sort: must be a JSON-encoded array of {field,direction}; the
+            #    plain v2 string ("Name,-Age") is rejected with HTTP 422, and a
+            #    raw Python list would be mangled by requests into repeated
+            #    ?sort=field&sort=direction pairs.
             if self.api_version == APIVersion.V3:
                 params = self._param_adapter.convert_pagination_to_v3(params)
                 if sort:
-                    params["sort"] = self._param_adapter.convert_sort_to_v3(sort)
+                    params["sort"] = json.dumps(self._param_adapter.convert_sort_to_v3(sort))
 
             response = self._get(endpoint, params=params)
 
@@ -566,7 +598,9 @@ class NocoDBClient:
 
         params = {}
         if where:
-            params["where"] = where
+            # Current NocoDB requires "neq" (not "ne") on both v2 and v3
+            # (verified live); normalize so the documented "ne" keeps working.
+            params["where"] = self._param_adapter.normalize_where_operators(where)
 
         response = self._get(endpoint, params=params)
         count = response.get("count", 0)
@@ -743,16 +777,19 @@ class NocoDBClient:
         self._check_for_error(response)
         return response.json()  # type: ignore[no-any-return]
 
-    def _upload_file(self, table_id: str, file_path: str | Path, base_id: str | None = None) -> Any:
-        """Upload a file to NocoDB storage.
+    def _upload_file(self, table_id: str, file_path: str | Path) -> Any:
+        """Upload a file to NocoDB storage (v2 storage endpoint).
+
+        Returns attachment object(s) which the caller writes into a record's
+        attachment field via a record update. This is the v2 mechanism; v3 uses
+        a per-cell upload instead (see :meth:`_upload_file_to_cell`).
 
         Args:
             table_id: The ID of the table
             file_path: Path to the file to upload
-            base_id: Base ID (required for v3, optional for v2)
 
         Returns:
-            Upload response with file information
+            Upload response with file information (list of attachment objects)
 
         Raises:
             NocoDBException: For upload errors
@@ -767,18 +804,76 @@ class NocoDBClient:
         if mime_type is None:
             mime_type = "application/octet-stream"
 
-        # Resolve base_id for v3
-        resolved_base_id = None
-        if self.api_version == APIVersion.V3:
-            resolved_base_id = self._resolve_base_id(table_id, base_id)
-
-        # Build upload endpoint
-        endpoint = self._path_builder.file_upload(table_id, resolved_base_id)
+        endpoint = self._path_builder.file_upload(table_id)
 
         with file_path.open("rb") as f:
             files = {"file": (filename, f, mime_type)}
             path = f"files/{table_id}"
             return self._multipart_post(endpoint, files, fields={"path": path})
+
+    def _resolve_field_id(self, table_id: str, field_name: str) -> str:
+        """Resolve an attachment field's id from its title/name.
+
+        Needed for the v3 per-cell upload endpoint, which addresses the field by
+        id rather than name. Uses the v2 table-meta endpoint, which is available
+        regardless of the data API version in use.
+
+        Raises:
+            NocoDBException: If the field cannot be found.
+        """
+        info = self._get(f"api/v2/meta/tables/{table_id}")
+        for col in info.get("columns", []):
+            if field_name in (col.get("title"), col.get("column_name")):
+                return str(col["id"])
+        raise NocoDBException(
+            "FIELD_NOT_FOUND", f"Field '{field_name}' not found in table {table_id}"
+        )
+
+    def _upload_file_to_cell(
+        self,
+        table_id: str,
+        record_id: int | str,
+        field_name: str,
+        file_path: str | Path,
+        base_id: str | None = None,
+    ) -> Any:
+        """Upload a file into a record's attachment cell (API v3).
+
+        v3 has no usable storage-upload + record-PATCH flow (the PATCH silently
+        drops the attachment, returning the field as ``[]``). The per-cell
+        endpoint ``.../records/{recordId}/fields/{fieldId}/upload`` is the
+        verified mechanism: it takes a single JSON object
+        ``{"contentType", "filename", "file"}`` where ``file`` is the
+        base64-encoded file content, appends the attachment to the cell, and
+        returns the updated record. (Verified live against releaseVersion
+        2026.05.2 — multipart bodies and list-wrapped descriptors are rejected
+        with HTTP 400; content integrity on download confirmed.)
+
+        Returns the upload response (the updated record).
+
+        Raises:
+            NocoDBException: For upload errors
+        """
+        file_path = Path(file_path)
+        if not file_path.exists():
+            raise NocoDBException("FILE_NOT_FOUND", f"File not found: {file_path}")
+
+        resolved_base_id = self._resolve_base_id(table_id, base_id)
+        field_id = self._resolve_field_id(table_id, field_name)
+
+        filename = file_path.name
+        mime_type, _ = mimetypes.guess_type(str(file_path))
+        if mime_type is None:
+            mime_type = "application/octet-stream"
+
+        encoded = base64.b64encode(file_path.read_bytes()).decode("ascii")
+        endpoint = self._path_builder.file_upload(
+            table_id, resolved_base_id, str(record_id), field_id
+        )
+        return self._post(
+            endpoint,
+            data={"contentType": mime_type, "filename": filename, "file": encoded},
+        )
 
     def attach_file_to_record(
         self,
@@ -830,11 +925,20 @@ class NocoDBClient:
             RecordNotFoundException: If the record is not found
             NocoDBException: For other API errors
         """
+        # v3: the per-cell upload endpoint appends directly to the attachment
+        # field, so no read-modify-write is needed (and the v2 storage + PATCH
+        # flow does not work on v3 — the PATCH silently drops the file).
+        if self.api_version == APIVersion.V3:
+            for file_path in file_paths:
+                self._upload_file_to_cell(table_id, record_id, field_name, file_path, base_id)
+            return record_id
+
+        # v2: upload to storage, then append the returned objects to the field.
         existing_record = self.get_record(table_id, record_id, base_id=base_id, fields=[field_name])
         existing_files = existing_record.get(field_name, []) or []
 
         for file_path in file_paths:
-            upload_response = self._upload_file(table_id, file_path, base_id)
+            upload_response = self._upload_file(table_id, file_path)
             # NocoDB upload returns an array of file objects
             if isinstance(upload_response, list):
                 existing_files.extend(upload_response)
@@ -871,18 +975,48 @@ class NocoDBClient:
         record = {field_name: "[]"}
         return self.update_record(table_id, record, record_id, base_id)
 
+    def _resolve_attachment_url(self, file_info: dict[str, Any]) -> str:
+        """Resolve a downloadable URL for an attachment across storage backends.
+
+        NocoDB populates different keys depending on the storage adapter:
+
+        * local storage -> ``signedPath`` (relative; prepend base_url) and ``path``
+        * S3-type remote -> ``signedUrl`` (absolute) and ``url``
+
+        Signed variants are preferred (they work with ``NC_SECURE_ATTACHMENTS``)
+        but are short-lived (default 2h), so callers should download promptly.
+
+        Raises:
+            NocoDBException: If no usable path/url is present on the attachment.
+        """
+        if file_info.get("signedPath"):
+            return f"{self._base_url}/{file_info['signedPath']}"
+        if file_info.get("signedUrl"):
+            return str(file_info["signedUrl"])
+        if file_info.get("url"):
+            return str(file_info["url"])
+        if file_info.get("path"):
+            return f"{self._base_url}/{file_info['path']}"
+        title = file_info.get("title", "unknown")
+        raise NocoDBException(
+            "DOWNLOAD_ERROR",
+            f"Attachment '{title}' has no downloadable path or url "
+            "(expected one of signedPath, signedUrl, url, path)",
+        )
+
     def _download_single_file(self, file_info: dict[str, Any], file_path: Path) -> None:
         """Helper method to download a single file.
 
         Args:
-            file_info: File information dict from NocoDB (must contain 'signedPath')
+            file_info: File information dict from NocoDB (attachment object). Works
+                with both local-storage (signedPath/path) and remote/S3
+                (signedUrl/url) backends.
             file_path: Path where the file should be saved
 
         Raises:
             NocoDBException: If download fails
         """
-        signed_path = file_info["signedPath"]
-        download_url = f"{self._base_url}/{signed_path}"
+        download_url = self._resolve_attachment_url(file_info)
 
         response = self._session.get(
             download_url, headers=self.headers, timeout=self._request_timeout, stream=True

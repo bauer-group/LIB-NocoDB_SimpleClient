@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import re
 from enum import Enum
 from typing import Any
 
@@ -345,6 +346,36 @@ class QueryParamAdapter:
 
         return ",".join(fields) if fields else None
 
+    # Match the operator slot "(field,OP," so only the operator token is
+    # rewritten — values such as "(Name,eq,ne)" are left untouched.
+    _NE_OPERATOR_RE = re.compile(r"(\([^,()]+,)ne(,)")
+
+    @staticmethod
+    def normalize_where_operators(where: str | None) -> str | None:
+        """Normalize a where-clause string to operators the server accepts.
+
+        Current NocoDB rejects the legacy ``ne`` operator on BOTH API v2 and v3
+        (HTTP 422: "ne is not supported" / "'ne' is not a recognized operator")
+        and requires ``neq``. This rewrites only the operator slot, so the
+        documented ``(Field,ne,Value)`` filter keeps working against current
+        servers while ``neq`` and field/values containing "ne" are untouched.
+
+        Verified against a live NocoDB instance (releaseVersion 2026.05.2).
+
+        Args:
+            where: where-clause string (e.g. ``"(Status,ne,Active)"``)
+
+        Returns:
+            The normalized string, or the input unchanged when empty/None.
+
+        Example:
+            >>> QueryParamAdapter.normalize_where_operators("(Status,ne,Active)")
+            '(Status,neq,Active)'
+        """
+        if not where:
+            return where
+        return QueryParamAdapter._NE_OPERATOR_RE.sub(r"\1neq\2", where)
+
     @staticmethod
     def convert_where_operators_to_v3(where: dict[str, Any] | None) -> dict[str, Any] | None:
         """Convert v2 where operators to v3 format.
@@ -646,22 +677,50 @@ class PathBuilder:
         """
         return self.links_list(table_id, link_field_id, record_id, base_id)
 
-    def file_upload(self, table_id: str, base_id: str | None = None) -> str:
+    def file_upload(
+        self,
+        table_id: str,
+        base_id: str | None = None,
+        record_id: str | None = None,
+        field_id: str | None = None,
+    ) -> str:
         """Build path for file upload.
+
+        The two API versions use fundamentally different upload mechanisms
+        (both verified against a live NocoDB instance, releaseVersion
+        2026.05.2):
+
+        * **v2** uploads to generic storage (``/api/v2/storage/upload``); the
+          returned attachment objects are then written into a cell via a v2
+          record PATCH.
+        * **v3** uploads into a specific record's attachment cell via
+          ``.../records/{recordId}/fields/{fieldId}/upload`` with a JSON body
+          ``{"contentType", "filename", "file": <base64>}``, which appends to
+          the cell. The v2 storage-upload + v3 record-PATCH combination does NOT
+          work on v3 — the PATCH silently drops the attachment (returns the
+          field as ``[]``) — so the per-cell endpoint is mandatory for v3 and
+          ``record_id``/``field_id`` are required.
 
         Args:
             table_id: Table ID
             base_id: Base ID (required for v3)
+            record_id: Record ID (required for v3 cell upload)
+            field_id: Attachment field ID (required for v3 cell upload)
 
         Returns:
             API endpoint path
         """
         if self.api_version == APIVersion.V2:
             return "api/v2/storage/upload"
-        else:  # V3
-            if not base_id:
-                raise ValueError("base_id is required for API v3")
-            return f"api/v3/data/{base_id}/{table_id}/attachments"
+        # V3 — upload targets a specific record's attachment field
+        if not base_id:
+            raise ValueError("base_id is required for API v3")
+        if not record_id or not field_id:
+            raise ValueError(
+                "API v3 attachment upload requires record_id and field_id "
+                "(endpoint: .../records/{record_id}/fields/{field_id}/upload)"
+            )
+        return f"api/v3/data/{base_id}/{table_id}/records/{record_id}/fields/{field_id}/upload"
 
     # ========================================================================
     # META API PATHS
@@ -794,33 +853,31 @@ class PathBuilder:
     def webhook_get(self, webhook_id: str, base_id: str | None = None) -> str:
         """Build path for webhook operations.
 
+        Webhook/hook management uses the v2 meta endpoints for BOTH API
+        versions: NocoDB API v3 does not expose any hook endpoints (verified
+        against a live instance — all v3 hook paths return 404, while the v2
+        hook endpoints work regardless of the data API version in use).
+
         Args:
             webhook_id: Webhook ID
-            base_id: Base ID (required for v3)
+            base_id: Unused (kept for signature symmetry)
 
         Returns:
             API endpoint path
         """
-        if self.api_version == APIVersion.V2:
-            return f"api/v2/meta/hooks/{webhook_id}"
-        else:  # V3
-            if not base_id:
-                raise ValueError("base_id is required for API v3")
-            return f"api/v3/meta/bases/{base_id}/hooks/{webhook_id}"
+        return f"api/v2/meta/hooks/{webhook_id}"
 
     def webhooks_list(self, table_id: str, base_id: str | None = None) -> str:
         """Build path for listing webhooks.
 
+        Always uses the v2 meta endpoint (v3 has no hook API — see
+        :meth:`webhook_get`).
+
         Args:
             table_id: Table ID
-            base_id: Base ID (required for v3)
+            base_id: Unused (kept for signature symmetry)
 
         Returns:
             API endpoint path
         """
-        if self.api_version == APIVersion.V2:
-            return f"api/v2/meta/tables/{table_id}/hooks"
-        else:  # V3
-            if not base_id:
-                raise ValueError("base_id is required for API v3")
-            return f"api/v3/meta/bases/{base_id}/tables/{table_id}/hooks"
+        return f"api/v2/meta/tables/{table_id}/hooks"

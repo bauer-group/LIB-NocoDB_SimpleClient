@@ -262,11 +262,17 @@ class TestPathBuilderDataAPI:
         assert path == "api/v2/storage/upload"
 
     def test_file_upload_v3(self):
-        """Test file upload path for v3."""
+        """Test file upload path for v3 targets the per-record/field endpoint."""
         builder = PathBuilder(APIVersion.V3)
-        path = builder.file_upload("table_123", "base_abc")
+        path = builder.file_upload("table_123", "base_abc", record_id="rec_1", field_id="fld_9")
 
-        assert path == "api/v3/data/base_abc/table_123/attachments"
+        assert path == "api/v3/data/base_abc/table_123/records/rec_1/fields/fld_9/upload"
+
+    def test_file_upload_v3_requires_record_and_field(self):
+        """v3 upload path requires record_id and field_id."""
+        builder = PathBuilder(APIVersion.V3)
+        with pytest.raises(ValueError, match="record_id and field_id"):
+            builder.file_upload("table_123", "base_abc")
 
 
 class TestPathBuilderMetaAPI:
@@ -391,12 +397,12 @@ class TestPathBuilderMetaAPI:
 
         assert path == "api/v2/meta/hooks/hook_123"
 
-    def test_webhook_get_v3(self):
-        """Test get webhook path for v3."""
+    def test_webhook_get_v3_uses_v2_path(self):
+        """v3 reuses the v2 hook endpoint (verified live: v3 has no hook API)."""
         builder = PathBuilder(APIVersion.V3)
         path = builder.webhook_get("hook_123", "base_abc")
 
-        assert path == "api/v3/meta/bases/base_abc/hooks/hook_123"
+        assert path == "api/v2/meta/hooks/hook_123"
 
     def test_webhooks_list_v2(self):
         """Test list webhooks path for v2."""
@@ -405,12 +411,12 @@ class TestPathBuilderMetaAPI:
 
         assert path == "api/v2/meta/tables/table_123/hooks"
 
-    def test_webhooks_list_v3(self):
-        """Test list webhooks path for v3."""
+    def test_webhooks_list_v3_uses_v2_path(self):
+        """v3 reuses the v2 hooks list endpoint (v3 has no hook API)."""
         builder = PathBuilder(APIVersion.V3)
         path = builder.webhooks_list("table_123", "base_abc")
 
-        assert path == "api/v3/meta/bases/base_abc/tables/table_123/hooks"
+        assert path == "api/v2/meta/tables/table_123/hooks"
 
 
 class TestResponseAdapter:
