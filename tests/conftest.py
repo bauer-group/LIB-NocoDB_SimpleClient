@@ -11,11 +11,38 @@ from unittest.mock import Mock
 import pytest
 from dotenv import load_dotenv
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+# Ensure the test suite imports the in-repo source tree, never a separately
+# installed wheel. sys.path.insert wins over a wheel in site-packages, but an
+# editable (PEP 660) install registers a sys.meta_path finder that takes
+# precedence over sys.path. So we also assert, below, that the package actually
+# resolved to this repo's src/ and fail loudly otherwise.
+_SRC = Path(__file__).resolve().parent.parent / "src"
+sys.path.insert(0, str(_SRC))
 
-from nocodb_simple_client.client import NocoDBClient
-from nocodb_simple_client.table import NocoDBTable
+import nocodb_simple_client as _nsc  # noqa: E402
+
+
+def _under(child: Path, parent: Path) -> bool:
+    try:
+        child.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+if not _under(Path(_nsc.__file__).resolve(), _SRC):
+    raise RuntimeError(
+        "Test suite imported 'nocodb_simple_client' from\n"
+        f"    {Path(_nsc.__file__).resolve()}\n"
+        f"but expected it under this repo's source tree:\n    {_SRC.resolve()}\n"
+        "An installed/stale copy is shadowing the local source (likely an "
+        "editable install pointing elsewhere, or a wheel in site-packages).\n"
+        "Fix the environment, e.g.:  pip uninstall -y nocodb-simple-client  "
+        "&&  pip install -e .[dev]"
+    )
+
+from nocodb_simple_client.client import NocoDBClient  # noqa: E402
+from nocodb_simple_client.table import NocoDBTable  # noqa: E402
 
 # Load environment variables from .env file if it exists
 env_file = Path(__file__).parent / ".env"
