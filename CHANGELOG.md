@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v1.3.4 (2026-05-31)
+
+### Bug Fixes
+
+- **api**: Corrected v3 bulk bodies and base listing per swagger audit
+  ([`268166d`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/268166d728f0f02c799d521aa24ad7527a4aaa29))
+
+### Documentation
+
+- Removed nocodb-openapi-{data,meta}{,-v3}.json (+ stale .backup)
+  ([`82de064`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/82de0645bd1a3b323f4a8df7e3aab64eb770deb1))
+
+- Update README.MD [automated]
+  ([`d56969b`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/d56969b41bc43f53fca292cbd46076b8e072489d))
+
+- Update SECURITY.MD [automated]
+  ([`1e60f77`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/1e60f779b4399b81d136713d5860620a8d614d0d))
+
+- **openapi**: Replaced incomplete v2/v3 OpenAPI snapshots with official specs
+  ([`82de064`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/82de0645bd1a3b323f4a8df7e3aab64eb770deb1))
+
+### Testing
+
+- **api**: Fixed v3 bases_list test to expect ValueError
+  ([`5ac513f`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/5ac513f3e6433723f5606449852a285d81c193ba))
+
+
 ## v1.3.3 (2026-05-31)
 
 ### Bug Fixes
