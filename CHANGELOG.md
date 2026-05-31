@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v1.3.3 (2026-05-31)
+
+### Bug Fixes
+
+- **api**: Corrected NocoDB v3 client against live API behavior
+  ([`5d67eeb`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/5d67eeb482a751890b600a9f31d155c51efed43f))
+
+- **models**: Supported Pydantic v2 in NocoDBRecord validators
+  ([`2cb9770`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/2cb9770a472f49eb20d7333f9856749e37900f96))
+
+### Build System
+
+- **python**: Required Python >=3.10 and added 3.14 support
+  ([`ffd533a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/ffd533a4919017eb9d850abed0d09576b2b7307d))
+
+### Documentation
+
+- Update README.MD [automated]
+  ([`82890d2`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/82890d2b7b2c38294a457cc635fb80f18e6ec53d))
+
+- Update README.MD [automated]
+  ([`9ebf83a`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/9ebf83aa245649bfef8ffea8c58abdee729289bc))
+
+- Update SECURITY.MD [automated]
+  ([`da63d10`](https://github.com/bauer-group/LIB-NocoDB_SimpleClient/commit/da63d10b3dcbcdf455c47d600df83d388100e9af))
+
+
 ## v1.3.2 (2026-03-25)
 
 ### Bug Fixes
