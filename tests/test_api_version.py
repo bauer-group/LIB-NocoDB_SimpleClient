@@ -285,12 +285,15 @@ class TestPathBuilderMetaAPI:
 
         assert path == "api/v2/meta/bases"
 
-    def test_bases_list_v3(self):
-        """Test bases list path for v3."""
-        builder = PathBuilder(APIVersion.V3)
-        path = builder.bases_list()
+    def test_bases_list_v3_raises(self):
+        """v3 has no flat bases endpoint (/api/v3/meta/bases returns 404 live).
 
-        assert path == "api/v3/meta/bases"
+        bases_list() must refuse rather than emit the broken path; callers use
+        NocoDBMetaClient.list_bases() which aggregates workspace-scoped listings.
+        """
+        builder = PathBuilder(APIVersion.V3)
+        with pytest.raises(ValueError, match="no flat bases endpoint"):
+            builder.bases_list()
 
     def test_base_get_v2(self):
         """Test get base path for v2."""
