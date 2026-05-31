@@ -41,7 +41,7 @@ v3 introduces a clear separation of concerns:
 
 #### v2 Architecture
 ```
-Meta API (nocodb-openapi-meta.json):
+Meta API (swagger-v2.json):
   ├─ Authentication endpoints
   ├─ Base/Workspace management
   ├─ Table schema operations
@@ -51,20 +51,20 @@ Meta API (nocodb-openapi-meta.json):
   ├─ Webhook operations
   └─ Misc utilities
 
-Data API (nocodb-openapi-data.json):
+Data API (swagger-v2.json):
   ├─ Record CRUD (10 endpoints)
   └─ File upload
 ```
 
 #### v3 Architecture
 ```
-Meta API (nocodb-openapi-meta-v3.json):
+Data operations (swagger-v3.json):
   └─ Data operations ONLY (10 endpoints)
       ├─ Record CRUD
       ├─ Link operations
       └─ File upload
 
-Data API (nocodb-openapi-data-v3.json):
+Meta operations (swagger-v3.json):
   └─ Meta operations ONLY (36 endpoints)
       ├─ Base management
       ├─ Table schema

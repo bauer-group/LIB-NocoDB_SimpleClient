@@ -152,10 +152,13 @@ This is NOT just naming - you must load the opposite file for equivalent operati
 
 All analysis is based on these OpenAPI specification files:
 
-- **v2 Meta API:** `docs/nocodb-openapi-meta.json` (137 endpoints)
-- **v2 Data API:** `docs/nocodb-openapi-data.json` (10 endpoints)
-- **v3 Meta API:** `docs/nocodb-openapi-meta-v3.json` (10 endpoints)
-- **v3 Data API:** `docs/nocodb-openapi-data-v3.json` (36 endpoints)
+- **v2 API:** `docs/swagger-v2.json` (112 paths) — official NocoDB v2 OpenAPI spec
+- **v3 API:** `docs/swagger-v3.json` (51 paths) — official NocoDB v3 OpenAPI spec
+
+See [`SWAGGER_SOURCE.md`](./SWAGGER_SOURCE.md) for provenance (pinned upstream commit) and important caveats.
+
+> Note: the per-endpoint counts in this historical analysis predate the spec
+> replacement and reflect the earlier, incomplete snapshots.
 
 ---
 

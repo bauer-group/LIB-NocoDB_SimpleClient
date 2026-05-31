@@ -34,8 +34,8 @@ class NocoDBMetaClient(NocoDBClient):
 
     This client extends NocoDBClient to provide Meta API operations for managing
     database structure like tables, views, columns, webhooks, and other metadata
-    operations following the official NocoDB Meta API specification in
-    docs/nocodb-openapi-meta.json.
+    operations following the official NocoDB API specification in
+    docs/swagger-v2.json (and docs/swagger-v3.json for API v3).
 
     Inherits all HTTP functionality from NocoDBClient while providing specialized
     Meta API methods. This eliminates code duplication and ensures consistent

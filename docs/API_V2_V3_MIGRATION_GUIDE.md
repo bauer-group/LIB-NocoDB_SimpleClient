@@ -622,10 +622,9 @@ where=(field1,neq,value)
 - **Full Comparison Report:** `NOCODB_API_V2_V3_COMPARISON.md`
 - **Schema Analysis:** `NOCODB_API_SCHEMA_COMPARISON.md`
 - **OpenAPI Specs:**
-  - v2 Meta: `docs/nocodb-openapi-meta.json`
-  - v2 Data: `docs/nocodb-openapi-data.json`
-  - v3 Meta: `docs/nocodb-openapi-meta-v3.json`
-  - v3 Data: `docs/nocodb-openapi-data-v3.json`
+  - v2: `docs/swagger-v2.json` (official NocoDB v2 OpenAPI spec)
+  - v3: `docs/swagger-v3.json` (official NocoDB v3 OpenAPI spec)
+  - See `docs/SWAGGER_SOURCE.md` for provenance and caveats
 
 ---
 

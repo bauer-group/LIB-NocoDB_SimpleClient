@@ -4,8 +4,8 @@
     "id": "qiz1rcfqd2jy6"
   },
   "info": {
-    "title": "NocoDB",
-    "version": null,
+    "title": "NocoDB v2",
+    "version": "",
     "description": "NocoDB API Documentation"
   },
   "x-tagGroups": [
@@ -240,8 +240,7 @@
           }
         },
         "tags": [
-          "Workspace base",
-          "Bases"
+          "Workspace base", "Bases"
         ],
         "description": "This API fetches list of bases associated with the specified workspace ID. The workspace ID must be provided in the path as a required parameter. The API returns a list in JSON format, containing metadata and configuration for each base. The API returns a paginated list of bases.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of bases available in the specified Workspace ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of base items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of base records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of base records in the dataset.",
         "parameters": [
@@ -315,8 +314,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ],
         "description": "This API endpoint creates a new base within a given workspace, identified by the workspace ID. The API returns the created base in JSON format.",
         "parameters": [
@@ -1168,8 +1166,7 @@
         },
         "description": "This endpoint allows you to list all users (collaborators) within a specified base. The API returns a paginated list of users.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of users available in the specified Base ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of user items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of user records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of user records in the dataset.",
         "tags": [
-          "Auth",
-          "Users"
+          "Auth", "Users"
         ],
         "parameters": [
           {
@@ -1302,8 +1299,7 @@
           }
         },
         "tags": [
-          "Auth",
-          "Users"
+          "Auth", "Users"
         ],
         "description": "Create a user and add it to the given base",
         "parameters": [
@@ -1402,8 +1398,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [
@@ -1490,8 +1485,7 @@
           }
         },
         "tags": [
-          "Auth",
-          "Users"
+          "Auth", "Users"
         ],
         "description": "Update a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
@@ -1536,8 +1530,7 @@
           }
         },
         "tags": [
-          "Auth",
-          "Users"
+          "Auth", "Users"
         ],
         "description": "Delete a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
@@ -1576,7 +1569,6 @@
                         "fk_model_id": "md_5mipbdg6ketmv8",
                         "title": "Sheet-1",
                         "type": 3,
-                        "is_default": true,
                         "show_system_fields": null,
                         "lock_type": "collaborative",
                         "uuid": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f",
@@ -1619,8 +1611,7 @@
         },
         "description": "Hide / show views based on user role",
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "parameters": [
           {
@@ -1692,8 +1683,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "description": "Hide / show views based on user role",
         "parameters": [
@@ -1921,8 +1911,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ],
         "responses": {
           "200": {
@@ -1997,8 +1986,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ],
         "requestBody": {
           "content": {
@@ -2050,8 +2038,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ],
         "description": "This API deletes the base identified by its baseId. Deleting a base is a permanent action that removes all its associated data and cannot be undone. Use this API with caution when managing your workspaces.",
         "parameters": [
@@ -2137,8 +2124,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ]
       },
       "post": {
@@ -2206,8 +2192,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Bases"
+          "Base", "Bases"
         ],
         "description": "Create a new base in the system (OSS version).",
         "parameters": [
@@ -2237,8 +2222,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -2275,8 +2259,7 @@
           }
         ],
         "tags": [
-          "Source",
-          "Sources"
+          "Source", "Sources"
         ],
         "responses": {
           "200": {
@@ -2381,8 +2364,7 @@
           }
         },
         "tags": [
-          "Source",
-          "Sources"
+          "Source", "Sources"
         ],
         "description": "Create a new source on a given base",
         "parameters": [
@@ -2426,8 +2408,7 @@
           }
         ],
         "tags": [
-          "Source",
-          "Sources"
+          "Source", "Sources"
         ],
         "responses": {
           "200": {
@@ -2595,8 +2576,7 @@
         "summary": "share ERD view",
         "operationId": "source-share-erd",
         "tags": [
-          "Source",
-          "Internal"
+          "Source", "Internal"
         ],
         "responses": {
           "200": {
@@ -2620,8 +2600,7 @@
           }
         },
         "tags": [
-          "Source",
-          "Internal"
+          "Source", "Internal"
         ]
       }
     },
@@ -2649,8 +2628,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Shared Base"
+          "Base", "Shared Base"
         ],
         "responses": {
           "200": {
@@ -2720,8 +2698,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Shared Base"
+          "Base", "Shared Base"
         ],
         "description": "Delete Base Shared Base",
         "parameters": [
@@ -2757,8 +2734,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Shared Base"
+          "Base", "Shared Base"
         ],
         "requestBody": {
           "content": {
@@ -2769,8 +2745,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "roles": "editor",
-                    "password": "password123"
+                    "roles": "viewer"
                   }
                 }
               }
@@ -2821,7 +2796,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
+                "allOf":[
                   {
                     "$ref": "#/components/schemas/SharedBaseReq"
                   },
@@ -2839,8 +2814,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "password": "password123",
-                    "roles": "editor"
+                    "roles": "viewer"
                   }
                 }
               }
@@ -2848,8 +2822,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Shared Base"
+          "Base", "Shared Base"
         ],
         "description": "Update Base Shared Base",
         "parameters": [
@@ -2883,8 +2856,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -2968,8 +2940,7 @@
           }
         ],
         "tags": [
-          "DB Table",
-          "Tables"
+          "DB Table", "Tables"
         ],
         "description": "This endpoint allows you to list all tables within a specified base. The API returns a paginated list of table.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of tables available in the specified Base ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of table items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of table records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of table records in the dataset."
       },
@@ -3311,7 +3282,6 @@
                           },
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "id": "vw_p2jcatxz4mvcfw",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -3359,8 +3329,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Tables"
+          "DB Table", "Tables"
         ],
         "description": "This endpoint allows you to create a new table in the specified base.",
         "parameters": [
@@ -3574,7 +3543,6 @@
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Table1",
                           "type": 3,
-                          "is_default": 1,
                           "show_system_fields": null,
                           "lock_type": "collaborative",
                           "uuid": null,
@@ -3761,8 +3729,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Tables"
+          "DB Table", "Tables"
         ],
         "description": "Get the table meta data by the given table ID",
         "parameters": [
@@ -3806,8 +3773,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Tables"
+          "DB Table", "Tables"
         ],
         "requestBody": {
           "content": {
@@ -3872,8 +3838,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Tables"
+          "DB Table", "Tables"
         ],
         "description": "Delete table by the given table ID.",
         "parameters": [
@@ -3952,8 +3917,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Internal"
+          "DB Table", "Internal"
         ],
         "description": "Duplicate a table",
         "parameters": [
@@ -4054,8 +4018,7 @@
           }
         ],
         "tags": [
-          "Source",
-          "Sources"
+          "Source", "Sources"
         ],
         "description": "List all tables in a given Base and Source"
       },
@@ -4397,7 +4360,6 @@
                           },
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "id": "vw_p2jcatxz4mvcfw",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -4547,8 +4509,7 @@
           }
         },
         "tags": [
-          "Source",
-          "Sources"
+          "Source", "Sources"
         ],
         "description": "Create a new table in a given Base and Source",
         "parameters": [
@@ -4617,8 +4578,7 @@
           }
         },
         "tags": [
-          "DB Table",
-          "Internal"
+          "DB Table", "Internal"
         ],
         "description": "Update the order of the given Table",
         "parameters": [
@@ -4701,8 +4661,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Fields"
+          "DB Table Column", "Fields"
         ],
         "description": "Create a new column in a given Table",
         "parameters": [
@@ -4735,8 +4694,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Fields"
+          "DB Table Column", "Fields"
         ],
         "description": "Get the existing column by the given column ID",
         "parameters": [
@@ -4773,8 +4731,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Fields"
+          "DB Table Column", "Fields"
         ],
         "description": "Update the existing column by the given column ID",
         "parameters": [
@@ -4795,8 +4752,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Fields"
+          "DB Table Column", "Fields"
         ],
         "description": "Delete the existing column by the given column ID",
         "parameters": [
@@ -4841,8 +4797,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Fields"
+          "DB Table Column", "Fields"
         ],
         "description": "Set a primary value on a given column",
         "parameters": [
@@ -4964,8 +4919,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "description": "This endpoint allows you to list all views within a specified table. The API returns a paginated list of views.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of views available in the specified Table ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of view items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of view records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of view records in the dataset.",
         "parameters": [
@@ -5006,7 +4960,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": "{\"allowCSVDownload\":true}",
                       "order": 1,
@@ -5051,8 +5004,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "description": "Update the view with the given view Id.",
         "parameters": [
@@ -5085,8 +5037,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "description": "Delete the view with the given view Id.",
         "parameters": [
@@ -5133,8 +5084,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "description": "Show All Columns in a given View",
         "parameters": [
@@ -5188,8 +5138,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "parameters": [
           {
@@ -5240,7 +5189,6 @@
                           "created_at": "2023-03-02 17:46:31",
                           "fk_model_id": "md_mhs9z4r2ak98x0",
                           "id": "vw_lg052cnc1c26kf",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -5282,8 +5230,7 @@
         },
         "description": "This endpoint allows you to list all Shared Views within a specified table. The API returns a paginated list of shared views.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of shared views available in the specified Table ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of shared view items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of shared view records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of shared view records in the dataset.",
         "tags": [
-          "DB View Share",
-          "Shared Views"
+          "DB View Share", "Shared Views"
         ],
         "parameters": [
           {
@@ -5332,8 +5279,7 @@
           }
         },
         "tags": [
-          "DB View Share",
-          "Shared Views"
+          "DB View Share", "Shared Views"
         ],
         "description": "Create a shared view in a given View..",
         "parameters": [
@@ -5364,7 +5310,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
+                "allOf":[
                   {
                     "$ref": "#/components/schemas/SharedViewReq"
                   },
@@ -5384,8 +5330,7 @@
           "description": ""
         },
         "tags": [
-          "DB View Share",
-          "Shared Views"
+          "DB View Share", "Shared Views"
         ],
         "description": "Update a shared view in a given View..",
         "parameters": [
@@ -5419,8 +5364,7 @@
         },
         "description": "Delete a shared view in a given View.",
         "tags": [
-          "DB View Share",
-          "Shared Views"
+          "DB View Share", "Shared Views"
         ],
         "parameters": [
           {
@@ -5512,8 +5456,7 @@
           }
         },
         "tags": [
-          "DB View Column",
-          "Views"
+          "DB View Column", "Views"
         ],
         "description": "This endpoint allows you to list all columns within a specified view. The API returns a paginated list of columns.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of columns available in the specified View ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of column items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of column records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of column records in the dataset.",
         "parameters": [
@@ -5581,8 +5524,7 @@
           }
         },
         "tags": [
-          "DB View Column",
-          "Internal"
+          "DB View Column", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -5657,8 +5599,7 @@
           }
         },
         "tags": [
-          "DB View Column",
-          "Internal"
+          "DB View Column", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -5741,8 +5682,7 @@
           }
         },
         "tags": [
-          "DB Table Sort",
-          "Sorts"
+          "DB Table Sort", "Sorts"
         ],
         "description": "This endpoint allows you to list all sorts within a specified view. The API returns a paginated list of sorts.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of sorts available in the specified View ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of sort items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of sort records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of sort records in the dataset.",
         "parameters": [
@@ -5775,8 +5715,7 @@
           }
         },
         "tags": [
-          "DB Table Sort",
-          "Sorts"
+          "DB Table Sort", "Sorts"
         ],
         "requestBody": {
           "content": {
@@ -5854,8 +5793,7 @@
           }
         },
         "tags": [
-          "DB Table Sort",
-          "Sorts"
+          "DB Table Sort", "Sorts"
         ],
         "description": "Get the sort data by Sort ID",
         "parameters": [
@@ -5889,8 +5827,7 @@
           }
         },
         "tags": [
-          "DB Table Sort",
-          "Sorts"
+          "DB Table Sort", "Sorts"
         ],
         "requestBody": {
           "content": {
@@ -5940,8 +5877,7 @@
           }
         },
         "tags": [
-          "DB Table Sort",
-          "Sorts"
+          "DB Table Sort", "Sorts"
         ],
         "description": "Delete the sort data by Sort ID",
         "parameters": [
@@ -6015,8 +5951,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "description": "This endpoint allows you to list all filters within a specified view. The API returns a paginated list of filters.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of filters available in the specified View ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of filter items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of filter records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of filter records in the dataset.",
         "parameters": [
@@ -6065,8 +6000,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "requestBody": {
           "content": {
@@ -6159,8 +6093,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Logs",
-          "Internal"
+          "DB Table Webhook Logs", "Internal"
         ],
         "description": "List the log data in a given Hook",
         "parameters": [
@@ -6239,8 +6172,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "description": "Get the filter data with a given Filter ID",
         "parameters": [
@@ -6273,8 +6205,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "requestBody": {
           "content": {
@@ -6328,8 +6259,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "description": "Delete the filter data with a given Filter ID",
         "parameters": [
@@ -6403,8 +6333,7 @@
           }
         },
         "tags": [
-          "DB Table Filter",
-          "Filters"
+          "DB Table Filter", "Filters"
         ],
         "description": "Get Filter Group Children of a given group ID",
         "parameters": [
@@ -6448,7 +6377,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Grid-1",
                       "type": 3,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -6469,8 +6397,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6535,8 +6462,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6615,8 +6541,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "description": "List all columns in the given Grid",
         "parameters": [
@@ -6664,8 +6589,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6727,7 +6651,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Form-1",
                       "type": 1,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -6749,8 +6672,7 @@
         },
         "description": "Create a new form view in a given Table",
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6814,8 +6736,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6922,8 +6843,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "description": "Get the form data by Form ID",
         "parameters": [
@@ -6979,8 +6899,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -7032,7 +6951,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -7053,8 +6971,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -7113,8 +7030,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "description": "Get the Gallery View data with Gallery ID",
         "parameters": [
@@ -7147,8 +7063,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -7209,7 +7124,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Kanban-1",
                       "type": 4,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -7230,8 +7144,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -7291,8 +7204,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "description": "Get the Kanban View data by Kanban ID",
         "parameters": [
@@ -7325,8 +7237,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Views"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -7428,7 +7339,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": {},
                       "order": 1,
@@ -7451,8 +7361,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -7518,8 +7427,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -7564,8 +7472,7 @@
           }
         },
         "tags": [
-          "DB View",
-          "Internal"
+          "DB View", "Internal"
         ],
         "description": "Get the Map View data by Map ID",
         "parameters": [
@@ -7624,8 +7531,7 @@
           }
         },
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources ",
         "parameters": [
@@ -7646,8 +7552,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -7808,8 +7713,7 @@
           }
         },
         "tags": [
-          "Source",
-          "Internal"
+          "Source", "Internal"
         ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Source",
         "parameters": [
@@ -7827,8 +7731,7 @@
           }
         ],
         "tags": [
-          "Source",
-          "Internal"
+          "Source", "Internal"
         ],
         "responses": {
           "200": {
@@ -7953,8 +7856,7 @@
           }
         ],
         "tags": [
-          "Base",
-          "Internal"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -7971,6 +7873,1524 @@
         },
         "description": "Check if a base contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Base Setting.",
         "x-internal": true
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Grouped Data",
+        "operationId": "public-grouped-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "bldcv1pwuri5s"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "n0ujmkbyhgsxo"
+                        },
+                        "description": "The Grouped Key"
+                      },
+                      "value": {
+                        "type": "object",
+                        "x-stoplight": {
+                          "id": "0xsi3jvwn7duo"
+                        },
+                        "description": "the paginated result of the given key",
+                        "required": [
+                          "list",
+                          "pageInfo"
+                        ],
+                        "properties": {
+                          "list": {
+                            "type": "array",
+                            "x-stoplight": {
+                              "id": "jw8dmo16txbjv"
+                            },
+                            "description": "List of the target data",
+                            "items": {
+                              "x-stoplight": {
+                                "id": "xcu8vxmf5ygyi"
+                              },
+                              "type": "object"
+                            }
+                          },
+                          "pageInfo": {
+                            "$ref": "#/components/schemas/Paginated",
+                            "x-stoplight": {
+                              "id": "1gsbgwi9bg8s5"
+                            },
+                            "description": "Paginated Info"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "value"
+                    ]
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "key": "a",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 2,
+                              "Title": "foo",
+                              "s": "a"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": "b",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 3,
+                              "Title": "bar",
+                              "s": "b"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": null,
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 1,
+                              "Title": "baz",
+                              "s": null
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "description": "List Shared View Grouped Data"
+      }
+    },
+    "/api/v2/public/calendar-view/{sharedViewUuid}/countByDate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "public-calendar-count",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ]
+      }
+    },
+    "/api/v2/public/calendar-view/{sharedViewUuid}/": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-calendar-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "source_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "base_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "from_date",
+            "description": "From Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "to_date",
+            "description": "To Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "description": "List all shared view rows"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulkAggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Bulk Aggregated Data",
+        "operationId": "public-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with provided filters",
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          },
+          {
+            "in": "query",
+            "name": "aggregateFilterList",
+            "description": "List of where filters and alias",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "source_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "base_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
+          }
+        ],
+        "description": "List all shared view rows"
+      },
+      "post": {
+        "summary": "Create Share View Row",
+        "operationId": "public-data-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "col1": "foo",
+                      "col2": "bar",
+                      "CreatedAt": "2023-03-11T08:48:25.598Z",
+                      "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {}
+          },
+          "description": ""
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-password",
+            "description": "Shared view password"
+          }
+        ],
+        "description": "Create a new row for the target shared view"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Aggregated Data",
+        "operationId": "public-data-table-aggregate",
+        "description": "Read aggregated data from a given table",
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "90",
+                      "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/groupby": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-data-group-by",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "column_name",
+            "description": "Columns to group by"
+          }
+        ],
+        "description": "List all shared view rows grouped by a column"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "example": "1"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "hm",
+              "bt",
+              "oo",
+              "ln"
+            ]
+          },
+          "name": "relationType",
+          "in": "path",
+          "required": true,
+          "description": "Relation Type"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true,
+          "description": "Column Name"
+        }
+      ],
+      "get": {
+        "summary": "List Nested List Data",
+        "operationId": "public-data-nested-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "gvblksjzjfyg7"
+                      },
+                      "description": "List of data objects",
+                      "items": {
+                        "x-stoplight": {
+                          "id": "8assgoc1vtcs9"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "x-stoplight": {
+                        "id": "if546w1yuo6fw"
+                      },
+                      "description": "Paginated info"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "foo",
+                          "CreatedAt": "2023-03-11T08:41:41.356Z",
+                          "UpdatedAt": "2023-03-11T08:41:41.356Z"
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "bar",
+                          "CreatedAt": "2023-03-11T08:41:45.330Z",
+                          "UpdatedAt": "2023-03-11T08:41:45.330Z"
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "baz",
+                          "CreatedAt": "2023-03-11T08:48:25.598Z",
+                          "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "pageSize": 1,
+                        "sort": "string",
+                        "totalRows": 3
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "description": "List all nested list data in a given shared view"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnName",
+          "in": "path",
+          "required": true,
+          "description": "Column Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Nested Data Relation",
+        "operationId": "public-data-relation-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "tags": [
+          "Public", "Internal"
+        ],
+        "description": "List Nested Data Relation"
+      }
+    },
+    "/api/v2/public/shared-base/{sharedBaseUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedBaseUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared Base UUID"
+        }
+      ],
+      "get": {
+        "summary": "Get Share Source Meta",
+        "operationId": "public-shared-base-get",
+        "description": "Get Share Source Meta",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base_id": {
+                      "type": "string",
+                      "description": "Base ID"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "p_63b4q0qengen1x"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ]
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Get Share View Meta",
+        "operationId": "public-shared-view-meta-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/View"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "relatedMetas": {},
+                        "client": {
+                          "type": "string"
+                        },
+                        "source_id": {
+                          "type": "string"
+                        },
+                        "columns": {
+                          "allOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "$ref": "#/components/schemas/GridColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/FormColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/GalleryColumn"
+                                }
+                              ]
+                            },
+                            {
+                              "$ref": "#/components/schemas/Column"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "$ref": "#/components/schemas/Table"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/Form"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Grid"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Gallery"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "application/xml": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public", "Internal"
+        ],
+        "description": "Get Share View Meta"
+      }
+    },
+    "/api/v2/public/shared-erd/{sharedErdUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedErdUuid",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-shared-erd-meta-get",
+        "tags": [
+          "Public", "Internal"
+        ],
+        "description": "",
+        "parameters": []
       }
     },
     "/api/v2/meta/comments": {
@@ -8077,8 +9497,7 @@
           }
         ],
         "tags": [
-          "Utils",
-          "Comments"
+          "Utils", "Comments"
         ]
       },
       "post": {
@@ -8136,8 +9555,7 @@
           }
         },
         "tags": [
-          "Utils",
-          "Comments"
+          "Utils", "Comments"
         ],
         "description": "Create a new comment in a row. Logged in Audit.",
         "parameters": [
@@ -8175,8 +9593,7 @@
           }
         },
         "tags": [
-          "Utils",
-          "Comments"
+          "Utils", "Comments"
         ],
         "description": "Update comment",
         "requestBody": {
@@ -8218,12 +9635,12 @@
           }
         },
         "tags": [
-          "Utils",
-          "Comments"
+          "Utils", "Comments"
         ],
         "description": "Delete comment",
         "requestBody": {
-          "content": {}
+          "content": {
+          }
         }
       }
     },
@@ -8311,8 +9728,7 @@
           }
         ],
         "tags": [
-          "Utils",
-          "Internal"
+          "Utils", "Internal"
         ]
       }
     },
@@ -8386,8 +9802,7 @@
           }
         ],
         "tags": [
-          "DB Table Webhook",
-          "Webhooks"
+          "DB Table Webhook", "Webhooks"
         ]
       },
       "post": {
@@ -8460,8 +9875,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook",
-          "Webhooks"
+          "DB Table Webhook", "Webhooks"
         ]
       }
     },
@@ -8514,8 +9928,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook",
-          "Internal"
+          "DB Table Webhook", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -8573,7 +9986,7 @@
         ]
       }
     },
-    "/api/v2/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
+    "/api/v2/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -8585,6 +9998,22 @@
           "in": "path",
           "required": true,
           "description": "Unique Table ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "field",
+              "view",
+              "after",
+              "before",
+              "manual"
+            ]
+          },
+          "name": "event",
+          "in": "path",
+          "required": true,
+          "description": "Hook Event"
         },
         {
           "schema": {
@@ -8664,8 +10093,7 @@
           }
         ],
         "tags": [
-          "DB Table Webhook",
-          "Internal"
+          "DB Table Webhook", "Internal"
         ]
       }
     },
@@ -8721,8 +10149,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook",
-          "Webhooks"
+          "DB Table Webhook", "Webhooks"
         ],
         "requestBody": {
           "content": {
@@ -8784,8 +10211,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook",
-          "Webhooks"
+          "DB Table Webhook", "Webhooks"
         ],
         "description": "Delete the exsiting hook by its ID",
         "parameters": [
@@ -8859,8 +10285,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter",
-          "Webhooks"
+          "DB Table Webhook Filter", "Webhooks"
         ],
         "description": "Get the filter data in a given Hook",
         "parameters": [
@@ -8909,8 +10334,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter",
-          "Webhooks"
+          "DB Table Webhook Filter", "Webhooks"
         ],
         "requestBody": {
           "content": {
@@ -8939,6 +10363,268 @@
             "$ref": "#/components/parameters/xc-token"
           }
         ]
+      }
+    },
+    "/api/v2/meta/plugins": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ],
+      "get": {
+        "summary": "List Plugins",
+        "operationId": "plugin-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "minItems": 1,
+                      "items": {
+                        "$ref": "#/components/schemas/Plugin"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all plugins",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Plugin", "Internal"
+        ]
+      }
+    },
+    "/api/v2/meta/plugins/webhook": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ],
+      "get": {
+        "summary": "Webhook List Plugins",
+        "operationId": "plugin-webhook-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "minItems": 1,
+                      "items": {
+                        "$ref": "#/components/schemas/Plugin"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all webhook plugins",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Plugin", "Internal"
+        ]
+      }
+    },
+    "/api/v2/meta/plugins/{pluginId}/status": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pluginId",
+          "in": "path",
+          "required": true,
+          "description": "Plugin Title"
+        }
+      ],
+      "get": {
+        "summary": "Get Plugin Status",
+        "operationId": "plugin-status",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Check plugin is active or not",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Plugin", "Internal"
+        ],
+        "x-internal": false
+      }
+    },
+    "/api/v2/meta/plugins/test": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ],
+      "post": {
+        "summary": "Test Plugin",
+        "operationId": "plugin-test",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Test if the plugin is working with the given configurations",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Plugin", "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PluginTestReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Plugin Foo",
+                    "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+                    "category": "Email"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/meta/plugins/{pluginId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pluginId",
+          "in": "path",
+          "required": true,
+          "description": "Plugin ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Plugin",
+        "operationId": "plugin-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Plugin", "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PluginReq"
+              }
+            }
+          }
+        },
+        "description": "Update the plugin data by ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "x-internal": false
+      },
+      "get": {
+        "summary": "Get Plugin",
+        "operationId": "plugin-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plugin"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Plugin", "Internal"
+        ],
+        "description": "Get the plugin data by ID",
+        "x-internal": false
       }
     },
     "/api/v2/meta/connection/test": {
@@ -8989,8 +10675,7 @@
           }
         },
         "tags": [
-          "Utils",
-          "Internal"
+          "Utils", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9015,7 +10700,6 @@
                     "enum": [
                       "mysql",
                       "mysql2",
-                      "oracledb",
                       "pg",
                       "snowflake",
                       "sqlite3",
@@ -9264,8 +10948,7 @@
           }
         },
         "tags": [
-          "Utils",
-          "Internal"
+          "Utils", "Internal"
         ],
         "x-internal": true,
         "parameters": [
@@ -9279,8 +10962,7 @@
       "get": {
         "summary": "Get Cache",
         "tags": [
-          "Utils",
-          "Internal"
+          "Utils", "Internal"
         ],
         "responses": {},
         "operationId": "utils-cache-get",
@@ -9316,8 +10998,7 @@
         },
         "description": "Delete All K/V pairs in NocoCache",
         "tags": [
-          "Utils",
-          "Internal"
+          "Utils", "Internal"
         ],
         "parameters": [
           {
@@ -9335,8 +11016,7 @@
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
-          "API Token",
-          "Internal"
+          "API Token", "Internal"
         ],
         "responses": {
           "200": {
@@ -9428,8 +11108,7 @@
           "description": ""
         },
         "tags": [
-          "API Token",
-          "API Tokens"
+          "API Token", "API Tokens"
         ],
         "description": "Create API Token in a base",
         "parameters": [
@@ -9478,8 +11157,7 @@
           }
         },
         "tags": [
-          "API Token",
-          "API Tokens"
+          "API Token", "API Tokens"
         ],
         "description": "Delete the given API Token in base",
         "parameters": [
@@ -9518,8 +11196,7 @@
         "operationId": "storage-upload",
         "responses": {},
         "tags": [
-          "Storage",
-          "Internal"
+          "Storage", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9571,6 +11248,59 @@
           }
         ],
         "description": "Upload attachment"
+      }
+    },
+    "/api/v2/storage/upload-by-url": {
+      "post": {
+        "summary": "Attachment Upload by URL",
+        "operationId": "storage-upload-by-url",
+        "responses": {},
+        "tags": [
+          "Storage", "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AttachmentReq"
+                }
+              },
+              "examples": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg"
+            },
+            "name": "path",
+            "in": "query",
+            "description": "Target File Path",
+            "required": true
+          },
+          {
+            "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
+          }
+        ],
+        "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
     "/api/v2/meta/bases/{baseId}/users/{userId}/resend-invite": {
@@ -9633,8 +11363,7 @@
           }
         },
         "tags": [
-          "Auth",
-          "Internal"
+          "Auth", "Internal"
         ],
         "description": "Resend Invitation to a specific user",
         "parameters": [
@@ -9680,8 +11409,7 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Internal"
+          "DB Table Column", "Internal"
         ],
         "description": "Get columns hash for table",
         "parameters": [
@@ -9781,12 +11509,955 @@
           }
         },
         "tags": [
-          "DB Table Column",
-          "Internal"
+          "DB Table Column", "Internal"
         ],
         "description": "Bulk create-update-delete columns",
         "parameters": [
           {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v2/tables/{tableId}/records": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**."
+        }
+      ],
+      "get": {
+        "summary": "List Table Records",
+        "operationId": "db-data-table-row-list",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of rows available for the specified conditions (if any).\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of records on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of records in the dataset.\n\nThe `pageInfo` attributes are particularly valuable when dealing with large datasets that are divided into multiple pages. They enable you to determine whether additional pages of records are available for retrieval or if you've reached the end of the dataset.",
+        "tags": [
+          "Table Records"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Enables you to control the pagination of your API response by specifying the number of records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no records are skipped by default.\n\nExample: `offset=25` will skip the first 25 records in your API response, allowing you to access records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of records to exclude, not an index value, so an offset of 25 will skip the first 25 records."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 records in the dataset."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "viewId",
+            "in": "query",
+            "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "description": "List of data objects",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Paginated Info"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "SingleLineText": "David",
+                          "Year": 2023,
+                          "URL": "www.google.com",
+                          "SingleSelect": "Jan",
+                          "Email": "a@b.com",
+                          "Duration": 74040,
+                          "Decimal": 23.658,
+                          "Currency": 23,
+                          "JSON": {
+                            "name": "John Doe",
+                            "age": 30,
+                            "email": "johndoe@example.com",
+                            "isSubscribed": true,
+                            "address": {
+                              "street": "123 Main Street",
+                              "city": "Anytown",
+                              "zipCode": "12345"
+                            },
+                            "hobbies": [
+                              "Reading",
+                              "Hiking",
+                              "Cooking"
+                            ],
+                            "scores": {
+                              "math": 95,
+                              "science": 88,
+                              "history": 75
+                            }
+                          },
+                          "Date": "2023-10-16",
+                          "Time": "06:02:00",
+                          "Rating": 1,
+                          "Percent": 55,
+                          "Checkbox": true,
+                          "Attachment": [
+                            {
+                              "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                              "title": "2 be loved.jpeg",
+                              "mimetype": "image/jpeg",
+                              "size": 146143,
+                              "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                            }
+                          ],
+                          "MultiSelect": "Jan,Feb",
+                          "DateTime": "2023-10-16 08:56:32+00:00",
+                          "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                          "Geometry": "23.23, 36.54",
+                          "PhoneNumber": "123456789",
+                          "Number": 5248,
+                          "Barcode": "David",
+                          "QRCode": "David",
+                          "Formula": "10",
+                          "Lookup": "a",
+                          "Links:belongs-to": {
+                            "Id": 1,
+                            "Title": "a"
+                          },
+                          "Links:has-many": 2,
+                          "Rollup": 3,
+                          "Links:many-many": 3
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 5,
+                        "page": 1,
+                        "pageSize": 1,
+                        "isFirstPage": true,
+                        "isLastPage": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Table Records",
+        "operationId": "db-data-table-row-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 10
+                      },
+                      {
+                        "Id": 11
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "SingleLineText": "David",
+                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                      "CreatedAt": "2023-10-16 08:27:59+00:00",
+                      "UpdatedAt": "2023-10-16 08:56:32+00:00",
+                      "Decimal": 23.658,
+                      "Checkbox": true,
+                      "Attachment": [
+                        {
+                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                          "title": "2 be loved.jpeg",
+                          "mimetype": "image/jpeg",
+                          "size": 146143,
+                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                        }
+                      ],
+                      "MultiSelect": "Jan,Feb",
+                      "SingleSelect": "Jan",
+                      "Date": "2023-10-16",
+                      "Year": 2023,
+                      "Time": "06:02:00",
+                      "PhoneNumber": "123456789",
+                      "Email": "a@b.com",
+                      "URL": "www.google.com",
+                      "Currency": 23,
+                      "Percent": 55,
+                      "Duration": 74040,
+                      "Rating": 1,
+                      "JSON": {
+                        "name": "John Doe",
+                        "age": 30,
+                        "email": "johndoe@example.com",
+                        "isSubscribed": true,
+                        "address": {
+                          "street": "123 Main Street",
+                          "city": "Anytown",
+                          "zipCode": "12345"
+                        },
+                        "hobbies": [
+                          "Reading",
+                          "Hiking",
+                          "Cooking"
+                        ],
+                        "scores": {
+                          "math": 95,
+                          "science": 88,
+                          "history": 75
+                        }
+                      },
+                      "DateTime": "2023-10-16 08:56:32+00:00",
+                      "Geometry": "23.23, 36.54",
+                      "Number": 5248
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'",
+        "parameters": [
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Table Records",
+        "operationId": "db-data-table-row-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 6
+                      },
+                      {
+                        "Id": 7
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 6,
+                      "SingleLineText": "Updated text-1",
+                      "DateTime": "2023-10-19 08:56:32+00:00",
+                      "Geometry": "23.232, 36.542",
+                      "Number": 52482
+                    },
+                    {
+                      "Id": 7,
+                      "SingleLineText": "Updated text-2",
+                      "DateTime": "2023-10-19 08:56:32+00:00",
+                      "Geometry": "23.232, 36.542",
+                      "Number": 52482
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
+        "parameters": [
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table Records",
+        "operationId": "db-data-table-row-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1
+                      },
+                      {
+                        "Id": 2
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    },
+                    {
+                      "Id": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.",
+        "parameters": [
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v2/tables/{tableId}/records/{recordId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "recordId",
+          "in": "path",
+          "required": true,
+          "description": "Record ID"
+        }
+      ],
+      "get": {
+        "summary": "Read Table Record",
+        "operationId": "db-data-table-row-read",
+        "description": "This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.",
+        "tags": [
+          "Table Records"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "SingleLineText": "David",
+                      "CreatedAt": "2023-10-16 08:27:59+00:00",
+                      "UpdatedAt": "2023-10-16 10:05:41+00:00",
+                      "Year": 2023,
+                      "URL": "www.google.com",
+                      "SingleSelect": "Jan",
+                      "Email": "a@b.com",
+                      "Duration": 74040,
+                      "Decimal": 23.658,
+                      "Currency": 23,
+                      "Barcode": "David",
+                      "JSON": {
+                        "name": "John Doe",
+                        "age": 30,
+                        "email": "johndoe@example.com",
+                        "isSubscribed": true,
+                        "address": {
+                          "street": "123 Main Street",
+                          "city": "Anytown",
+                          "zipCode": "12345"
+                        },
+                        "hobbies": [
+                          "Reading",
+                          "Hiking",
+                          "Cooking"
+                        ],
+                        "scores": {
+                          "math": 95,
+                          "science": 88,
+                          "history": 75
+                        }
+                      },
+                      "QRCode": "David",
+                      "Rollup": 3,
+                      "Date": "2023-10-16",
+                      "Time": "06:02:00",
+                      "Rating": 1,
+                      "Percent": 55,
+                      "Formula": 10,
+                      "Checkbox": true,
+                      "Attachment": [
+                        {
+                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                          "title": "2 be loved.jpeg",
+                          "mimetype": "image/jpeg",
+                          "size": 146143,
+                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                        }
+                      ],
+                      "MultiSelect": "Jan,Feb",
+                      "DateTime": "2023-10-19 08:56:32+00:00",
+                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
+                      "Geometry": "23.232, 36.542",
+                      "PhoneNumber": "123456789",
+                      "Number": 52482,
+                      "Links:has-many": 2,
+                      "Links:many-many": 3,
+                      "Links:belongs-to": {
+                        "Id": 1,
+                        "Title": "a"
+                      },
+                      "Lookup": "a"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/records/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "**View Identifier**. Allows you to fetch record count that are currently visible within a specific view."
+        }
+      ],
+      "get": {
+        "summary": "Count Table Records",
+        "operationId": "db-data-table-row-count",
+        "description": "This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying `where` query parameter",
+        "tags": [
+          "Table Records"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+          },
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "count": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "linkFieldId",
+          "in": "path",
+          "required": true,
+          "description": "**Links Field Identifier** corresponding to the relation field `Links` established between tables."
+        }
+      ],
+      "get": {
+        "summary": "List Linked Records",
+        "operationId": "db-data-table-row-nested-list",
+        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
+        "tags": [
+          "Table Records"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which linked records are being fetched."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Enables you to control the pagination of your API response by specifying the number of linked records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no linked records are skipped by default.\n\nExample: `offset=25` will skip the first 25 linked records in your API response, allowing you to access linked records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of linked records to exclude, not an index value, so an offset of 25 will skip the first 25 linked records."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 linked records in the dataset."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "description": "List of data objects",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Paginated Info"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "SingleLineText": "David"
+                        },
+                        {
+                          "Id": 2,
+                          "SingleLineText": "Jane"
+                        },
+                        {
+                          "Id": 3,
+                          "SingleLineText": "Dave"
+                        },
+                        {
+                          "Id": 4,
+                          "SingleLineText": "Martin"
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 4,
+                        "page": 1,
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "summary": "Link Records",
+        "operationId": "db-data-table-row-nested-link",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 4
+                    },
+                    {
+                      "Id": 5
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being created."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Unlink Records",
+        "operationId": "db-data-table-row-nested-unlink",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1
+                    },
+                    {
+                      "Id": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier** corresponding to the record in this table for which links are being removed."
+          },
+          {
+            "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
         ]
@@ -9798,8 +12469,7 @@
         "operationId": "jobs-list",
         "description": "Get list of jobs for a given base for the user",
         "tags": [
-          "Jobs",
-          "Internal"
+          "Jobs", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9842,8 +12512,7 @@
         "operationId": "export-data",
         "description": "Trigger export as job",
         "tags": [
-          "Export",
-          "Internal"
+          "Export", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9881,6 +12550,50 @@
         },
         {
           "$ref": "#/components/parameters/xc-token"
+        }
+      ]
+    },
+    "/api/v2/public/export/{publicDataUuid}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "public-export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Public"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "publicDataUuid",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
         }
       ]
     }
@@ -10426,7 +13139,6 @@
             "enum": [
               "mysql",
               "mysql2",
-              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",
@@ -10600,7 +13312,6 @@
             "enum": [
               "mysql",
               "mysql2",
-              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",
@@ -10913,7 +13624,10 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "Meta",
+              "Colour",
+              "UUID"
             ],
             "type": "string"
           },
@@ -11867,7 +14581,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -11957,7 +14671,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -13271,7 +15985,7 @@
                 },
                 {
                   "id": "sl_ihyva6jx6dg0fc",
-                  "fk_column_id": "cl_g0a89q9xdry3lu",
+                  "fk_column_id": "cl_ga89q9xdry3lu",
                   "title": "a",
                   "color": "#cfdffe",
                   "order": 1,
@@ -13384,7 +16098,9 @@
               "bt",
               "hm",
               "mm",
-              "oo"
+              "oo",
+              "mo",
+              "om"
             ],
             "type": "string",
             "description": "The type of the relationship"
@@ -13433,7 +16149,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -13483,6 +16200,9 @@
           },
           "ur": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           },
           "virtual": {
             "$ref": "#/components/schemas/Bool"
@@ -13834,7 +16554,9 @@
           "GeoData",
           "Geometry",
           "JSON",
-          "SpecificDBType"
+          "SpecificDBType",
+          "Colour",
+          "UUID"
         ],
         "type": "string"
       },
@@ -14231,25 +16953,14 @@
             "description": "Color of the button.",
             "type": "string",
             "enum": [
-              "brand",
-              "red",
-              "green",
-              "maroon",
-              "blue",
-              "orange",
-              "pink",
-              "purple",
-              "yellow",
-              "gray"
+              "brand", "red", "green", "maroon", "blue", "orange", "pink", "purple", "yellow", "gray"
             ]
           },
           "theme": {
             "description": "Theme of the button",
             "type": "string",
             "enum": [
-              "solid",
-              "light",
-              "text"
+              "solid", "light", "text"
             ]
           }
         },
@@ -14281,25 +16992,14 @@
             "description": "Color of the button.",
             "type": "string",
             "enum": [
-              "brand",
-              "red",
-              "green",
-              "maroon",
-              "blue",
-              "orange",
-              "pink",
-              "purple",
-              "yellow",
-              "gray"
+              "brand", "red", "green", "maroon", "blue", "orange", "pink", "purple", "yellow", "gray"
             ]
           },
           "theme": {
             "description": "Theme of the button",
             "type": "string",
             "enum": [
-              "solid",
-              "light",
-              "text"
+              "solid", "light", "text"
             ]
           }
         }
@@ -14331,25 +17031,14 @@
             "description": "Color of the button.",
             "type": "string",
             "enum": [
-              "brand",
-              "red",
-              "green",
-              "maroon",
-              "blue",
-              "orange",
-              "pink",
-              "purple",
-              "yellow",
-              "gray"
+              "brand", "red", "green", "maroon", "blue", "orange", "pink", "purple", "yellow", "gray"
             ]
           },
           "theme": {
             "description": "Theme of the button",
             "type": "string",
             "enum": [
-              "solid",
-              "light",
-              "text"
+              "solid", "light", "text"
             ]
           }
         },
@@ -14387,7 +17076,10 @@
             "type": "string",
             "enum": [
               "hm",
-              "mm"
+              "mm",
+              "om",
+              "mo",
+              "oo"
             ]
           },
           "fk_child_column_id": {
@@ -15743,7 +18435,7 @@
             "type": "number"
           },
           "pageSize": {
-            "description": "The number of pages",
+            "description": "The number of records per page",
             "example": 10,
             "type": "number"
           },
@@ -16148,6 +18840,14 @@
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of custom url"
+          },
+          "is_sandbox": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox"
+          },
+          "is_sandbox_production": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
           }
         },
         "x-stoplight": {
@@ -16287,6 +18987,10 @@
           "meta": {
             "$ref": "#/components/schemas/BaseMeta",
             "description": "Base Meta"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [
@@ -16359,7 +19063,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"
@@ -16396,7 +19101,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"
@@ -16614,19 +19320,12 @@
         "description": "Model for Shared Base Request",
         "examples": [
           {
-            "password": "password123",
-            "roles": "editor"
+            "roles": "viewer"
           }
         ],
         "title": "Shared Base Request Model",
         "type": "object",
         "properties": {
-          "password": {
-            "minLength": 8,
-            "type": "string",
-            "description": "Password to protect the base",
-            "example": "password123"
-          },
           "roles": {
             "enum": [
               "commenter",
@@ -16635,7 +19334,7 @@
             ],
             "type": "string",
             "description": "The role given the target user",
-            "example": "editor"
+            "example": "viewer"
           }
         },
         "x-stoplight": {
@@ -16652,7 +19351,6 @@
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
-            "is_default": 1,
             "lock_type": "collaborative",
             "meta": {},
             "order": 1,
@@ -16690,7 +19388,6 @@
                 "created_at": "2023-03-02 17:46:31",
                 "fk_model_id": "md_mhs9z4r2ak98x0",
                 "id": "vw_lg052cnc1c26kf",
-                "is_default": 1,
                 "lock_type": "collaborative",
                 "meta": {},
                 "order": 1,
@@ -17446,7 +20143,6 @@
                 },
                 "fk_model_id": "md_rsu68aqjsbyqtl",
                 "id": "vw_p2jcatxz4mvcfw",
-                "is_default": 1,
                 "lock_type": "collaborative",
                 "meta": {},
                 "order": 1,
@@ -18048,7 +20744,6 @@
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
-            "is_default": 1,
             "lock_type": "collaborative",
             "meta": {},
             "order": 1,
@@ -18119,10 +20814,6 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should show system fields in this view?"
-          },
-          "is_default": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this view default view for the model?"
           },
           "title": {
             "description": "View Title",
@@ -18926,7 +21617,8 @@
           {
             "list": [
               {
-                "body": {},
+                "body": {
+                },
                 "type": "invite",
                 "is_read": false,
                 "is_deleted": false,
@@ -19402,7 +22094,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": {},
                       "order": 1,

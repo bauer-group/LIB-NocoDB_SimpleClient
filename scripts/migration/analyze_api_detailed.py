@@ -166,7 +166,7 @@ def generate_detailed_markdown(meta_analysis: dict, data_analysis: dict) -> str:
     md.append("")
     md.append("#### v2 Architecture")
     md.append("```")
-    md.append("Meta API (nocodb-openapi-meta.json):")
+    md.append("v2 (swagger-v2.json) - meta endpoints:")
     md.append("  ├─ Authentication endpoints")
     md.append("  ├─ Base/Workspace management")
     md.append("  ├─ Table schema operations")
@@ -176,20 +176,20 @@ def generate_detailed_markdown(meta_analysis: dict, data_analysis: dict) -> str:
     md.append("  ├─ Webhook operations")
     md.append("  └─ Misc utilities")
     md.append("")
-    md.append("Data API (nocodb-openapi-data.json):")
+    md.append("v2 (swagger-v2.json) - data/record endpoints:")
     md.append("  ├─ Record CRUD (10 endpoints)")
     md.append("  └─ File upload")
     md.append("```")
     md.append("")
     md.append("#### v3 Architecture")
     md.append("```")
-    md.append("Meta API (nocodb-openapi-meta-v3.json):")
+    md.append("v3 (swagger-v3.json) - data/record endpoints:")
     md.append("  └─ Data operations ONLY (10 endpoints)")
     md.append("      ├─ Record CRUD")
     md.append("      ├─ Link operations")
     md.append("      └─ File upload")
     md.append("")
-    md.append("Data API (nocodb-openapi-data-v3.json):")
+    md.append("v3 (swagger-v3.json) - meta/structure endpoints:")
     md.append("  └─ Meta operations ONLY (36 endpoints)")
     md.append("      ├─ Base management")
     md.append("      ├─ Table schema")
@@ -888,11 +888,20 @@ def generate_mapping_tables() -> list[str]:
 def main():
     print("Loading OpenAPI specifications...")
 
-    # Load files
-    meta_v2 = load_openapi("docs/nocodb-openapi-meta.json")
-    meta_v3 = load_openapi("docs/nocodb-openapi-meta-v3.json")
-    data_v2 = load_openapi("docs/nocodb-openapi-data.json")
-    data_v3 = load_openapi("docs/nocodb-openapi-data-v3.json")
+    # Load the official combined v2/v3 specs and split into meta/data views by
+    # path (the upstream specs are single files per version; see
+    # docs/SWAGGER_SOURCE.md).
+    v2 = load_openapi("docs/swagger-v2.json")
+    v3 = load_openapi("docs/swagger-v3.json")
+
+    def _subset(spec: dict, want_meta: bool) -> dict:
+        paths = {p: v for p, v in spec.get("paths", {}).items() if ("/meta/" in p) == want_meta}
+        return {**spec, "paths": paths}
+
+    meta_v2 = _subset(v2, True)
+    data_v2 = _subset(v2, False)
+    meta_v3 = _subset(v3, True)
+    data_v3 = _subset(v3, False)
 
     print("Extracting endpoints...")
 

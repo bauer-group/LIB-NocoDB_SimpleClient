@@ -335,10 +335,20 @@ def generate_schema_report(v2_meta: dict, v3_meta: dict, v2_data: dict, v3_data:
 def main():
     print("Loading OpenAPI specifications...")
 
-    v2_meta = load_openapi("docs/nocodb-openapi-meta.json")
-    v3_meta = load_openapi("docs/nocodb-openapi-meta-v3.json")
-    v2_data = load_openapi("docs/nocodb-openapi-data.json")
-    v3_data = load_openapi("docs/nocodb-openapi-data-v3.json")
+    # Load the official combined v2/v3 specs and split into meta/data views by
+    # path (the upstream specs are single files per version; see
+    # docs/SWAGGER_SOURCE.md).
+    v2 = load_openapi("docs/swagger-v2.json")
+    v3 = load_openapi("docs/swagger-v3.json")
+
+    def _subset(spec: dict, want_meta: bool) -> dict:
+        paths = {p: v for p, v in spec.get("paths", {}).items() if ("/meta/" in p) == want_meta}
+        return {**spec, "paths": paths}
+
+    v2_meta = _subset(v2, True)
+    v3_meta = _subset(v3, True)
+    v2_data = _subset(v2, False)
+    v3_data = _subset(v3, False)
 
     print("Analyzing schemas...")
 

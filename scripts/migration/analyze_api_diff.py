@@ -359,11 +359,20 @@ def categorize_breaking_changes(analysis: dict) -> dict[str, list[str]]:
 def main():
     print("Loading OpenAPI specifications...")
 
-    # Load files
-    meta_v2 = load_openapi("docs/nocodb-openapi-meta.json")
-    meta_v3 = load_openapi("docs/nocodb-openapi-meta-v3.json")
-    data_v2 = load_openapi("docs/nocodb-openapi-data.json")
-    data_v3 = load_openapi("docs/nocodb-openapi-data-v3.json")
+    # Load the official combined v2/v3 specs and split into meta/data views by
+    # path (the upstream specs are single files per version; see
+    # docs/SWAGGER_SOURCE.md).
+    v2 = load_openapi("docs/swagger-v2.json")
+    v3 = load_openapi("docs/swagger-v3.json")
+
+    def _subset(spec: dict, want_meta: bool) -> dict:
+        paths = {p: v for p, v in spec.get("paths", {}).items() if ("/meta/" in p) == want_meta}
+        return {**spec, "paths": paths}
+
+    meta_v2 = _subset(v2, True)
+    meta_v3 = _subset(v3, True)
+    data_v2 = _subset(v2, False)
+    data_v3 = _subset(v3, False)
 
     print("Extracting endpoints...")
 
