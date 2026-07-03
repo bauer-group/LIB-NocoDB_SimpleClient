@@ -10,7 +10,7 @@
 # - Multiple owners can be assigned, separated by spaces.
 
 # -------------------------------------------------------------------
-# Default rule: assign all files (*) in the repository to @karlspace.
+# Default rule: assign all files (*) in the repository to @bauer-group/core.
 # This means every pull request will automatically request a review from you,
 # unless a more specific rule matches first.
-*   @karlspace
+*   @bauer-group/core
