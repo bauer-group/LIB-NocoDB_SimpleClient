@@ -27,6 +27,15 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+  checks: write
+  security-events: write
+  actions: read
+
 jobs:
   python-release:
     name: 🐍 Python Semantic Release Pipeline
