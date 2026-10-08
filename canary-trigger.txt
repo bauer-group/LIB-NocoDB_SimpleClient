@@ -1,0 +1,2 @@
+Temporary canary trigger for automation-templates PR 112.
+Deleted after the canary run, never merged.
