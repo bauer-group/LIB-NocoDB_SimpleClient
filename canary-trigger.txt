@@ -1,0 +1,2 @@
+Temporary canary trigger for bauer-group/automation-templates#112.
+This branch is deleted after the canary run and never merged.

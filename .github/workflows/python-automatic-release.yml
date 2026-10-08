@@ -39,7 +39,7 @@ permissions:
 jobs:
   python-release:
     name: 🐍 Python Semantic Release Pipeline
-    uses: bauer-group/automation-templates/.github/workflows/python-semantic-release.yml@main
+    uses: bauer-group/automation-templates/.github/workflows/python-semantic-release.yml@fix/security-scan-gitguardian-trivy
     with:
       # Python Configuration
       python-version: '3.12'  # or ['3.10', '3.11', '3.12'] for matrix
