@@ -9,6 +9,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "sunday"
+      time: "13:30"
+      timezone: "Etc/UTC"
 
   # - package-ecosystem: "gitsubmodule"
   #   directory: "/"
